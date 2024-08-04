@@ -1,15 +1,15 @@
 <?php
 
-namespace VendorName\Skeleton;
+namespace Wsmallnews\Support;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 
-class SkeletonPlugin implements Plugin
+class SupportPlugin implements Plugin
 {
     public function getId(): string
     {
-        return 'skeleton';
+        return 'support';
     }
 
     public function register(Panel $panel): void
