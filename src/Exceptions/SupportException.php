@@ -4,6 +4,4 @@ namespace Wsmallnews\Support\Exceptions;
 
 use Exception;
 
-class SupportException extends Exception {
-
-}
+class SupportException extends Exception {}

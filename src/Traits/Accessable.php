@@ -21,7 +21,7 @@ trait Accessable
      */
     public function __isset(string $key): bool
     {
-        return !is_null($this->get($key));
+        return ! is_null($this->get($key));
     }
 
     /**
@@ -35,7 +35,7 @@ trait Accessable
     /**
      * __set.
      *
-     * @param mixed $value
+     * @param  mixed  $value
      */
     public function __set(string $key, $value): void
     {
@@ -45,8 +45,7 @@ trait Accessable
     /**
      * get.
      *
-     * @param mixed $default
-     *
+     * @param  mixed  $default
      * @return mixed
      */
     public function get(?string $key = null, $default = null)
@@ -67,7 +66,7 @@ trait Accessable
     /**
      * set.
      *
-     * @param mixed $value
+     * @param  mixed  $value
      */
     public function set(string $key, $value): self
     {
@@ -85,8 +84,7 @@ trait Accessable
      *
      * @see https://php.net/manual/en/arrayaccess.offsetexists.php
      *
-     * @param mixed $offset an offset to check for
-     *
+     * @param  mixed  $offset  an offset to check for
      * @return bool true on success or false on failure.
      *
      * The return value will be casted to boolean if non-boolean was returned.
@@ -94,7 +92,7 @@ trait Accessable
     #[\ReturnTypeWillChange]
     public function offsetExists($offset)
     {
-        return !is_null($this->get($offset));
+        return ! is_null($this->get($offset));
     }
 
     /**
@@ -102,8 +100,7 @@ trait Accessable
      *
      * @see https://php.net/manual/en/arrayaccess.offsetget.php
      *
-     * @param mixed $offset the offset to retrieve
-     *
+     * @param  mixed  $offset  the offset to retrieve
      * @return mixed can return all value types
      */
     #[\ReturnTypeWillChange]
@@ -117,9 +114,8 @@ trait Accessable
      *
      * @see https://php.net/manual/en/arrayaccess.offsetset.php
      *
-     * @param mixed $offset the offset to assign the value to
-     * @param mixed $value  the value to set
-     *
+     * @param  mixed  $offset  the offset to assign the value to
+     * @param  mixed  $value  the value to set
      * @return void
      */
     #[\ReturnTypeWillChange]
@@ -133,12 +129,9 @@ trait Accessable
      *
      * @see https://php.net/manual/en/arrayaccess.offsetunset.php
      *
-     * @param mixed $offset the offset to unset
-     *
+     * @param  mixed  $offset  the offset to unset
      * @return void
      */
     #[\ReturnTypeWillChange]
-    public function offsetUnset($offset)
-    {
-    }
+    public function offsetUnset($offset) {}
 }

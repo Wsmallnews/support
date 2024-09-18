@@ -2,15 +2,12 @@
 
 namespace Wsmallnews\Support\Enums\Traits;
 
-
 trait EnumHelper
 {
-
     /**
      * 获取枚举数组
      *
-     * @param boolean $is_kv      是否是 key-value 模式，默认否
-     * @return array
+     * @param  bool  $is_kv  是否是 key-value 模式，默认否
      */
     public static function labels($is_kv = false): array
     {

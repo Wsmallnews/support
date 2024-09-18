@@ -1,10 +1,10 @@
 <?php
 
-if (!function_exists('client_unique')) {
+if (! function_exists('client_unique')) {
     /**
      * 获取客户端唯一标识
      *
-     * @return boolean
+     * @return bool
      */
     function client_unique()
     {
@@ -20,13 +20,11 @@ if (!function_exists('client_unique')) {
     }
 }
 
-
-
-if (!function_exists('db_listen')) {
+if (! function_exists('db_listen')) {
     /**
      * 获取客户端唯一标识
      *
-     * @return boolean
+     * @return bool
      */
     function db_listen()
     {

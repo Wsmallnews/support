@@ -3,9 +3,8 @@
 namespace Wsmallnews\Support\Forms\Fields;
 
 use Closure;
-use Filament\Forms\Concerns\HasComponents;
-use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Concerns;
+use Filament\Forms\Components\Field;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Support\Concerns\HasExtraAlpineAttributes;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -37,7 +36,6 @@ class Arrange extends Field
 
     protected array $tableFieldsViewData = [];
 
-
     public function relationships(array $relations): static
     {
         $arrangeRelationshipInfo = $relations['arranges'] ?? [];
@@ -57,14 +55,12 @@ class Arrange extends Field
             $component->state($state);
         });
 
-
         $this->saveRelationshipsUsing(static function (Arrange $component, HasForms $livewire, ?array $state) {
             // 保存关系
         });
 
         return $this;
     }
-
 
     private function getArrangeRelationship($arrangeRelationshipInfo)
     {
@@ -108,9 +104,9 @@ class Arrange extends Field
         }]);
 
         $arranges = $arrangeRelationshipQuery->get();
+
         return $arranges;
     }
-
 
     public function getRecursionRelationship($recursionRelationshipInfo)
     {
@@ -134,37 +130,33 @@ class Arrange extends Field
         }
 
         $recursions = $recursionRelationshipQuery->get();
+
         return $recursions;
     }
-
 
     public function getOrderColumn($orderColumn): ?string
     {
         return $this->evaluate($orderColumn);
     }
 
-
     public function getRelationship($relationship): HasOneOrMany | BelongsToMany | null
     {
         if (! $this->hasRelationship($relationship)) {
-            return null; 
+            return null;
         }
 
         return $this->getModelInstance()->{$this->getRelationshipName($relationship)}();
     }
-
 
     public function hasRelationship($relationship): bool
     {
         return filled($this->getRelationshipName($relationship));
     }
 
-
     public function getRelationshipName($relationship): ?string
     {
         return $this->evaluate($relationship);
     }
-
 
     public function tableFields(array | Closure $tableFields = []): static
     {
@@ -173,12 +165,10 @@ class Arrange extends Field
         return $this;
     }
 
-
     public function getTableFields(): array
     {
-        return (array)$this->evaluate($this->tableFields);
+        return (array) $this->evaluate($this->tableFields);
     }
-
 
     public function tableFieldsView(string $tableFieldsView, array $viewData = []): static
     {
@@ -190,7 +180,6 @@ class Arrange extends Field
 
         return $this;
     }
-
 
     /**
      * @param  array<string, mixed>  $data
@@ -205,12 +194,10 @@ class Arrange extends Field
         return $this;
     }
 
-
     public function getTableFieldsViewData(): array
     {
-        return (array)$this->tableFieldsViewData;
+        return (array) $this->tableFieldsViewData;
     }
-
 
     /**
      * @return view-string
@@ -224,7 +211,6 @@ class Arrange extends Field
         throw new SupportException('Class [' . static::class . '] but does not have a [$tableFieldsView] property defined.');
     }
 
-
     public function arrangeToRecursionKey(string | Closure $name = 'arrange_ids'): static
     {
         $this->arrangeToRecursionKey = $name;
@@ -232,12 +218,10 @@ class Arrange extends Field
         return $this;
     }
 
-
     public function getArrangeToRecursionKey(): ?string
     {
-        return (string)$this->evaluate($this->arrangeToRecursionKey);
+        return (string) $this->evaluate($this->arrangeToRecursionKey);
     }
-
 
     public function arrangePlaceholder(string | Closure | null $arrangePlaceholder): static
     {
@@ -251,7 +235,6 @@ class Arrange extends Field
         return $this->evaluate($this->arrangePlaceholder);
     }
 
-
     public function arrangeChildPlaceholder(string | Closure | null $arrangeChildPlaceholder): static
     {
         $this->arrangeChildPlaceholder = $arrangeChildPlaceholder;
@@ -263,7 +246,6 @@ class Arrange extends Field
     {
         return $this->evaluate($this->arrangeChildPlaceholder);
     }
-
 
     public function addActionLabel(string | Closure | null $label): static
     {
@@ -277,7 +259,6 @@ class Arrange extends Field
         return $this->evaluate($this->addActionLabel) ?? __('sn-support::forms.fields.arrange.actions.add_label');
     }
 
-
     public function addChildActionLabel(string | Closure | null $label): static
     {
         $this->addChildActionLabel = $label;
@@ -285,7 +266,6 @@ class Arrange extends Field
         return $this;
     }
 
-    
     public function getChildAddActionLabel(): string
     {
         return $this->evaluate($this->addChildActionLabel) ?? __('sn-support::forms.fields.arrange.actions.add_child_label');

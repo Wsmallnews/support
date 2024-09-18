@@ -44,9 +44,7 @@ class SupportServiceProvider extends PackageServiceProvider
         }
     }
 
-
     public function packageRegistered(): void {}
-
 
     public function packageBooted(): void
     {
@@ -64,7 +62,6 @@ class SupportServiceProvider extends PackageServiceProvider
         // FilamentAsset::register([
         //     Js::make('tailwindcss', 'https://cdn.tailwindcss.com'),
         // ]);
-
 
         // Handle Stubs
         if (app()->runningInConsole()) {
@@ -97,7 +94,6 @@ class SupportServiceProvider extends PackageServiceProvider
         ];
     }
 
-    
     /**
      * @return array<string, mixed>
      */

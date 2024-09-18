@@ -5,13 +5,11 @@ namespace Wsmallnews\Support;
 use ArrayAccess;
 use Illuminate\Support\Collection;
 use JsonSerializable;
-use Wsmallnews\Support\Traits\{
-    Accessable,
-    Arrayable,
-    Serializable
-};
+use Wsmallnews\Support\Traits\Accessable;
+use Wsmallnews\Support\Traits\Arrayable;
+use Wsmallnews\Support\Traits\Serializable;
 
-class Rocket implements JsonSerializable, ArrayAccess
+class Rocket implements ArrayAccess, JsonSerializable
 {
     use Accessable;
     use Arrayable;
@@ -19,40 +17,29 @@ class Rocket implements JsonSerializable, ArrayAccess
 
     /**
      * 传入的数据
-     *
-     * @var array
      */
     protected array $params = [];
 
-
     /**
      * 处理过程中产生的数据
-     *
-     * @var array
      */
     protected array $radars = [];
 
-
-
     /**
      * 最终处理好的数据
-     *
-     * @var Collection|null
      */
     protected ?Collection $payloads = null;
-
 
     public function getParams(): array
     {
         return $this->params;
     }
 
-
     /**
      * 获取指定传入参数.
      *
-     * @param string $name
-     * @param mixed $default
+     * @param  string  $name
+     * @param  mixed  $default
      * @return mixed
      */
     public function getParam($name, $default = null)
@@ -74,18 +61,15 @@ class Rocket implements JsonSerializable, ArrayAccess
         return $this;
     }
 
-
     public function getRadar($name, $default = null)
     {
         return $this->radars[$name] ?? $default;
     }
 
-
     public function getRadars(): array
     {
         return $this->radars;
     }
-
 
     public function setRadars(array $radars): Rocket
     {
@@ -94,13 +78,10 @@ class Rocket implements JsonSerializable, ArrayAccess
         return $this;
     }
 
-
     /**
      * 合并里面的子项数组
      *
-     * @param array $value
-     * @param string $field
-     * @return Rocket
+     * @param  string  $field
      */
     public function mergeRadarField(array $value, $field): Rocket
     {
@@ -114,7 +95,6 @@ class Rocket implements JsonSerializable, ArrayAccess
         return $this;
     }
 
-
     public function mergeRadars(array $radars): Rocket
     {
         $this->radars = array_merge($this->radars, $radars);
@@ -122,15 +102,10 @@ class Rocket implements JsonSerializable, ArrayAccess
         return $this;
     }
 
-
-
-
-
     public function getPayload($name, $default = null)
     {
         return $this->payloads[$name] ?? $default;
     }
-
 
     public function getPayloads(): ?Collection
     {
@@ -144,18 +119,16 @@ class Rocket implements JsonSerializable, ArrayAccess
         return $this;
     }
 
-
     /**
      * 合并payload.
      *
-     * @param array $payload
-     *
+     * @param  array  $payload
      * @return $this
      */
     public function mergePayloads(array $payloads): Rocket
     {
         if (empty($this->payloads)) {
-            $this->payloads = new Collection();
+            $this->payloads = new Collection;
         }
 
         $this->payloads = $this->payloads->merge($payloads);
