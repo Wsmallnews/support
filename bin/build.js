@@ -45,6 +45,6 @@ const defaultOptions = {
 
 compile({
     ...defaultOptions,
-    entryPoints: ['./resources/js/index.js'],
-    outfile: './resources/dist/support.js',
+    entryPoints: ['./resources/js/forms/arrange.js'],
+    outfile: './resources/dist/forms/arrange.js',
 })

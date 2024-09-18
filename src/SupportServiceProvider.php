@@ -7,35 +7,25 @@ use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
-use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
 use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Wsmallnews\Support\Commands\SupportCommand;
 use Wsmallnews\Support\Testing\TestsSupport;
 
 class SupportServiceProvider extends PackageServiceProvider
 {
-    public static string $name = 'support';
+    public static string $name = 'sn-support';
 
-    public static string $viewNamespace = 'support';
+    public static string $viewNamespace = 'sn-support';
 
     public function configurePackage(Package $package): void
     {
-        /*
-         * This class is a Package Service Provider
-         *
-         * More info: https://github.com/spatie/laravel-package-tools
-         */
         $package->name(static::$name)
-            ->hasCommands($this->getCommands())
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->publishConfigFile()
-                    ->publishMigrations()
-                    ->askToRunMigrations()
                     ->askToStarRepoOnGitHub('wsmallnews/support');
             });
 
@@ -43,10 +33,6 @@ class SupportServiceProvider extends PackageServiceProvider
 
         if (file_exists($package->basePath("/../config/{$configFileName}.php"))) {
             $package->hasConfigFile();
-        }
-
-        if (file_exists($package->basePath('/../database/migrations'))) {
-            $package->hasMigrations($this->getMigrations());
         }
 
         if (file_exists($package->basePath('/../resources/lang'))) {
@@ -58,7 +44,9 @@ class SupportServiceProvider extends PackageServiceProvider
         }
     }
 
+
     public function packageRegistered(): void {}
+
 
     public function packageBooted(): void
     {
@@ -73,8 +61,10 @@ class SupportServiceProvider extends PackageServiceProvider
             $this->getAssetPackageName()
         );
 
-        // Icon Registration
-        FilamentIcon::register($this->getIcons());
+        // FilamentAsset::register([
+        //     Js::make('tailwindcss', 'https://cdn.tailwindcss.com'),
+        // ]);
+
 
         // Handle Stubs
         if (app()->runningInConsole()) {
@@ -100,53 +90,19 @@ class SupportServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
+            AlpineComponent::make('forms-arrange', __DIR__ . '/../resources/dist/forms/arrange.js'),
             // AlpineComponent::make('support', __DIR__ . '/../resources/dist/components/support.js'),
-            Css::make('support-styles', __DIR__ . '/../resources/dist/support.css'),
-            Js::make('support-scripts', __DIR__ . '/../resources/dist/support.js'),
+            // Css::make('support-styles', __DIR__ . '/../resources/dist/support.css'),
+            // Js::make('support-scripts', __DIR__ . '/../resources/dist/support.js'),
         ];
     }
 
-    /**
-     * @return array<class-string>
-     */
-    protected function getCommands(): array
-    {
-        return [
-            SupportCommand::class,
-        ];
-    }
-
-    /**
-     * @return array<string>
-     */
-    protected function getIcons(): array
-    {
-        return [];
-    }
-
-    /**
-     * @return array<string>
-     */
-    protected function getRoutes(): array
-    {
-        return [];
-    }
-
+    
     /**
      * @return array<string, mixed>
      */
     protected function getScriptData(): array
     {
         return [];
-    }
-
-    /**
-     * @return array<string>
-     */
-    protected function getMigrations(): array
-    {
-        return [
-            'create_support_table',
-        ];
     }
 }

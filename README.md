@@ -17,13 +17,6 @@ You can install the package via composer:
 composer require wsmallnews/support
 ```
 
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="support-migrations"
-php artisan migrate
-```
-
 You can publish the config file with:
 
 ```bash

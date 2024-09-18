@@ -41,7 +41,10 @@
         "psr-4": {
             "Wsmallnews\\Support\\": "src/",
             "Wsmallnews\\Support\\Database\\Factories\\": "database/factories/"
-        }
+        },
+        "files": [
+            "./src/Helpers/helper.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
