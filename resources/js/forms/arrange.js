@@ -65,7 +65,10 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
                 
                 // 将真实 id 数组，循环，找到对应的临时 id 组合成数组
                 currentRecursion['arrange_temp_ids'] = [];
-                let arrangeToRecursionIds = currentRecursion[this.arrangeToRecursionKey].split(',');
+
+                let arrangeToRecursionIds = Array.isArray(currentRecursion[this.arrangeToRecursionKey]) ? 
+                    currentRecursion[this.arrangeToRecursionKey] : currentRecursion[this.arrangeToRecursionKey].split(',');
+
                 arrangeToRecursionIds.forEach((ids) => {
                     if (this.arrangeRealIdToTempId[ids]) {
                         currentRecursion['arrange_temp_ids'].push(this.arrangeRealIdToTempId[ids]);
@@ -88,7 +91,6 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
         },
         arrangeTemplate: function () {
             return {
-                id: 0,
                 temp_id: this.arrangeTempIdCount++,
                 name: "",
                 order_column: this.arranges.length,
@@ -97,7 +99,6 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
         },
         childrenArrangeTemplate: function (index) {
             return {
-                id: 0,
                 temp_id: this.arrangeTempIdCount++,
                 name: "",
                 image: "",
@@ -209,7 +210,6 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
 
                 if (!flag) {
                     let pushRecursion = {
-                        id: 0,
                         temp_id: this.recursionTempIdCount + 1,
                         arrange_texts: tempDetail,
                         arrange_temp_ids: tempDetailIds,
@@ -221,7 +221,7 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
                     })
 
                     // 初始化转换字段
-                    pushRecursion[this.arrangeToRecursionKey] = '';
+                    pushRecursion[this.arrangeToRecursionKey] = [];
 
                     this.recursions.push(pushRecursion)
                 } else {

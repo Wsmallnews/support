@@ -29,9 +29,13 @@ if (! function_exists('db_listen')) {
     function db_listen()
     {
         \Illuminate\Support\Facades\DB::listen(function ($query) {
-            echo $query->sql . '<br>';
-            echo $query->bindings . '<br>';
-            echo $query->time . '<br>';
+            $sql = $query->sql . '##|';
+            foreach ($query->bindings as $k => $v) {
+                $sql .= $k . ' => ' . $v . '|';
+            }
+            $sql .= '##' . $query->time . '<br>';
+
+            echo $sql;
         });
     }
 }

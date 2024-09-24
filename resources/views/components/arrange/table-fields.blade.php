@@ -8,6 +8,16 @@
     </template>
 </template>
 
+
+{{-- <td class="p-4">
+    <x-filament::input.wrapper
+
+    >
+        <x-sn-support::file-upload
+        />
+    </x-filament::input.wrapper>
+</td> --}}
+
 <td class="p-4">
     <x-filament::input.wrapper
 
