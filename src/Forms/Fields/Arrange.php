@@ -93,7 +93,6 @@ class Arrange extends Field
         return $this;
     }
 
-
     private function getArrangeRelationship($arrangeRelationshipInfo)
     {
         $originalArrangeRelationshipName = $arrangeRelationshipInfo['relationship'] ?? 'arrange';
@@ -133,7 +132,6 @@ class Arrange extends Field
         return $arranges;
     }
 
-
     public function getRecursionRelationship($recursionRelationshipInfo)
     {
         $originalRecursionRelationshipName = $recursionRelationshipInfo['relationship'] ?? 'recursions';
@@ -152,7 +150,6 @@ class Arrange extends Field
 
         return $recursions;
     }
-
 
     private function saveRelationshipArrange(Arrange $component, HasForms $livewire, $arrangeRelationshipInfo, ?array $state)
     {
@@ -189,13 +186,13 @@ class Arrange extends Field
         // 遍历删除已经不存在的 arranges
         foreach ($oldArranges as $oldArrange) {
             foreach ($oldArrange['children'] as $oldChildren) {
-                if (!in_array($oldChildren->$arrangeChildrenPk, $arrangeChildrenOldIds)) {
+                if (! in_array($oldChildren->$arrangeChildrenPk, $arrangeChildrenOldIds)) {
                     // 删除已经不存在的 arrangeChildren
                     $oldChildren->delete();
                 }
             }
 
-            if (!in_array($oldArrange->$arrangePk, $arrangeOldIds)) {
+            if (! in_array($oldArrange->$arrangePk, $arrangeOldIds)) {
                 // 删除已经不存在的 arrange`
                 $oldArrange->delete();
             }
@@ -204,7 +201,7 @@ class Arrange extends Field
         // 添加编辑新的 arrange
         foreach ($arranges as $arrange) {
             $arrangePkId = $arrange[$arrangePk] ?? 0;
-            
+
             $arrangeModel = null;
             if ($arrangePkId) {
                 $arrangeModel = $this->getRelationship($originalArrangeRelationshipName)->where($arrangePk, $arrangePkId)->first();
@@ -224,7 +221,7 @@ class Arrange extends Field
 
             foreach ($arrange['children'] as $children) {
                 $arrangeChildrenPkId = $children[$arrangeChildrenPk] ?? 0;
-                
+
                 $arrangeChildrenModel = null;
                 if ($arrangeChildrenPkId) {
                     $arrangeChildrenModel = $arrangeModel->{$this->getRelationshipName($originalArrangeChildrenRelationshipName)}()->where($arrangeChildrenPk, $arrangeChildrenPkId)->first();
@@ -249,7 +246,6 @@ class Arrange extends Field
         }
     }
 
-
     private function saveRelationshipRecursion(Arrange $component, HasForms $livewire, $recursionRelationshipInfo, ?array $state)
     {
         $recursions = $state['recursions'] ?? [];
@@ -266,7 +262,7 @@ class Arrange extends Field
 
         $oldRecursions = $this->getRecursionRelationship($recursionRelationshipInfo);
         foreach ($oldRecursions as $oldRecursion) {
-            if (!in_array($oldRecursion->$recursionPk, $recursionOldIds)) {
+            if (! in_array($oldRecursion->$recursionPk, $recursionOldIds)) {
                 // 删除已经不存在的 recursions
                 $oldRecursion->delete();
             }
@@ -306,7 +302,6 @@ class Arrange extends Field
         }
     }
 
-
     private function getArrangeRealId($arrangeTempIds)
     {
         $realIdsArray = [];
@@ -318,7 +313,6 @@ class Arrange extends Field
 
         return $realIdsArray;
     }
-
 
     public function getOrderColumn($orderColumn): ?string
     {
@@ -334,7 +328,6 @@ class Arrange extends Field
         return $this->getModelInstance()->{$this->getRelationshipName($relationship)}();
     }
 
-
     public function getModelRelationship($model, $relationship)
     {
         if (! $this->hasRelationship($relationship)) {
@@ -343,7 +336,6 @@ class Arrange extends Field
 
         return $model->{$this->getRelationshipName($relationship)}();
     }
-
 
     public function hasRelationship($relationship): bool
     {
