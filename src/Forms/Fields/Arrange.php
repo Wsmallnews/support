@@ -77,7 +77,7 @@ class Arrange extends Field
         // });
 
         $this->saveRelationshipsUsing(function (Arrange $component, HasForms $livewire, array | Collection | null $state) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
-            
+
             // 保存 关联数据
             if (! is_array($state)) {       // @sn todo 这里判断可能有问题，添加的时候 states 是 collection 类型
                 $state = [];
