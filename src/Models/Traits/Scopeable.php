@@ -51,14 +51,14 @@ trait Scopeable
      * @param  array  $data
      * @return string
      */
-    public function getScopeTypeTextAttr($value, $data)
-    {
-        $value = $value ?: ($data['scope_type'] ?? null);
+    // public function getScopeTypeTextAttr($value, $data)
+    // {
+    //     $value = $value ?: ($data['scope_type'] ?? null);
 
-        $list = $this->scopeTypeList();
+    //     $list = $this->scopeTypeList();
 
-        return isset($list[$value]) ? $list[$value] : '';
-    }
+    //     return isset($list[$value]) ? $list[$value] : '';
+    // }
 
     /**
      * 获取范围类型文字

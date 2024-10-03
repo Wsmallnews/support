@@ -9,6 +9,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Support\Concerns\HasExtraAlpineAttributes;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Wsmallnews\Support\Exceptions\SupportException;
 
@@ -75,9 +76,10 @@ class Arrange extends Field
         //     return $state;
         // });
 
-        $this->saveRelationshipsUsing(function (Arrange $component, HasForms $livewire, ?array $state) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
+        $this->saveRelationshipsUsing(function (Arrange $component, HasForms $livewire, array | Collection | null $state) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
+            
             // 保存 关联数据
-            if (! is_array($state)) {
+            if (! is_array($state)) {       // @sn todo 这里判断可能有问题，添加的时候 states 是 collection 类型
                 $state = [];
             }
 

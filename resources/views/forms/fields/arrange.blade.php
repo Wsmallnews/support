@@ -35,7 +35,7 @@
             <div class="border rounded p-2.5 bg-gray-100 mb-4">
                 <div class="w-fit relative">
                     <x-filament::input.wrapper
-                        :valid="! $errors->has($statePath)"
+                        {{-- :valid="! $errors->has($statePath)" --}}
                         :attributes="
                             \Filament\Support\prepare_inherited_attributes($getExtraAttributeBag())
                                 ->class(['fi-fo-text-input overflow-hidden sm:w-full max-w-80'])

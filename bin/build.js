@@ -48,3 +48,9 @@ compile({
     entryPoints: ['./resources/js/forms/arrange.js'],
     outfile: './resources/dist/forms/arrange.js',
 })
+
+compile({
+    ...defaultOptions,
+    entryPoints: ['./resources/js/components/swiper.js'],
+    outfile: './resources/dist/components/swiper.js',
+})
