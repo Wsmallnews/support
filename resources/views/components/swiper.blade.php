@@ -1,6 +1,7 @@
 @props([
     'images' => [],             // 图片数组
     'swiperCss' => '',          // 给 swiper 最外层容器附加 css
+    'swiperIsSquare' => true,   // 主 swiper 是否是正方形
     'hasThumb' => true,         // 是否有缩略图 swiper
     'thumbCss' => '',           // 给 thumb swiper 最外层容器附加 css
     'thumbScale' => 20,         // 缩略图 swiper 所占比例 20%
@@ -16,8 +17,8 @@
         $thumbScale = 0;       // 比例改为 0
     }
 
-    $swiperScale = (100 - $thumbScale) . '%';
-    $thumbScale = $thumbScale . '%';
+    $swiperScaleFmt = (100 - $thumbScale) . '%';
+    $thumbScaleFmt = $thumbScale . '%';
 @endphp
 
 @assets
@@ -37,7 +38,6 @@
 
     .detail-swiper-thumbs {
         box-sizing: border-box;
-        padding: 10px 0;
     }
 
     .swiper-slide {
@@ -66,8 +66,17 @@
         opacity: 1;
     }
 
-    .detail-swiper-thumbs.directionx {
-        padding: 0 10px !important;
+    .detail-swiper-thumbs.directionl {
+        padding-right: 10px !important;
+    }
+    .detail-swiper-thumbs.directionr {
+        padding-left: 10px !important;
+    }
+    .detail-swiper-thumbs.directiont {
+        padding-bottom: 10px !important;
+    }
+    .detail-swiper-thumbs.directionb {
+        padding-top: 10px !important;
     }
 
     .detail-swiper-thumbs.directionx .swiper-slide {
@@ -88,8 +97,14 @@
         wire:ignore
         ax-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('components-swiper', 'wsmallnews/support') }}"
         x-data="supportSwiper({
-            hasThumb: @js($hasThumb)
+            swiperIsSquare: @js($swiperIsSquare),
+            hasThumb: @js($hasThumb),
+            thumbPosition: @js($thumbPosition),
+            thumbScale: @js($thumbScale),
         })"
+        x-cloak
+        x-resize="setSwiperHeight"
+        :style="{ height: swiperHeight + 'px' }"
     {{
         $attributes
             ->class([
@@ -107,8 +122,8 @@
     <div class="swiper detail-swiper {{$swiperCss}}
         {{
             match ($thumbPosition) {
-                'left', 'right' => 'w-[' . $swiperScale . '] h-full',
-                'top', 'bottom' => 'h-[' . $swiperScale . '] w-full',
+                'left', 'right' => 'w-[' . $swiperScaleFmt . '] h-full',
+                'top', 'bottom' => 'h-[' . $swiperScaleFmt . '] w-full',
             }
         }}
     ">
@@ -127,8 +142,10 @@
         <div class="swiper detail-swiper-thumbs {{$thumbCss}}
             {{
                 match ($thumbPosition) {
-                    'left', 'right' => 'w-[' . $thumbScale . '] h-full directionx',
-                    'top', 'bottom' => 'h-[' . $thumbScale . '] w-full',
+                    'left' => 'w-[' . $thumbScaleFmt . '] h-full directionx directionl',
+                    'right' => 'w-[' . $thumbScaleFmt . '] h-full directionx directionr',
+                    'top' => 'h-[' . $thumbScaleFmt . '] w-full directiont',
+                    'bottom' => 'h-[' . $thumbScaleFmt . '] w-full directionb',
                 }
             }}
         " thumbsSlider="">

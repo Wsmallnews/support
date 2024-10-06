@@ -3,13 +3,12 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
         state,
         arrangeToRecursionKey,
         tableFields,
-        arrangeTempIdCount: 1,
-        recursionTempIdCount: 1,
         arrangeRealIdToTempId: [],
         arranges: [],
         recursions: [],
+        existRandoms: [],
         init: function() {
-            // 初始化 arranges
+            // 初始化 arranges, 组件的显示隐藏会重新走该方法 (比如切换单规格多规格)
             this.initArranges();
 
             // 初始化 recursions
@@ -29,24 +28,34 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
                 this.updateState();
             })
 
-            // this.$watch('recursions', (recursions, oldRecursions) => {
-            //     this.updateState();          // x-model 的浅绑定会自动更新 state, 这个监听先注释
-            // })
+            this.$watch('recursions', (recursions, oldRecursions) => {
+                this.updateState();          // x-model 的浅绑定会自动更新 state, 但是还是更新一下好
+            })
         },
         initArranges: function() {
-            let stateArranges = this.state.arranges ?? [];
+            let stateArranges = this.state?.arranges ?? [];
 
             stateArranges.forEach((stateArrange, index) => {
                 let currentArrange = stateArrange;
-                currentArrange['temp_id'] = this.arrangeTempIdCount++;
+                if (currentArrange['temp_id'] == undefined || !currentArrange['temp_id']) {
+                    currentArrange['temp_id'] = this.tempRandom();
+                } else {
+                    this.existRandoms.push(currentArrange['temp_id']);       // 保存，避免重复
+                }
                 
                 let currentChildren = [];
                 stateArrange.children.forEach((children, idx) => {
-                    // 为每个 规格项增加当前页面自增计数器，比较唯一用
-                    children['temp_id'] = this.arrangeTempIdCount++;
+                    if (children['temp_id'] == undefined || !children['temp_id']) {
+                        // 为每个 规格项增加当前页面自增计数器，比较唯一用
+                        children['temp_id'] = this.tempRandom();
+                    } else {
+                        this.existRandoms.push(children['temp_id']);       // 保存，避免重复
+                    }
 
-                    // 记录规格项真实 id 对应的 临时 id
-                    this.arrangeRealIdToTempId[children.id] = children['temp_id'];
+                    if (children.id != undefined && children.id) {
+                        // 记录规格项真实 id 对应的 临时 id
+                        this.arrangeRealIdToTempId[children.id] = children['temp_id'];
+                    }
 
                     currentChildren.push(children)
                 })
@@ -55,29 +64,38 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
             })
         },
         initRecursions: function() {
-            let stateRecursions = this.state.recursions ?? [];
+            let stateRecursions = this.state?.recursions ?? [];
 
             stateRecursions.forEach((stateRecursion, index) => {
                 let currentRecursion = stateRecursion;
 
                 // 增加临时 id
-                currentRecursion['temp_id'] = this.recursionTempIdCount++;
+                currentRecursion['temp_id'] = this.tempRandom(10000000, 99999999);
                 
-                // 将真实 id 数组，循环，找到对应的临时 id 组合成数组
-                currentRecursion['arrange_temp_ids'] = [];
-
-                let arrangeToRecursionIds = Array.isArray(currentRecursion[this.arrangeToRecursionKey]) ? 
-                    currentRecursion[this.arrangeToRecursionKey] : currentRecursion[this.arrangeToRecursionKey].split(',');
-
-                arrangeToRecursionIds.forEach((ids) => {
-                    if (this.arrangeRealIdToTempId[ids]) {
-                        currentRecursion['arrange_temp_ids'].push(this.arrangeRealIdToTempId[ids]);
+                // 组合 arrange_temp_ids
+                if (Array.isArray(currentRecursion['arrange_temp_ids']) && currentRecursion['arrange_temp_ids'].length > 0) {
+                    // 切换 arrange 状态导致的重新初始化
+                    if (this.arranges.length == currentRecursion['arrange_temp_ids'].length) {
+                        // 只要和 arranges 长度匹配
+                        this.recursions.push(currentRecursion)
                     }
-                })
-                
-                if (arrangeToRecursionIds.length == currentRecursion['arrange_temp_ids'].length) {
-                    // 能找到匹配的 arranges ，找不到的丢弃
-                    this.recursions.push(currentRecursion)
+                } else {
+                    // 编辑时候，将真实 id 数组，循环，找到对应的临时 id 组合成数组
+                    currentRecursion['arrange_temp_ids'] = [];
+    
+                    let arrangeToRecursionIds = Array.isArray(currentRecursion[this.arrangeToRecursionKey]) ? 
+                        currentRecursion[this.arrangeToRecursionKey] : currentRecursion[this.arrangeToRecursionKey].split(',');
+
+                    arrangeToRecursionIds.forEach((ids) => {
+                        if (this.arrangeRealIdToTempId[ids]) {
+                            currentRecursion['arrange_temp_ids'].push(this.arrangeRealIdToTempId[ids]);
+                        }
+                    })
+
+                    if (arrangeToRecursionIds.length == currentRecursion['arrange_temp_ids'].length) {
+                        // 能找到匹配的 arranges ，找不到的丢弃
+                        this.recursions.push(currentRecursion)
+                    }
                 }
             })
         },
@@ -91,7 +109,7 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
         },
         arrangeTemplate: function () {
             return {
-                temp_id: this.arrangeTempIdCount++,
+                temp_id: this.tempRandom(),
                 name: "",
                 order_column: this.arranges.length,
                 children: []
@@ -99,7 +117,7 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
         },
         childrenArrangeTemplate: function (index) {
             return {
-                temp_id: this.arrangeTempIdCount++,
+                temp_id: this.tempRandom(),
                 name: "",
                 image: "",
                 order_column: this.arranges[index].children.length
@@ -210,7 +228,7 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
 
                 if (!flag) {
                     let pushRecursion = {
-                        temp_id: this.recursionTempIdCount + 1,
+                        temp_id: this.tempRandom(10000000, 99999999),
                         arrange_texts: tempDetail,
                         arrange_temp_ids: tempDetailIds,
                     };
@@ -237,6 +255,17 @@ export default function arrangeFormField({ state, arrangeToRecursionKey, tableFi
                     this.recursionFunc(arrangeChildrenIdArr, arrangeK + 1, temp);
                 })
             }
+        },
+        tempRandom: function (min = 1000000, max = 9999999) {
+            let random;
+
+            do {
+                random = Math.floor(Math.random() * (max - min + 1)) + min;
+            } while (this.existRandoms.includes(random));
+
+            this.existRandoms.push(random);      // 保存，避免重复
+
+            return random;
         }
     }
 }

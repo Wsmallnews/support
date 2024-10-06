@@ -6,11 +6,15 @@ import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 
-export default function supportSwiper({ hasThumb }) {
+export default function supportSwiper({ swiperIsSquare, hasThumb, thumbPosition, thumbScale }) {
     return {
         swiper: null,
         thumbSwiper: null,
+        swiperIsSquare,
         hasThumb,
+        thumbPosition,
+        thumbScale,
+        swiperHeight: null,
         init: function() {
             let swiperOptions = {
                 modules: [FreeMode, Navigation, Thumbs],
@@ -39,7 +43,21 @@ export default function supportSwiper({ hasThumb }) {
             }
 
             this.swiper = new Swiper(".detail-swiper", swiperOptions);
+        },
+        setSwiperHeight: function () {
+            if (!this.swiperIsSquare) {
+                this.swiperHeight = this.$height
+            } else {
+                if (this.hasThumb) {
+                    if (['left', 'right'].includes(this.thumbPosition)) {
+                        this.swiperHeight = ((this.$width * (100 - this.thumbScale)) / 100).toFixed(2);
+                    } else {
+                        this.swiperHeight = (this.$width / ((100 - this.thumbScale) / 100)).toFixed(2);
+                    }
+                } else {
+                    this.swiperHeight = this.$width;
+                }
+            }
         }
-        
     }
 }
