@@ -10,7 +10,6 @@ use Filament\Support\Concerns\HasExtraAlpineAttributes;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Wsmallnews\Support\Exceptions\SupportException;
 
 class Arrange extends Field
@@ -45,11 +44,9 @@ class Arrange extends Field
         $arrangeRelationshipInfo = $relations['arranges'] ?? [];
         $recursionRelationshipInfo = $relations['recursions'] ?? [];
 
-        $this->afterStateHydrated(function (Arrange $component, $record) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
-            
-        });
+        $this->afterStateHydrated(function (Arrange $component, $record) {});
 
-        $this->loadStateFromRelationshipsUsing(function (Arrange $component) use ($arrangeRelationshipInfo, $recursionRelationshipInfo)  {
+        $this->loadStateFromRelationshipsUsing(function (Arrange $component) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
             // 从 relationship 加载 state
             $arranges = $this->getArrangeRelationship($arrangeRelationshipInfo);
 
