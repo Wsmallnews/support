@@ -46,7 +46,11 @@ class Arrange extends Field
         $recursionRelationshipInfo = $relations['recursions'] ?? [];
 
         $this->afterStateHydrated(function (Arrange $component, $record) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
-            // hydrated 后 初始化
+            
+        });
+
+        $this->loadStateFromRelationshipsUsing(function (Arrange $component) use ($arrangeRelationshipInfo, $recursionRelationshipInfo)  {
+            // 从 relationship 加载 state
             $arranges = $this->getArrangeRelationship($arrangeRelationshipInfo);
 
             $recursions = $this->getRecursionRelationship($recursionRelationshipInfo);
@@ -57,24 +61,6 @@ class Arrange extends Field
             ]);
             $component->state($state);
         });
-
-        // $this->dehydrateStateUsing(function ($state) use ($arrangeRelationshipInfo) {
-        //     $arrangeRelationshipName = $this->getRelationshipName($arrangeRelationshipInfo['childrenRelationship'] ?? 'children');
-
-        //     $state = $state->toArray();
-        //     $arranges = $state['arranges'] ?? [];
-
-        //     if ($arrangeRelationshipName != 'children') {
-        //         // 处理结果
-        //         foreach ($arranges as &$arrange) {
-        //             $arrange['children'] = $arrange[Str::snake($arrangeRelationshipName)] ?? [];
-        //             unset($arrange[Str::snake($arrangeRelationshipName)]);
-        //         }
-        //     }
-
-        //     $state['arranges'] = $arranges;
-        //     return $state;
-        // });
 
         $this->saveRelationshipsUsing(function (Arrange $component, HasForms $livewire, array | Collection | null $state) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
 
