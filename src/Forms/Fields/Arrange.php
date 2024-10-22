@@ -445,7 +445,6 @@ class Arrange extends Field
         return $this->evaluate($this->addChildActionLabel) ?? __('sn-support::forms.fields.arrange.actions.add_child_label');
     }
 
-
     public function required(bool | Closure $condition = true): static
     {
         $this->isRequired = $condition;
@@ -459,29 +458,29 @@ class Arrange extends Field
 
                 if (count($arranges) < 1) {
                     $fail(__($this->validationMessages['arrange.arrange_must_least_one'] ?? 'sn-support::validate.arrange.arrange_must_least_one', [
-                        'attribute' => $component->getValidationAttribute()
+                        'attribute' => $component->getValidationAttribute(),
                     ]));
                 }
 
                 foreach ($arranges as $key => $arrange) {
-                    if (!isset($arrange['name']) || empty(trim($arrange['name']))) {
+                    if (! isset($arrange['name']) || empty(trim($arrange['name']))) {
                         $fail(__($this->validationMessages['arrange.arrange_must_required'] ?? 'sn-support::validate.arrange.arrange_must_required', [
-                            'attribute' => $component->getValidationAttribute()
+                            'attribute' => $component->getValidationAttribute(),
                         ]));
                     }
 
                     if (count($arrange['children']) <= 0) {
                         $fail(__($this->validationMessages['arrange.arrange_child_must_least_one'] ?? 'sn-support::validate.arrange.arrange_child_must_least_one', [
                             'arrange_name' => $arrange['name'],
-                            'attribute' => $component->getValidationAttribute()
+                            'attribute' => $component->getValidationAttribute(),
                         ]));
                     }
 
                     // 验证子规格不能为空
                     foreach ($arrange['children'] as $k => $child) {
-                        if (!isset($child['name']) || empty(trim($child['name']))) {
+                        if (! isset($child['name']) || empty(trim($child['name']))) {
                             $fail(__($this->validationMessages['arrange.arrange_child_must_required'] ?? 'sn-support::validate.arrange.arrange_child_must_required', [
-                                'attribute' => $component->getValidationAttribute()
+                                'attribute' => $component->getValidationAttribute(),
                             ]));
                         }
                     }
@@ -489,7 +488,7 @@ class Arrange extends Field
 
                 if (count($recursions) < 1) {
                     $fail(__($this->validationMessages['arrange.recursion_must_least_one'] ?? 'sn-support::validate.arrange.recursion_must_least_one', [
-                        'attribute' => $component->getValidationAttribute()
+                        'attribute' => $component->getValidationAttribute(),
                     ]));
                 }
 
@@ -497,11 +496,9 @@ class Arrange extends Field
                 // foreach ($recursions as $key => $recursion) {
                 // }
 
-                return;
             };
         });
 
         return $this;
     }
-
 }
