@@ -29,15 +29,18 @@ const defaultOptions = {
         name: 'watchPlugin',
         setup: function (build) {
             build.onStart(() => {
-                console.log(`Build started at ${new Date(Date.now()).toLocaleTimeString()}: ${build.initialOptions.outfile}`)
+                build.initialOptions.entryPoints.forEach((buildFile) => {
+                    console.log(`Build started at ${new Date(Date.now()).toLocaleTimeString()}: ${buildFile}`)
+                })
             })
-
             build.onEnd((result) => {
-                if (result.errors.length > 0) {
-                    console.log(`Build failed at ${new Date(Date.now()).toLocaleTimeString()}: ${build.initialOptions.outfile}`, result.errors)
-                } else {
-                    console.log(`Build finished at ${new Date(Date.now()).toLocaleTimeString()}: ${build.initialOptions.outfile}`)
-                }
+                build.initialOptions.entryPoints.forEach((buildFile) => {
+                    if (result.errors.length > 0) {
+                        console.log(`Build failed at ${new Date(Date.now()).toLocaleTimeString()}: ${buildFile}`, result.errors)
+                    } else {
+                        console.log(`Build finished at ${new Date(Date.now()).toLocaleTimeString()}: ${buildFile}`)
+                    }
+                })
             })
         }
     }],
@@ -45,12 +48,6 @@ const defaultOptions = {
 
 compile({
     ...defaultOptions,
-    entryPoints: ['./resources/js/forms/arrange.js'],
-    outfile: './resources/dist/forms/arrange.js',
-})
-
-compile({
-    ...defaultOptions,
-    entryPoints: ['./resources/js/components/swiper.js'],
-    outfile: './resources/dist/components/swiper.js',
+    entryPoints: ['./resources/js/forms/arrange.js', './resources/js/components/swiper.js', './resources/js/components/file-upload.js'],
+    outdir: './resources/dist/',
 })

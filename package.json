@@ -9,6 +9,8 @@
         "esbuild": "^0.19.2"
     },
     "dependencies": {
+        "filepond": "^4.31.4",
+        "filepond-plugin-image-preview": "^4.6.12",
         "swiper": "^11.1.14"
     }
 }

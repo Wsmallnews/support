@@ -46,7 +46,7 @@ class Arrange extends Field
         $recursionRelationshipInfo = $relations['recursions'] ?? [];
 
         $this->afterStateHydrated(function (Arrange $component, $record) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
-            
+
         });
 
         $this->loadStateFromRelationshipsUsing(function (Arrange $component) use ($arrangeRelationshipInfo, $recursionRelationshipInfo)  {
@@ -447,4 +447,64 @@ class Arrange extends Field
     {
         return $this->evaluate($this->addChildActionLabel) ?? __('sn-support::forms.fields.arrange.actions.add_child_label');
     }
+
+
+    public function required(bool | Closure $condition = true): static
+    {
+        $this->isRequired = $condition;
+
+        $this->rule(function (Field $component, mixed $state) {
+            return function (string $attribute, mixed $value, Closure $fail) use ($component, $state) {
+                $arrangeStatePath = $component->getStatePath();
+
+                $arranges = $state['arranges'] ?? [];
+                $recursions = $state['recursions'] ?? [];
+
+                if (count($arranges) < 1) {
+                    $fail(__($this->validationMessages['arrange.arrange_must_least_one'] ?? 'sn-support::validate.arrange.arrange_must_least_one', [
+                        'attribute' => $component->getValidationAttribute()
+                    ]));
+                }
+
+                foreach ($arranges as $key => $arrange) {
+                    if (!isset($arrange['name']) || empty(trim($arrange['name']))) {
+                        $fail(__($this->validationMessages['arrange.arrange_must_required'] ?? 'sn-support::validate.arrange.arrange_must_required', [
+                            'attribute' => $component->getValidationAttribute()
+                        ]));
+                    }
+
+                    if (count($arrange['children']) <= 0) {
+                        $fail(__($this->validationMessages['arrange.arrange_child_must_least_one'] ?? 'sn-support::validate.arrange.arrange_child_must_least_one', [
+                            'arrange_name' => $arrange['name'],
+                            'attribute' => $component->getValidationAttribute()
+                        ]));
+                    }
+
+                    // 验证子规格不能为空
+                    foreach ($arrange['children'] as $k => $child) {
+                        if (!isset($child['name']) || empty(trim($child['name']))) {
+                            $fail(__($this->validationMessages['arrange.arrange_child_must_required'] ?? 'sn-support::validate.arrange.arrange_child_must_required', [
+                                'attribute' => $component->getValidationAttribute()
+                            ]));
+                        }
+                    }
+                }
+
+                if (count($recursions) < 1) {
+                    $fail(__($this->validationMessages['arrange.recursion_must_least_one'] ?? 'sn-support::validate.arrange.recursion_must_least_one', [
+                        'attribute' => $component->getValidationAttribute()
+                    ]));
+                }
+
+                // @sn todo 这里要根据 tableFields 来验证
+                // foreach ($recursions as $key => $recursion) {
+                // }
+
+                return;
+            };
+        });
+
+        return $this;
+    }
+
 }

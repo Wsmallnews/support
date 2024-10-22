@@ -1,7 +1,7 @@
 @php
     use Filament\Support\Facades\FilamentView;
 
-    $tableFields = json_encode($getTableFields());
+    $tableFields = $getTableFields();
 
     $record = $getRecord();
 @endphp
@@ -22,7 +22,7 @@
         x-data="arrangeFormField({
             state: $wire.{{ $applyStateBindingModifiers("\$entangle('{$getStatePath()}')") }},
             arrangeToRecursionKey: '{{ $getArrangeToRecursionKey() }}',
-            tableFields: {{ $tableFields }}
+            tableFields: @js($tableFields)
 
             {{-- arranges: $wire.data.{{ $getArrangeName() }},
             recursions: $wire.data.{{ $getRecursionName() }}, --}}

@@ -89,6 +89,7 @@ class SupportServiceProvider extends PackageServiceProvider
         return [
             AlpineComponent::make('forms-arrange', __DIR__ . '/../resources/dist/forms/arrange.js'),
             AlpineComponent::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.js'),
+            AlpineComponent::make('components-file-upload', __DIR__ . '/../resources/dist/components/file-upload.js'),
             Css::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.css'),
             // AlpineComponent::make('support', __DIR__ . '/../resources/dist/components/support.js'),
             // Css::make('support-styles', __DIR__ . '/../resources/dist/support.css'),
