@@ -1,20 +1,19 @@
 <?php
 
-use Illuminate\Support\Number;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Number;
 
-
-if (!function_exists('get_sn')) {
+if (! function_exists('get_sn')) {
     /**
      * 获取唯一编号
      *
-     * @param mixed $id       唯一标识
-     * @param string $type    类型
+     * @param  mixed  $id  唯一标识
+     * @param  string  $type  类型
      * @return string
      */
     function get_sn($id, $type = '')
     {
-        $id = (string)$id;
+        $id = (string) $id;
 
         $rand = $id < 9999 ? mt_rand(100000, 99999999) : mt_rand(100, 99999);
         $sn = date('Yhis') . $rand;
@@ -24,7 +23,6 @@ if (!function_exists('get_sn')) {
         return $type . $sn . $id;
     }
 }
-
 
 if (! function_exists('client_unique')) {
     /**
@@ -65,7 +63,6 @@ if (! function_exists('db_listen')) {
     }
 }
 
-
 if (! function_exists('currency_symbol')) {
     /**
      * 获取特定的货币符号
@@ -82,15 +79,13 @@ if (! function_exists('currency_symbol')) {
     }
 }
 
-
-
-if (!function_exists('exception_log')) {
+if (! function_exists('exception_log')) {
     /**
      * 格式化exception 记录日志，重要地方使用
      *
-     * @param object $exception
-     * @param string $name
-     * @param string $message
+     * @param  object  $exception
+     * @param  string  $name
+     * @param  string  $message
      * @return void
      */
     function exception_log($exception, $name = '', $message = '')

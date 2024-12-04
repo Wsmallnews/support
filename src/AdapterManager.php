@@ -2,16 +2,12 @@
 
 namespace Wsmallnews\Support;
 
-use ArrayAccess;
-use Illuminate\Support\Collection;
-use JsonSerializable;
 use Wsmallnews\Support\Contracts\AdapterInterface;
 use Wsmallnews\Support\Contracts\AdapterManagerInterface;
 use Wsmallnews\Support\Exceptions\SupportException;
 
 class AdapterManager implements AdapterManagerInterface
 {
-
     /**
      * The application instance.
      *
@@ -33,13 +29,10 @@ class AdapterManager implements AdapterManagerInterface
      */
     protected $customCreators = [];
 
-
     public function __construct($app)
     {
         $this->app = $app;
     }
-
-
 
     /**
      * 获取一个 driver 实例
@@ -51,7 +44,6 @@ class AdapterManager implements AdapterManagerInterface
     {
         return $this->getAdapter($name);
     }
-
 
     /**
      * 获取一个 driver 实例
@@ -65,8 +57,6 @@ class AdapterManager implements AdapterManagerInterface
 
         return $this->drivers[$name] = $this->get($name);
     }
-
-
 
     /**
      * 尝试从缓存中获取 driver 实例
@@ -104,7 +94,7 @@ class AdapterManager implements AdapterManagerInterface
 
         $driverMethod = 'create' . ucfirst($name) . 'Driver';
 
-        if (!method_exists($this, $driverMethod)) {
+        if (! method_exists($this, $driverMethod)) {
             throw new SupportException("当前驱动 [{$name}] 不支持.");
         }
 
@@ -114,15 +104,12 @@ class AdapterManager implements AdapterManagerInterface
     /**
      * Call a custom driver creator.
      *
-     * @param  array  $config
      * @return Sender
      */
     protected function callCustomCreator(array $config)
     {
         return $this->customCreators[$config['driver']]($config);
     }
-
-
 
     /**
      * Get the default driver name.
@@ -133,7 +120,6 @@ class AdapterManager implements AdapterManagerInterface
     {
         return '';
     }
-
 
     /**
      * Get the filesystem connection configuration.
