@@ -8,6 +8,8 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Number;
+use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -74,6 +76,22 @@ class SupportServiceProvider extends PackageServiceProvider
 
         // Testing
         Testable::mixin(new TestsSupport);
+
+
+        Number::macro('symbol', function (string $in = 'USD', ?string $locale = null) {
+            $locale = $locale ?? config('app.locale');
+
+            $formatCurrency = Number::currency(0, $in, $locale);
+
+            $symbol = Str::replaceMatches(
+                pattern: '/(?<=\W)\d+\.?\d*/u',
+                replace: '',
+                subject: $formatCurrency
+            );
+
+            return $symbol;
+        });
+
     }
 
     protected function getAssetPackageName(): ?string

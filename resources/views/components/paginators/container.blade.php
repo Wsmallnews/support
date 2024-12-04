@@ -5,7 +5,7 @@
     'paginatorLink'
 ])
 
-<div class="container mx-auto">
+<div class="w-full">
     {{ $slot }}
 
     {{-- 分页 --}}

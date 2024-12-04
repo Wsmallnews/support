@@ -78,8 +78,19 @@ class Rocket implements ArrayAccess, JsonSerializable
         return $this;
     }
 
+
+
+    public function setRadar($key, $value): Rocket
+    {
+        data_set($this->radars, $key, $value);
+
+        return $this;
+    }
+
+
+
     /**
-     * 合并里面的子项数组
+     * @deprecated version 1.0.0 合并里面的子项数组 (这个方法准备 删掉，这个是往 radar 数组的一个元素合并子数组)
      *
      * @param  string  $field
      */
@@ -112,7 +123,8 @@ class Rocket implements ArrayAccess, JsonSerializable
         return $this->payloads;
     }
 
-    public function setPayloads(?Collection $payloads): Rocket
+
+    public function setPayloads(array $payloads): Rocket
     {
         $this->payloads = $payloads;
 
