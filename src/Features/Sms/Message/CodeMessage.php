@@ -28,12 +28,10 @@ class CodeMessage extends EasySmsMessage
 
     protected $contentTemplate = '您的短信验证码为：{code}, {minutes}分钟有效，请勿告诉他人';
 
-
     /**
      * 初始化
      *
-     * @param PhoneNumberInterface $mobile
-     * @param string $event
+     * @param  string  $event
      * @return $this
      */
     public function init(PhoneNumberInterface $mobile, $event)
@@ -48,25 +46,22 @@ class CodeMessage extends EasySmsMessage
         return $this;
     }
 
-
     /**
      * 获取数据，包含验证码
      *
-     * @param GatewayInterface $gateway
      * @return void
      */
     public function getData(?GatewayInterface $gateway = null)
     {
         $data = parent::getData($gateway);
-        if (!$data) {
+        if (! $data) {
             $data = [
-                'code' => $this->code ?: $this->makeCode()
+                'code' => $this->code ?: $this->makeCode(),
             ];
         }
 
         return $data;
     }
-
 
     /**
      * Return message content.
@@ -76,16 +71,16 @@ class CodeMessage extends EasySmsMessage
     public function getContent(?GatewayInterface $gateway = null)
     {
         $content = parent::getContent($gateway);
-        if (!$content) {
+        if (! $content) {
             $gatewayConfig = $gateway->getConfig();
 
             $content = $this->contentTemplate;
             $content = str_replace('{code}', $this->code, $content);
-            $content = str_replace('{minutes}', (int)($this->expire / 60), $content);
+            $content = str_replace('{minutes}', (int) ($this->expire / 60), $content);
 
             // 部分发送渠道 content 上追加 短信签名
             if ($content && in_array($gateway->getName(), ['smsbao'])) {
-                if ('【' != mb_substr((string)$content, 0, 1) && !empty($gatewayConfig['sign_name'])) {
+                if (mb_substr((string) $content, 0, 1) != '【' && ! empty($gatewayConfig['sign_name'])) {
                     $content = '【' . $gatewayConfig['sign_name'] . '】' . $content;
                 }
             }
@@ -94,18 +89,16 @@ class CodeMessage extends EasySmsMessage
         return $content;
     }
 
-
     /**
      * 获取模板
      *
-     * @param GatewayInterface $gateway
      * @return string
      */
     public function getTemplate(?GatewayInterface $gateway = null)
     {
         $template = parent::getTemplate($gateway);
 
-        if (!$template) {
+        if (! $template) {
             $gatewayConfig = $gateway->getConfig();
             $templates = array_column($gatewayConfig['template'], null, 'event');
             $template = isset($templates[$this->event]) && $templates[$this->event] ? ($templates[$this->event]['value'] ?? null) : null;
@@ -113,8 +106,6 @@ class CodeMessage extends EasySmsMessage
 
         return $template;
     }
-
-
 
     /**
      * 生成随机验证码
@@ -129,7 +120,7 @@ class CodeMessage extends EasySmsMessage
             ->where('mobile', $this->mobile->getNumber())
             ->where('idd_code', $this->mobile->getIDDCode())
             ->first();
-        $smsLog = $smsLog ?: new SmsLog();
+        $smsLog = $smsLog ?: new SmsLog;
 
         $smsLog->idd_code = $this->mobile->getIDDCode();
         $smsLog->mobile = $this->mobile->getNumber();
@@ -143,13 +134,10 @@ class CodeMessage extends EasySmsMessage
         return $this->code;
     }
 
-
     /**
      * 验证短信验证码
      *
-     * @param string $code
-     * @param string $exception
-     * @return boolean
+     * @param  string  $exception
      */
     public function check(string $code, bool $exception = true): bool
     {
@@ -158,21 +146,30 @@ class CodeMessage extends EasySmsMessage
             ->where('idd_code', $this->mobile->getIDDCode())
             ->first();
 
-        if (!$smsLog) {
-            if ($exception) throw new SupportException('验证码不正确');
+        if (! $smsLog) {
+            if ($exception) {
+                throw new SupportException('验证码不正确');
+            }
+
             return false;
         }
 
         if ($smsLog->created_at < \Carbon\Carbon::now()->subSeconds($this->expire) || $smsLog->times >= $this->maxTimes) {
             $smsLog->delete();
-            if ($exception) throw new SupportException('验证码不正确');
+            if ($exception) {
+                throw new SupportException('验证码不正确');
+            }
+
             return false;
         }
 
         if ($code != $smsLog->code) {
             $smsLog->times = $smsLog->times + 1;
             $smsLog->save();
-            if ($exception) throw new SupportException('验证码不正确');
+            if ($exception) {
+                throw new SupportException('验证码不正确');
+            }
+
             return false;
         }
 

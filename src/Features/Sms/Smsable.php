@@ -6,19 +6,19 @@ use Closure;
 use Overtrue\EasySms\EasySms;
 use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use Overtrue\EasySms\PhoneNumber;
-use Wsmallnews\Support\Features\Sms\Message\CodeMessage;
 use Wsmallnews\Support\Exceptions\SupportException;
+use Wsmallnews\Support\Features\Sms\Message\CodeMessage;
 
 trait Smsable
 {
     public static function registerEasySms($config)
     {
-        echo "aaa";exit;
+        echo 'aaa';
+        exit;
         app()->singleton(EasySms::class, function () use ($config) {
             return new EasySms($config);
         });
     }
-
 
     public static function extendEasySms($gateway, Closure $callback)
     {
@@ -30,7 +30,6 @@ trait Smsable
             return $callback($gatewayConfig);
         });
     }
-
 
     public static function sendSmsCode(string | array $mobile, string $event, array $gateways = [])
     {
@@ -45,19 +44,19 @@ trait Smsable
         } catch (NoGatewayAvailableException $e) {
             // 记录发送结果日志
             exception_log($e, 'smsNoGatewayExceptionError', json_encode($e->getLastException()->getMessage(), JSON_UNESCAPED_UNICODE));
+
             // 抛出异常
             throw new SupportException($e->getLastException()->getMessage());
         } catch (\Exception $e) {
             // 记录错误结果日志
             exception_log($e, 'smsEasysmsError');
+
             // 抛出异常
             throw new SupportException('短信发送失败');
         }
 
         return $result;
     }
-
-
 
     public static function checkSmsCode(string | array $mobile, string $event, string $code, bool $exception = true)
     {

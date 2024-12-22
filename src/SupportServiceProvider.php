@@ -78,7 +78,6 @@ class SupportServiceProvider extends PackageServiceProvider
         // Testing
         Testable::mixin(new TestsSupport);
 
-
         Number::macro('symbol', function (string $in = 'USD', ?string $locale = null) {
             $locale = $locale ?? config('app.locale');
 
