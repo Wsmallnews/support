@@ -1,6 +1,6 @@
 <?php
 
-namespace Wsmallnews\support\Traits\Resources;
+namespace Wsmallnews\Support\Traits\Resources;
 
 trait SetResource
 {

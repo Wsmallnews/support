@@ -1,6 +1,6 @@
 <?php
 
-namespace Wsmallnews\support\Traits;
+namespace Wsmallnews\Support\Traits;
 
 use Illuminate\Support\Str;
 
