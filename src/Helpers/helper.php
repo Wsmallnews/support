@@ -2,11 +2,11 @@
 
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\Number;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Number;
 
-if (!function_exists('get_sn')) {
+if (! function_exists('get_sn')) {
     /**
      * 获取唯一编号
      *
@@ -110,11 +110,6 @@ if (! function_exists('href_format')) {
 
     /**
      * href 跳转地址格式化
-     *
-     * @param string|null $url
-     * @param boolean $shouldOpenInNewTab
-     * @param boolean|null $shouldOpenInSpaMode
-     * @return Htmlable
      */
     function href_format(?string $url, bool $shouldOpenInNewTab = false, ?bool $shouldOpenInSpaMode = null): Htmlable
     {

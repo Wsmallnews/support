@@ -11,21 +11,21 @@ class BoxRepeater extends Repeater
 {
     protected string $breakPoint = 'md';
 
-    protected array|Closure $columnWidths = [];
+    protected array | Closure $columnWidths = [];
 
-    protected array|Closure $columnCsses = [];
+    protected array | Closure $columnCsses = [];
 
-    protected null|bool|string|Closure $emptyLabel = null;
+    protected null | bool | string | Closure $emptyLabel = null;
 
-    protected Closure|array $headers = [];
+    protected Closure | array $headers = [];
 
-    protected bool|Closure $showLabels = true;
+    protected bool | Closure $showLabels = true;
 
-    protected bool|Closure $withoutHeader = false;
+    protected bool | Closure $withoutHeader = false;
 
-    protected string|Closure|null $headersAlignment = null;
+    protected string | Closure | null $headersAlignment = null;
 
-    protected bool|Closure $isFusionLayout = false;
+    protected bool | Closure $isFusionLayout = false;
 
     protected string $view = 'sn-support::forms.fields.box-repeater';
 
@@ -36,28 +36,28 @@ class BoxRepeater extends Repeater
         return $this;
     }
 
-    public function columnWidths(array|Closure $widths = []): static
+    public function columnWidths(array | Closure $widths = []): static
     {
         $this->columnWidths = $widths;
 
         return $this;
     }
 
-    public function columnCsses(array|Closure $csses = []): static
+    public function columnCsses(array | Closure $csses = []): static
     {
         $this->columnCsses = $csses;
 
         return $this;
     }
 
-    public function emptyLabel(bool|string|Closure|null $label = null): static
+    public function emptyLabel(bool | string | Closure | null $label = null): static
     {
         $this->emptyLabel = $label;
 
         return $this;
     }
 
-    public function alignHeaders(string|Closure $alignment = 'left'): static
+    public function alignHeaders(string | Closure $alignment = 'left'): static
     {
         $this->headersAlignment = $alignment;
 
@@ -99,7 +99,7 @@ class BoxRepeater extends Repeater
         return $components;
     }
 
-    public function getEmptyLabel(): bool|string|null
+    public function getEmptyLabel(): bool | string | null
     {
         return $this->evaluate($this->emptyLabel);
     }
@@ -150,7 +150,7 @@ class BoxRepeater extends Repeater
         return $this->evaluate($this->headers);
     }
 
-    public function headers(array|Closure $headers): static
+    public function headers(array | Closure $headers): static
     {
         $this->headers = $headers;
 
@@ -174,14 +174,14 @@ class BoxRepeater extends Repeater
         return $this->evaluate($this->withoutHeader);
     }
 
-    public function showLabels(bool|Closure $show = true): static
+    public function showLabels(bool | Closure $show = true): static
     {
         $this->showLabels = $show;
 
         return $this;
     }
 
-    public function isFusionLayout(bool|Closure $isFusionLayout = true): static
+    public function isFusionLayout(bool | Closure $isFusionLayout = true): static
     {
         $this->isFusionLayout = $isFusionLayout;
 
@@ -197,14 +197,12 @@ class BoxRepeater extends Repeater
         return $this->evaluate($this->isFusionLayout);
     }
 
-
-    public function withoutHeader(bool|Closure $condition = true): static
+    public function withoutHeader(bool | Closure $condition = true): static
     {
         $this->withoutHeader = $condition;
 
         return $this;
     }
-
 
     public function getView(): string
     {
