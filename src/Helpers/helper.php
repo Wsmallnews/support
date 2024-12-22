@@ -1,8 +1,10 @@
 <?php
 
+use Filament\Support\Facades\FilamentView;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Number;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\HtmlString;
 
 if (!function_exists('get_sn')) {
     /**
@@ -105,5 +107,33 @@ if (!function_exists('exception_log')) {
 
         $logInfo = implode(PHP_EOL, $logInfo) . PHP_EOL;
         Log::error($logInfo);
+    }
+}
+
+if (! function_exists('href_format')) {
+
+    /**
+     * href 跳转地址格式化
+     *
+     * @param string|null $url
+     * @param boolean $shouldOpenInNewTab
+     * @param boolean|null $shouldOpenInSpaMode
+     * @return Htmlable
+     */
+    function href_format(?string $url, bool $shouldOpenInNewTab = false, ?bool $shouldOpenInSpaMode = null): Htmlable
+    {
+        if (blank($url)) {
+            return new HtmlString('');
+        }
+
+        $html = "href=\"{$url}\"";
+
+        if ($shouldOpenInNewTab) {
+            $html .= ' target="_blank"';
+        } elseif ($shouldOpenInSpaMode ?? (FilamentView::hasSpaMode($url))) {
+            $html .= ' wire:navigate';
+        }
+
+        return new HtmlString($html);
     }
 }
