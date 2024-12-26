@@ -22,4 +22,22 @@ trait CanSetResource
             }
         }
     }
+
+
+
+    public static function setPages(array $pageInfos)
+    {
+        foreach ($pageInfos['pages'] as $page => $pageInfo) {
+            $pageInfo = array_merge($pageInfos['group_info'], $pageInfo);
+        } 
+
+        foreach ($pageInfo as $attributeKey => $attributeValue) {
+            $attributeKey = Str::camel($attributeKey);
+            if (method_exists($page, $attributeKey)) {
+                $page::$attributeKey($attributeValue);
+            } else {
+                $page::setAttribute($attributeKey, $attributeValue);
+            }
+        }
+    }
 }
