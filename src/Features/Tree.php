@@ -2,7 +2,6 @@
 
 namespace Wsmallnews\Support\Features;
 
-use Closure;
 use Illuminate\Support\Collection;
 use Wsmallnews\Support\Exceptions\SupportException;
 
@@ -15,18 +14,16 @@ class Tree
         $this->model = $model;
     }
 
-
-
     /**
      * 获取递归树
      *
-     * @param integer|array|Collection $items     可以传入某个id 查询这个id的下级树，也可以传一个查询列表结果，将获取这个列表的所有的下级 树
-     * @param \Closure $resultCb            用来处理每一次查询的结果 比如要取出树中的所有 name
+     * @param  int|array|Collection  $items  可以传入某个id 查询这个id的下级树，也可以传一个查询列表结果，将获取这个列表的所有的下级 树
+     * @param  \Closure  $resultCb  用来处理每一次查询的结果 比如要取出树中的所有 name
      * @return Collection
      */
-    public function getTree(int | array | Collection $items = 0, \Closure $resultCb = null)
+    public function getTree(int | array | Collection $items = 0, ?\Closure $resultCb = null)
     {
-        if (is_integer($items)) {
+        if (is_int($items)) {
             $items = $this->getQuery()->where('parent_id', $items)->get();
             $resultCb && $items = $resultCb($items);
         }
@@ -41,16 +38,13 @@ class Tree
         return $items;
     }
 
-
-    
     /**
      * 获取特定父级的递归树(包含自身)
      *
-     * @param integer  $id
-     * @param \Closure $resultCb            用来处理每一次查询的结果 比如要取出树中的所有 name
+     * @param  \Closure  $resultCb  用来处理每一次查询的结果 比如要取出树中的所有 name
      * @return Collection
      */
-    public function getChildren(int $id, \Closure $resultCb = null)
+    public function getChildren(int $id, ?\Closure $resultCb = null)
     {
         $self = $this->getQuery()->where('id', $id)->firstOrFail();
 
@@ -68,13 +62,11 @@ class Tree
         return $self;
     }
 
-
-
     /**
      * 检测 id 是不是自己的下级
      *
-     * @param int $parent_id
-     * @param int $id
+     * @param  int  $parent_id
+     * @param  int  $id
      * @return bool
      */
     public function isChild($id, $child_id)
@@ -85,23 +77,15 @@ class Tree
         }
 
         return true;
-    } 
+    }
 
-
-    
     //////////////
-
-
-
-
-
-
 
     /**
      * 检测id 是不是自己的下级
      *
-     * @param int $parent_id
-     * @param int $id
+     * @param  int  $parent_id
+     * @param  int  $id
      * @return bool
      */
     public function checkParent($parent_id, $id)
@@ -117,7 +101,6 @@ class Tree
         return true;
     }
 
-
     /**
      * 获取当前对象所属级别
      *
@@ -127,22 +110,22 @@ class Tree
     public function getLevel($object)
     {
         $parentIds = $this->getParentFields($object, 'id');
+
         return count($parentIds);
     }
-
 
     /**
      * 缓存递归获取当前对象的上级 指定字段
      *
-     * @param \think\Model|int $id
-     * @param boolean $self 是否包含自己
+     * @param  \think\Model|int  $id
+     * @param  bool  $self  是否包含自己
      * @return array
      */
     public function getParentFields($item, $field = 'id', $self = true)
     {
-        if (!$item instanceof \think\Model) {
+        if (! $item instanceof \think\Model) {
             $item = $this->getQuery()->find($item);
-            if (!$item) {
+            if (! $item) {
                 return [];
             }
         }
@@ -150,7 +133,7 @@ class Tree
         $cacheKey = 'object-' . $this->getTable() . '-' . $item->id . '-' . $field . '-parent-ids';
         $objectIds = cache($cacheKey);
 
-        if (!$objectIds) {
+        if (! $objectIds) {
             $objectIds = array_reverse($this->recursionGetParentFields($item, $field));
             if ($self) {
                 $objectIds[] = $item[$field];     // 加上自己
@@ -162,7 +145,6 @@ class Tree
         return $objectIds;
     }
 
-
     /**
      * 递归获取所有上级 id
      */
@@ -172,6 +154,7 @@ class Tree
             $parent = $this->getQuery()->find($item->parent_id);
             if ($parent) {
                 $ids[] = $parent[$field];
+
                 return $this->recursionGetParentFields($parent, $field, $ids);
             }
         }
@@ -179,12 +162,11 @@ class Tree
         return $ids;
     }
 
-
     /**
      * 缓存递归获取子对象 id
      *
-     * @param int $id       要查询的 id
-     * @param boolean $self 是否包含自己
+     * @param  int  $id  要查询的 id
+     * @param  bool  $self  是否包含自己
      * @return array
      */
     public function getChildIds($id, $self = true)
@@ -193,7 +175,7 @@ class Tree
         $cacheKey = 'object-' . $this->getTable() . '-' . $id . '-child-ids';
         $objectIds = cache($cacheKey);
 
-        if (!$objectIds) {
+        if (! $objectIds) {
             $objectIds = $this->recursionGetChildIds($id, $self);
 
             // 缓存暂时注释，如果需要，可以打开，请注意后台更新角色记得清除缓存
@@ -203,10 +185,8 @@ class Tree
         return $objectIds;
     }
 
-
     /**
      * 递归获取子分类 id
-     * 
      */
     private function recursionGetChildIds($id, $self)
     {
@@ -223,8 +203,6 @@ class Tree
         return $ids;
     }
 
-
-
     /**
      * 获取当前 查询
      *
@@ -238,7 +216,6 @@ class Tree
 
         return $this->model;
     }
-
 
     /**
      * 获取表
