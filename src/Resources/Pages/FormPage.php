@@ -3,9 +3,7 @@
 namespace Wsmallnews\Support\Resources\Pages;
 
 use Filament\Actions\Action;
-use Filament\Forms\Components;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\CanUseDatabaseTransactions;
 use Filament\Pages\Concerns\HasUnsavedDataChangesAlert;
@@ -32,20 +30,15 @@ class FormPage extends Page
     #[Locked]
     public Model | int | string | null $record;
 
-
     /**
      * @var array<string, mixed> | null
      */
     public ?array $data = [];
 
-
-
     public function getRecord(): Model
     {
         return $this->record;
     }
-
-
 
     protected function fillForm(): void
     {
@@ -136,7 +129,6 @@ class FormPage extends Page
         return null;
     }
 
-
     /**
      * @param  array<string, mixed>  $data
      */
@@ -178,7 +170,6 @@ class FormPage extends Page
     {
         return $this->getSaveFormAction();
     }
-
 
     public function form(Form $form): Form
     {
