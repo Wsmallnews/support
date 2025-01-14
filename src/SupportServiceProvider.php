@@ -7,6 +7,7 @@ use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
@@ -15,6 +16,7 @@ use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Wsmallnews\Support\Testing\TestsSupport;
+use Wsmallnews\Support\Models\SmsLog;
 
 class SupportServiceProvider extends PackageServiceProvider
 {
@@ -50,6 +52,11 @@ class SupportServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        // 注册模型别名
+        Relation::enforceMorphMap([
+            'sn_sms_log' => SmsLog::class,
+        ]);
+
         // Asset Registration
         FilamentAsset::register(
             $this->getAssets(),
@@ -121,5 +128,16 @@ class SupportServiceProvider extends PackageServiceProvider
     protected function getScriptData(): array
     {
         return [];
+    }
+
+
+    /**
+     * @return array<string>
+     */
+    protected function getMigrations(): array
+    {
+        return [
+            'create_sn_sms_logs_table',
+        ];
     }
 }

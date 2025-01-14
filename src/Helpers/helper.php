@@ -5,6 +5,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
+use Illuminate\Support\Facades\Cache;
 
 if (! function_exists('get_sn')) {
     /**
@@ -105,6 +106,27 @@ if (! function_exists('exception_log')) {
         Log::error($logInfo);
     }
 }
+
+
+if (! function_exists('through_cache')) {
+    function through_cache($key, $callback, $store = null, $is_force = false, $ttl = 0)
+    {
+        $cache = Cache::store($store);
+
+        if (!$is_force && $cache->has($key)) {
+            // 直接取缓存
+            return $cache->get($key);
+        }
+
+        $data = $callback();
+
+        $cache->put($key, $data, $ttl);
+
+        return $data;
+    }
+}
+
+
 
 if (! function_exists('href_format')) {
 
