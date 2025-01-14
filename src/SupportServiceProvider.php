@@ -15,8 +15,8 @@ use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Wsmallnews\Support\Testing\TestsSupport;
 use Wsmallnews\Support\Models\SmsLog;
+use Wsmallnews\Support\Testing\TestsSupport;
 
 class SupportServiceProvider extends PackageServiceProvider
 {
@@ -129,7 +129,6 @@ class SupportServiceProvider extends PackageServiceProvider
     {
         return [];
     }
-
 
     /**
      * @return array<string>

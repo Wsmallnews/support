@@ -2,8 +2,8 @@
 
 namespace Wsmallnews\Support\Features;
 
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Wsmallnews\Support\Exceptions\SupportException;
 
 class Tree
@@ -30,13 +30,11 @@ class Tree
         return $this;
     }
 
-
     /**
      * 获取递归树
      *
      * @param  int|string|Collection  $items  可以传入某个id 查询这个id的下级树，也可以传一个查询列表结果，将获取这个列表的所有的下级 树
      * @param  \Closure  $resultCb  用来处理每一次查询的结果 比如要取出树中的所有 name
-     * @return Collection
      */
     public function getTree(int | string | Collection $items = 0, ?\Closure $resultCb = null): Collection
     {
@@ -48,7 +46,7 @@ class Tree
         $key = $this->getCacheKey($key_sign);
 
         return through_cache($key, function () use ($items, $resultCb) {
-            if (!$items instanceof Collection) {
+            if (! $items instanceof Collection) {
                 $items = $this->getQuery()->where('parent_id', $items)->get();
                 $resultCb && $items = $resultCb($items);
             }
@@ -61,21 +59,20 @@ class Tree
             }
 
             return $items;
-        }, store: $this->cache_store, is_force: !$this->is_cache, ttl: ($this->cache_ttl + mt_rand(0, 100)));
+        }, store: $this->cache_store, is_force: ! $this->is_cache, ttl: ($this->cache_ttl + mt_rand(0, 100)));
     }
 
     /**
      * 获取特定父级的递归树(包含自身)
      *
      * @param  \Closure  $resultCb  用来处理每一次查询的结果 比如要取出树中的所有 name
-     * @return Collection
      */
     public function getChildren(int | string | Model $self, ?\Closure $resultCb = null): Collection
     {
         $key = $this->getCacheKey($self instanceof Model ? $self->{$this->getModel()->getKeyName()} : $self);
 
         return through_cache($key, function () use ($self, $resultCb) {
-            if (!$self instanceof Model) {
+            if (! $self instanceof Model) {
                 $self = $this->getQuery()->where('id', $self)->firstOrFail();
             }
 
@@ -87,10 +84,8 @@ class Tree
             $self->children = $items;
 
             return $self;
-        }, store: $this->cache_store, is_force: !$this->is_cache, ttl: ($this->cache_ttl + mt_rand(0, 100)));
+        }, store: $this->cache_store, is_force: ! $this->is_cache, ttl: ($this->cache_ttl + mt_rand(0, 100)));
     }
-
-
 
     /**
      * 递归获取子对象 id
@@ -98,11 +93,11 @@ class Tree
      * @param  int|string|Model  $self  自己
      * @param  string  $field  要查询的字段
      * @param  bool  $has_self  是否包含自己
-     * @return array
      */
     public function getChildFields(int | string | Model $self, $field = 'id', $has_self = true): array
     {
         $key_sign = $self instanceof Model ? $self->{$this->getModel()->getKeyName()} : $self . '-' . $field . '-' . $has_self;
+
         return through_cache($this->getCacheKey($key_sign), function () use ($self, $field, $has_self) {
             if (! $self instanceof Model) {
                 $self = $this->getQuery()->find($self);
@@ -112,16 +107,15 @@ class Tree
             }
 
             return $this->recursionGetChildFields($self, $field, $has_self);
-        }, store: $this->cache_store, is_force: !$this->is_cache, ttl: ($this->cache_ttl + mt_rand(0, 100)));
+        }, store: $this->cache_store, is_force: ! $this->is_cache, ttl: ($this->cache_ttl + mt_rand(0, 100)));
     }
 
     /**
      * 递归获取子对象 id
      *
-     * @param  mixed $item  要查询的 item
-     * @param  string $field  要查询的 字段
+     * @param  mixed  $item  要查询的 item
+     * @param  string  $field  要查询的 字段
      * @param  bool  $has_self  是否包含自己
-     * @return array
      */
     private function recursionGetChildFields($item, $field = 'id', bool $has_self = true): array
     {
@@ -138,19 +132,17 @@ class Tree
         return $ids;
     }
 
-
-
     /**
      * 缓存递归获取当前对象的上级 指定字段
      *
-     * @param  int|string|Model $self
-     * @param  string $field    要获取的字段
+     * @param  string  $field  要获取的字段
      * @param  bool  $has_self  是否包含自己
      * @return array
      */
     public function getParentFields(int | string | Model $self, $field = 'id', $has_self = true)
     {
         $key_sign = $self instanceof Model ? $self->{$this->getModel()->getKeyName()} : $self . '-' . $field . '-' . $has_self;
+
         return through_cache($this->getCacheKey($key_sign), function () use ($self, $field, $has_self) {
             if (! $self instanceof Model) {
                 $self = $this->getQuery()->find($self);
@@ -165,15 +157,15 @@ class Tree
             }
 
             return $objectIds;
-        }, store: $this->cache_store, is_force: !$this->is_cache, ttl: ($this->cache_ttl + mt_rand(0, 100)));
+        }, store: $this->cache_store, is_force: ! $this->is_cache, ttl: ($this->cache_ttl + mt_rand(0, 100)));
     }
 
     /**
      * 递归获取所有上级 id
      *
-     * @param  mixed $item  要查询的 item
-     * @param  string $field  要获取的字段
-     * @param  array $ids  递归的结果
+     * @param  mixed  $item  要查询的 item
+     * @param  string  $field  要获取的字段
+     * @param  array  $ids  递归的结果
      * @return array
      */
     private function recursionGetParentFields($item, $field = 'id', $ids = [])
@@ -190,17 +182,13 @@ class Tree
         return $ids;
     }
 
-
-
-
     /**
      * 检测 id 是不是自己的下级
      *
-     * @param  int|string|Model  $child 要检测的对象
-     * @param  int|string|Model  $self 自己
-     * @param  string  $field 字段
-     * @param  bool  $exception 是否抛出异常
-     * @return bool
+     * @param  int|string|Model  $child  要检测的对象
+     * @param  int|string|Model  $self  自己
+     * @param  string  $field  字段
+     * @param  bool  $exception  是否抛出异常
      */
     public function isChild(int | string | Model $child, int | string | Model $self, string $field = 'id', bool $exception = true): bool
     {
@@ -209,20 +197,18 @@ class Tree
         $childFields = $this->getChildFields($self, $field);
         if (in_array($child, $childFields)) {
             $exception && throw new SupportException('当前上级不能是自己的下级');
+
             return false;
         }
 
         return true;
     }
 
-
-
     /**
      * 检测id 是否可以设置为自己的上级
      *
      * @param  int|string|Model  $parent_id  要设置的上级id
-     * @param  int|string|Model  $id 自己的id
-     * @return bool
+     * @param  int|string|Model  $id  自己的id
      */
     public function checkParent(int | string | Model $parent, int | string | Model $self, string $field = 'id', bool $exception = true): bool
     {
@@ -231,17 +217,18 @@ class Tree
 
         if ($parent == $self_field) {
             $exception && throw new SupportException('当前上级不能是自己');
+
             return false;
         }
         $childIds = $this->getChildFields($self, $field);
         if (in_array($parent, $childIds)) {
             $exception && throw new SupportException('当前上级不能是自己的下级');
+
             return false;
         }
 
         return true;
     }
-
 
     /**
      * 获取当前对象所属级别
@@ -256,8 +243,6 @@ class Tree
         return count($parentIds);
     }
 
-
-
     /**
      * 获取缓存key
      *
@@ -268,7 +253,6 @@ class Tree
     {
         return 'tree_cache:' . $this->getModelName() . ':' . $key;
     }
-
 
     /**
      * 获取当前 查询
@@ -284,22 +268,18 @@ class Tree
         return $this->model;
     }
 
-
     private function getModel()
     {
         $model = $this->getQuery();
-        if (!$model instanceof Model) {
+        if (! $model instanceof Model) {
             $model = $model->getModel();
         }
 
         return $model;
     }
 
-
     /**
      * 获取modelname
-     *
-     * @return string
      */
     private function getModelName(): string
     {

@@ -2,10 +2,10 @@
 
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
-use Illuminate\Support\Facades\Cache;
 
 if (! function_exists('get_sn')) {
     /**
@@ -107,13 +107,12 @@ if (! function_exists('exception_log')) {
     }
 }
 
-
 if (! function_exists('through_cache')) {
     function through_cache($key, $callback, $store = null, $is_force = false, $ttl = 0)
     {
         $cache = Cache::store($store);
 
-        if (!$is_force && $cache->has($key)) {
+        if (! $is_force && $cache->has($key)) {
             // 直接取缓存
             return $cache->get($key);
         }
@@ -125,8 +124,6 @@ if (! function_exists('through_cache')) {
         return $data;
     }
 }
-
-
 
 if (! function_exists('href_format')) {
 
