@@ -39,6 +39,11 @@ class SupportServiceProvider extends PackageServiceProvider
             $package->hasConfigFile();
         }
 
+        if (file_exists($package->basePath('/../database/migrations'))) {
+            $package->hasMigrations($this->getMigrations());
+            $package->runsMigrations();
+        }
+
         if (file_exists($package->basePath('/../resources/lang'))) {
             $package->hasTranslations();
         }
