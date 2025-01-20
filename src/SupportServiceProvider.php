@@ -141,7 +141,7 @@ class SupportServiceProvider extends PackageServiceProvider
     protected function getMigrations(): array
     {
         return [
-            'create_sn_sms_logs_table',
+            '2025_01_20_113658_create_sn_sms_logs_table',
         ];
     }
 }
