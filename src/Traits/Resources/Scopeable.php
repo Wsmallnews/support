@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Builder;
 
 trait Scopeable
 {
-
     protected static string $scope_type = 'default';
 
     protected static int $scope_id = 0;
@@ -15,7 +14,4 @@ trait Scopeable
     {
         return parent::getEloquentQuery()->scopeable(self::$scope_type, self::$scope_id);
     }
-
-
-    
 }

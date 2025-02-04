@@ -3,12 +3,9 @@
 namespace Wsmallnews\Support\Models\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Livewire\Attributes\Locked;
 
 trait Scopeable
 {
-
     /**
      * 范围类型查询
      */
@@ -32,5 +29,4 @@ trait Scopeable
     {
         return $query->scopeType($scope_type)->scopeId($scope_id);
     }
-
 }
