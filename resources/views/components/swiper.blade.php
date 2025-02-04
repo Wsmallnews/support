@@ -130,7 +130,7 @@
         <div class="swiper-wrapper">
             @foreach($images as $image)
                 <div class="swiper-slide">
-                    <img src="https://unit.smallnews.top/storage/{{$image}}" />
+                    <img src="http://unit.test/storage/{{$image}}" />
                 </div>
             @endforeach
         </div>
@@ -160,7 +160,7 @@
             ">
                 @foreach($images as $image)
                     <div class="swiper-slide">
-                        <img src="https://unit.smallnews.top/storage/{{$image}}" />
+                        <img src="http://unit.test/storage/{{$image}}" />
                     </div>
                 @endforeach
             </div>

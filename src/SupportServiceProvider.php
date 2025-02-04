@@ -74,9 +74,9 @@ class SupportServiceProvider extends PackageServiceProvider
         );
 
         // @sn todo 后面要删掉
-        FilamentAsset::register([
-            Js::make('tailwindcss', 'https://cdn.tailwindcss.com'),
-        ]);
+        // FilamentAsset::register([
+        //     Js::make('tailwindcss', 'https://cdn.tailwindcss.com'),
+        // ]);
 
         // Handle Stubs
         if (app()->runningInConsole()) {
