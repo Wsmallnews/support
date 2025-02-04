@@ -166,4 +166,7 @@
             </div>
         </div>
     @endif
+
+    <div class="w-[20%] h-[20%] hidden"></div>
+    <div class="w-[80%] h-[80%] hidden"></div>
 </div>
