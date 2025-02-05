@@ -73,11 +73,6 @@ class SupportServiceProvider extends PackageServiceProvider
             $this->getAssetPackageName()
         );
 
-        // @sn todo 后面要删掉
-        // FilamentAsset::register([
-        //     Js::make('tailwindcss', 'https://cdn.tailwindcss.com'),
-        // ]);
-
         // Handle Stubs
         if (app()->runningInConsole()) {
             foreach (app(Filesystem::class)->files(__DIR__ . '/../stubs/') as $file) {
@@ -120,7 +115,7 @@ class SupportServiceProvider extends PackageServiceProvider
             AlpineComponent::make('forms-arrange', __DIR__ . '/../resources/dist/forms/arrange.js'),
             AlpineComponent::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.js'),
             AlpineComponent::make('components-file-upload', __DIR__ . '/../resources/dist/components/file-upload.js'),
-            Css::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.css'),
+            Css::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.css')->loadedOnRequest(),
             // AlpineComponent::make('support', __DIR__ . '/../resources/dist/components/support.js'),
             // Css::make('support-styles', __DIR__ . '/../resources/dist/support.css'),
             // Js::make('support-scripts', __DIR__ . '/../resources/dist/support.js'),

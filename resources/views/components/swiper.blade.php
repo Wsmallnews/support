@@ -95,13 +95,14 @@
             ax-load
         @endif
         wire:ignore
-        ax-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('components-swiper', 'wsmallnews/support') }}"
         x-data="supportSwiper({
             swiperIsSquare: @js($swiperIsSquare),
             hasThumb: @js($hasThumb),
             thumbPosition: @js($thumbPosition),
             thumbScale: @js($thumbScale),
         })"
+        ax-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('components-swiper', 'wsmallnews/support') }}"
+        x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('components-swiper', 'wsmallnews/support'))]"
         x-cloak
         x-resize="setSwiperHeight"
         :style="{ height: swiperHeight + 'px' }"
