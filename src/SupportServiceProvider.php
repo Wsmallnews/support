@@ -85,20 +85,36 @@ class SupportServiceProvider extends PackageServiceProvider
         // Testing
         Testable::mixin(new TestsSupport);
 
-        Number::macro('symbol', function (string $in = 'USD', ?string $locale = null) {
-            $locale = $locale ?? config('app.locale');
+        // Number::macro('symbol', function (string $in = 'USD', ?string $locale = null) {
+        //     $locale = $locale ?? config('app.locale');
 
-            $formatCurrency = Number::currency(0, $in, $locale);
+        //     $formatCurrency = Number::currency(0, $in, $locale);
 
-            $symbol = Str::replaceMatches(
-                pattern: '/(?<=\W)\d+\.?\d*/u',
-                replace: '',
-                subject: $formatCurrency
-            );
+        //     $symbol = Str::replaceMatches(
+        //         pattern: '/(?<=\W)\d+\.?\d*/u',
+        //         replace: '',
+        //         subject: $formatCurrency
+        //     );
 
-            return $symbol;
-        });
+        //     return $symbol;
+        // });
 
+
+        \Filament\Tables\Table::$defaultCurrency = 'CNY';
+        \Filament\Tables\Table::$defaultDateDisplayFormat = 'M j, Y';
+        \Filament\Tables\Table::$defaultDateTimeDisplayFormat = 'M j, Y H:i:s';
+        \Filament\Tables\Table::$defaultNumberLocale = null;
+        \Filament\Tables\Table::$defaultTimeDisplayFormat = 'H:i:s';
+
+        \Filament\Infolists\Infolist::$defaultCurrency = 'CNY';
+        \Filament\Infolists\Infolist::$defaultDateDisplayFormat = 'M j, Y';
+        \Filament\Infolists\Infolist::$defaultDateTimeDisplayFormat = 'M j, Y H:i:s';
+        \Filament\Infolists\Infolist::$defaultNumberLocale = null;
+        \Filament\Infolists\Infolist::$defaultTimeDisplayFormat = 'H:i:s';
+
+        // laravel number 类库
+        \Illuminate\Support\Number::useLocale(config('app.locale'));
+        \Illuminate\Support\Number::useCurrency('USD');
     }
 
     protected function getAssetPackageName(): ?string
