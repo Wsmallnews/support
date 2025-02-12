@@ -10,9 +10,7 @@ use Money\Formatter\BitcoinMoneyFormatter;
 use Money\Formatter\DecimalMoneyFormatter;
 use Money\Formatter\IntlLocalizedDecimalFormatter;
 use Money\Formatter\IntlMoneyFormatter;
-use Money\Money as MoneyPHP;
 use NumberFormatter;
-
 
 /**
  * 这是个残次品，可删除
@@ -27,15 +25,12 @@ class Currency
 
     protected $formaters = [];
 
-
     /**
      * 1、直接 获取的方法、
-     * 
-     * 
+     *
+     *
      * 2、特定金额的操作方法
      */
-
-
 
     /**
      * 获取当前环境货币符号 （需要提前设置好 Illuminate\Support\Number 的地区和货币类型）
@@ -55,21 +50,12 @@ class Currency
         return $symbol;
     }
 
-
-
-    public function format()
-    {
-        
-    }
-
-
+    public function format() {}
 
     public static function init()
     {
         $fiver = new Money(500, new Currency('USD'));
     }
-
-
 
     public function formaters($format = '')
     {
@@ -90,11 +76,6 @@ class Currency
         // $intlFormatter = new DecimalMoneyFormatter(new ISOCurrencies());
     }
 
-
-
-
-
-
     // $formater = function ($locale = null) {
     //     $locale = $locale ?? config('app.locale');      // 地区
     //     $currency = 'EUR';                              // 货币符号
@@ -113,6 +94,5 @@ class Currency
 
     //     return $moneyFormatter;
     // };
-
 
 }
