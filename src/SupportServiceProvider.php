@@ -99,7 +99,6 @@ class SupportServiceProvider extends PackageServiceProvider
         //     return $symbol;
         // });
 
-
         \Filament\Tables\Table::$defaultCurrency = 'CNY';
         \Filament\Tables\Table::$defaultDateDisplayFormat = 'M j, Y';
         \Filament\Tables\Table::$defaultDateTimeDisplayFormat = 'M j, Y H:i:s';
