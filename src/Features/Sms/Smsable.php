@@ -13,8 +13,6 @@ trait Smsable
 {
     public static function registerEasySms($config)
     {
-        echo 'aaa';
-        exit;
         app()->singleton(EasySms::class, function () use ($config) {
             return new EasySms($config);
         });

@@ -18,12 +18,12 @@ trait CanScopeable
         static::getResource()::setAttribute('scope_id', $this->scope_id);
     }
 
-    public function getScopeInfo()
+    public function getScopeInfo(): array
     {
         return ['scope_type' => $this->scope_type, 'scope_id' => $this->scope_id];
     }
 
-    public function fillScopeable($data)
+    public function fillScopeable($data): array
     {
         return array_merge($data, [
             'scope_type' => $this->scope_type,
