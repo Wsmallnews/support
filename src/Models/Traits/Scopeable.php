@@ -8,10 +8,8 @@ trait Scopeable
 {
     /**
      * 范围类型查询
-     * 
-     * @param Builder $query
-     * @param string $scope_type
-     * @return Builder
+     *
+     * @param  string  $scope_type
      */
     public function scopeScopeType(Builder $query, $scope_type): Builder
     {
@@ -20,10 +18,8 @@ trait Scopeable
 
     /**
      * 范围值查询
-     * 
-     * @param Builder $query
-     * @param int $scope_id
-     * @return Builder
+     *
+     * @param  int  $scope_id
      */
     public function scopeScopeId(Builder $query, $scope_id): Builder
     {
@@ -32,11 +28,9 @@ trait Scopeable
 
     /**
      * 范围查询
-     * 
-     * @param Builder $query
-     * @param string $scope_type
-     * @param int $scope_id
-     * @return Builder
+     *
+     * @param  string  $scope_type
+     * @param  int  $scope_id
      */
     public function scopeScopeable(Builder $query, $scope_type, $scope_id = 0): Builder
     {

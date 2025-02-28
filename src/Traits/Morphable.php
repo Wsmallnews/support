@@ -6,7 +6,6 @@ use Illuminate\Database\ClassMorphViolationException;
 
 trait Morphable
 {
-    
     /**
      * buyable 的 type
      */
@@ -26,7 +25,4 @@ trait Morphable
     {
         return $this->getKey();
     }
-
-
-
 }
