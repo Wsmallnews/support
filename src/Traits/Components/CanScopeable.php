@@ -11,4 +11,18 @@ trait CanScopeable
 
     #[Locked]
     public int $scope_id = 0;
+
+
+    public function getScopeInfo(): array
+    {
+        return ['scope_type' => $this->scope_type, 'scope_id' => $this->scope_id];
+    }
+
+    public function fillScopeable($data): array
+    {
+        return array_merge($data, [
+            'scope_type' => $this->scope_type,
+            'scope_id' => $this->scope_id,
+        ]);
+    }
 }

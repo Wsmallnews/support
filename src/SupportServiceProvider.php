@@ -85,19 +85,21 @@ class SupportServiceProvider extends PackageServiceProvider
         // Testing
         Testable::mixin(new TestsSupport);
 
-        // Number::macro('symbol', function (string $in = 'USD', ?string $locale = null) {
-        //     $locale = $locale ?? config('app.locale');
 
-        //     $formatCurrency = Number::currency(0, $in, $locale);
+        // 暂时先放开
+        Number::macro('symbol', function (string $in = 'USD', ?string $locale = null) {
+            $locale = $locale ?? config('app.locale');
 
-        //     $symbol = Str::replaceMatches(
-        //         pattern: '/(?<=\W)\d+\.?\d*/u',
-        //         replace: '',
-        //         subject: $formatCurrency
-        //     );
+            $formatCurrency = Number::currency(0, $in, $locale);
 
-        //     return $symbol;
-        // });
+            $symbol = Str::replaceMatches(
+                pattern: '/(?<=\W)\d+\.?\d*/u',
+                replace: '',
+                subject: $formatCurrency
+            );
+
+            return $symbol;
+        });
 
         \Filament\Tables\Table::$defaultCurrency = 'CNY';
         \Filament\Tables\Table::$defaultDateDisplayFormat = 'M j, Y';
