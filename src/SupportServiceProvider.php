@@ -114,7 +114,10 @@ class SupportServiceProvider extends PackageServiceProvider
 
         // laravel number 类库
         \Illuminate\Support\Number::useLocale(config('app.locale'));
-        \Illuminate\Support\Number::useCurrency('USD');
+        \Illuminate\Support\Number::useCurrency('CNY');
+
+        // Cknow\Money
+        \Cknow\Money\Money::setDefaultCurrency('CNY');
     }
 
     protected function getAssetPackageName(): ?string

@@ -5,7 +5,7 @@
     'paginatorLink'
 ])
 
-<div class="container mx-auto">
+<div class="w-full mx-auto">
     @if ($pageType == 'scroll')
         @if ($pageInfo['load_status'] == 'loading')
             <div class="flex justify-center items-center text-gray-400" x-intersect="$wire.nextPage('{{ $pageName }}')">
@@ -13,7 +13,7 @@
             </div>
         @elseif ($pageInfo['load_status'] == 'empty')
             <div class="flex justify-center items-center text-gray-400" >
-                暂没有评论数据
+                暂没有更多数据
             </div>
         @elseif ($pageInfo['load_status'] == 'nomore')
             <div class="flex justify-center items-center text-gray-400" >
@@ -34,7 +34,7 @@
                     <span class="cursor-pointer" wire:click="nextPage('{{ $pageName }}')">展开更多</span>
                 </div>
             @elseif ($pageInfo['load_status'] == 'empty')
-                <span>暂没有评论数据</span>
+                <span>暂没有更多数据</span>
             @elseif ($pageInfo['load_status'] == 'nomore')
                 <span>已经到底啦</span>
             @endif

@@ -67,6 +67,19 @@ if (! function_exists('db_listen')) {
     }
 }
 
+
+if (! function_exists('sn_currency')) {
+    /**
+     * 获取自定义 currency 操作类
+     *
+     * @return \Wsmallnews\Support\Features\Currency
+     */
+    function sn_currency()
+    {
+        return app(\Wsmallnews\Support\Features\Currency::class);
+    }
+}
+
 if (! function_exists('currency_symbol')) {
     /**
      * 获取特定的货币符号

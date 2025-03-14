@@ -131,7 +131,7 @@
         <div class="swiper-wrapper">
             @foreach($images as $image)
                 <div class="swiper-slide">
-                    <img src="http://unit.test/storage/{{$image}}" />
+                    <img src="{{$image}}" />
                 </div>
             @endforeach
         </div>
@@ -161,7 +161,7 @@
             ">
                 @foreach($images as $image)
                     <div class="swiper-slide">
-                        <img src="http://unit.test/storage/{{$image}}" />
+                        <img src="{{$image}}" />
                     </div>
                 @endforeach
             </div>
