@@ -67,7 +67,6 @@ if (! function_exists('db_listen')) {
     }
 }
 
-
 if (! function_exists('sn_currency')) {
     /**
      * 获取自定义 currency 操作类

@@ -3,39 +3,31 @@
 namespace Wsmallnews\Support\Traits\Components;
 
 use Illuminate\Database\Eloquent\Builder;
-use Livewire\WithPagination;
 use Livewire\WithoutUrlPagination;
+use Livewire\WithPagination;
 
 trait CanPagination
 {
-    use WithPagination;
     use WithoutUrlPagination;
+    use WithPagination;
 
     /**
      * 分页类型
-     * 
-     * @var string
      */
     public string $pageType = 'scroll';      // scroll:滚动加载更多,paginator:分页器,manual:手动
 
     /**
      * 分页字段名
-     * 
-     * @var string
      */
     public string $pageName = 'page';
 
     /**
      * 每页条数
-     * 
-     * @var int
      */
     public int $perPage = 10;
 
     /**
      * 组装好的分页信息
-     *
-     * @var array
      */
     public array $pageInfo = [];
 
@@ -46,7 +38,8 @@ trait CanPagination
      */
     protected $links = null;
 
-    public function withPagination(Builder $builder) {
+    public function withPagination(Builder $builder)
+    {
         if ($this->pageType == 'paginator') {
             $current = $builder->paginate($this->perPage, pageName: $this->pageName);
             $collections = $current->getCollection();        // 获取 collection 格式的数据
