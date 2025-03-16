@@ -79,21 +79,6 @@ if (! function_exists('sn_currency')) {
     }
 }
 
-if (! function_exists('currency_symbol')) {
-    /**
-     * 获取特定的货币符号
-     *
-     * @return string
-     */
-    function currency_symbol(string $in = 'USD', ?string $locale = null)
-    {
-        $locale = $locale ?? config('app.locale');
-
-        $symbol = Number::symbol($in, $locale);
-
-        return $symbol;
-    }
-}
 
 if (! function_exists('exception_log')) {
     /**

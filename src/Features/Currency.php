@@ -16,6 +16,7 @@ use Wsmallnews\Support\Exceptions\SupportException;
 class Currency
 {
     public $filamentFormState;
+    public $filamentFormSymbol;
 
     public function __construct()
     {
@@ -26,6 +27,10 @@ class Currency
             }
 
             return $state;
+        };
+
+        $this->filamentFormSymbol = function (?Model $record, $state): string {
+            return $record->cost_price instanceof CknowMoney ? $this->getSymbol($record->cost_price) : $this->getSymbol();
         };
     }
 
