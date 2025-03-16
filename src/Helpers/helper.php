@@ -5,7 +5,6 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Number;
 
 if (! function_exists('get_sn')) {
     /**
@@ -78,7 +77,6 @@ if (! function_exists('sn_currency')) {
         return app(\Wsmallnews\Support\Features\Currency::class);
     }
 }
-
 
 if (! function_exists('exception_log')) {
     /**
