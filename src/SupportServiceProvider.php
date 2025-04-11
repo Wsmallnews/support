@@ -135,8 +135,9 @@ class SupportServiceProvider extends PackageServiceProvider
             AlpineComponent::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.js'),
             AlpineComponent::make('components-file-upload', __DIR__ . '/../resources/dist/components/file-upload.js'),
             Css::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.css')->loadedOnRequest(),
+            Css::make('support-styles', __DIR__ . '/../resources/dist/support.css'),
+
             // AlpineComponent::make('support', __DIR__ . '/../resources/dist/components/support.js'),
-            // Css::make('support-styles', __DIR__ . '/../resources/dist/support.css'),
             // Js::make('support-scripts', __DIR__ . '/../resources/dist/support.js'),
         ];
     }

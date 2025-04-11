@@ -12,7 +12,7 @@ trait CanScopeable
     #[Locked]
     public int $scope_id = 0;
 
-    public function mountCanScopeable()
+    public function bootCanScopeable()
     {
         static::getResource()::setAttribute('scope_type', $this->scope_type);
         static::getResource()::setAttribute('scope_id', $this->scope_id);
@@ -30,4 +30,19 @@ trait CanScopeable
             'scope_id' => $this->scope_id,
         ]);
     }
+
+
+    /**
+     * Mutate the form data before creating a record.
+     * 
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data = $this->fillScopeable($data);
+
+        return parent::mutateFormDataBeforeCreate($data);
+    }
+
 }

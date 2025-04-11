@@ -3,6 +3,7 @@
 namespace Wsmallnews\Support\Features;
 
 use Cknow\Money\Money as CknowMoney;
+use Filament\Forms\Components\Component;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Number;
@@ -21,17 +22,17 @@ class Currency
 
     public function __construct()
     {
-        $this->filamentFormState = function (?Model $record, $state): float {
+        $this->filamentFormState = function (Component $component, ?Model $record, $state): ?float {
             // 这里 state 被转数组了
-            if (is_array($state)) {
-                return $record->cost_price->formatByDecimal();
+            if ($record && $record->{$component->getName()} instanceof CknowMoney) {
+                return $record->{$component->getName()}->formatByDecimal();
             }
 
             return $state;
         };
 
-        $this->filamentFormSymbol = function (?Model $record, $state): string {
-            return $record->cost_price instanceof CknowMoney ? $this->getSymbol($record->cost_price) : $this->getSymbol();
+        $this->filamentFormSymbol = function (Component $component, ?Model $record, $state): string {
+            return ($record && $record->{$component->getName()} instanceof CknowMoney) ? $this->getSymbol($record->{$component->getName()}) : $this->getSymbol();
         };
     }
 
@@ -177,10 +178,33 @@ class Currency
         return $this->$method($originalMoneys);
     }
 
+
+
+    /**
+     * 从数组中格式化金额 这个数组来自于 CknowMoney 或者 CknowMoney toArray 的结果
+     *
+     * @param array $originalMoney
+     * @return array | string
+     */
+    public function formatByDecimalFromState(CknowMoney | array $originalMoney): array | string
+    {
+        if ($originalMoney instanceof CknowMoney) {
+            return $this->formatByDecimal($originalMoney);
+        }
+
+        $amount = $originalMoney['amount'] ?? 0;
+        $currency = $originalMoney['currency'] ?? $this->getCurrency();
+        $formatted = $originalMoney['formatted'] ?? null;
+
+        return $this->formatByDecimal(CknowMoney::parse($amount, $currency));
+    }
+
+
     /**
      * 格式化操作金额
      *
      * @param  CknowMoney|int|string|float|array  $originalMoneys
+     * @return array | string
      */
     public function formatByDecimal($originalMoneys): array | string
     {

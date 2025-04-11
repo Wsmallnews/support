@@ -1,6 +1,6 @@
 <?php
 
-namespace Wsmallnews\Support\Resources;
+namespace Wsmallnews\Support\Filament\Resources;
 
 use Filament\Resources\Resource;
 use Wsmallnews\Support\Traits\Resources\Scopeable;

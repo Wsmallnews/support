@@ -1,8 +1,8 @@
-const preset = require('./vendor/filament/filament/tailwind.config.preset')
+import FilamentPreset from '../../vendor/filament/filament/tailwind.config.preset'
 
 module.exports = {
-    presets: [preset],
+    presets: [FilamentPreset],
     content: [
-        './resources/views/filament/**/*.blade.php'
+        './resources/views/**/*.blade.php'
     ],
 }

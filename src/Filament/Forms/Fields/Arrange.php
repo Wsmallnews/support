@@ -1,6 +1,6 @@
 <?php
 
-namespace Wsmallnews\Support\Forms\Fields;
+namespace Wsmallnews\Support\Filament\Forms\Fields;
 
 use Closure;
 use Filament\Forms\Components\Concerns;
@@ -19,9 +19,9 @@ class Arrange extends Field
     use Concerns\HasPlaceholder;
     use HasExtraAlpineAttributes;
 
-    protected string $view = 'sn-support::forms.fields.arrange';
+    protected string $view = 'sn-support::forms.fields.arrange.index';
 
-    protected string $tableFieldsView = 'sn-support::arrange.table-fields';
+    protected string $tableFieldsView = 'sn-support::forms.fields.arrange.table-fields';
 
     protected string | Closure $arrangeToRecursionKey = 'arrange_ids';
 
@@ -44,8 +44,6 @@ class Arrange extends Field
         $arrangeRelationshipInfo = $relations['arranges'] ?? [];
         $recursionRelationshipInfo = $relations['recursions'] ?? [];
 
-        $this->afterStateHydrated(function (Arrange $component, $record) {});
-
         $this->loadStateFromRelationshipsUsing(function (Arrange $component) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
             // 从 relationship 加载 state
             $arranges = $this->getArrangeRelationship($arrangeRelationshipInfo);
@@ -56,11 +54,11 @@ class Arrange extends Field
                 'arranges' => $arranges,
                 'recursions' => $recursions,
             ]);
+
             $component->state($state);
         });
 
         $this->saveRelationshipsUsing(function (Arrange $component, HasForms $livewire, array | Collection | null $state) use ($arrangeRelationshipInfo, $recursionRelationshipInfo) {
-
             // 保存 关联数据
             if (! is_array($state)) {       // @sn todo 这里判断可能有问题，添加的时候 states 是 collection 类型
                 $state = [];

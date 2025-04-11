@@ -1,6 +1,6 @@
 <?php
 
-namespace Wsmallnews\Support\Forms\Fields;
+namespace Wsmallnews\Support\Filament\Forms\Fields;
 
 use Closure;
 use Filament\Forms\Components\Hidden;
