@@ -178,13 +178,10 @@ class Currency
         return $this->$method($originalMoneys);
     }
 
-
-
     /**
      * 从数组中格式化金额 这个数组来自于 CknowMoney 或者 CknowMoney toArray 的结果
      *
-     * @param array $originalMoney
-     * @return array | string
+     * @param  array  $originalMoney
      */
     public function formatByDecimalFromState(CknowMoney | array $originalMoney): array | string
     {
@@ -199,12 +196,10 @@ class Currency
         return $this->formatByDecimal(CknowMoney::parse($amount, $currency));
     }
 
-
     /**
      * 格式化操作金额
      *
      * @param  CknowMoney|int|string|float|array  $originalMoneys
-     * @return array | string
      */
     public function formatByDecimal($originalMoneys): array | string
     {

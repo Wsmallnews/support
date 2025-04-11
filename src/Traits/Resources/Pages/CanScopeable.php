@@ -31,10 +31,9 @@ trait CanScopeable
         ]);
     }
 
-
     /**
      * Mutate the form data before creating a record.
-     * 
+     *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
@@ -44,5 +43,4 @@ trait CanScopeable
 
         return parent::mutateFormDataBeforeCreate($data);
     }
-
 }
