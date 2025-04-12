@@ -8,5 +8,4 @@ use Wsmallnews\Support\Traits\Resources\Pages\CanScopeable;
 class BaseEditRecord extends EditRecord
 {
     use CanScopeable;
-
 }

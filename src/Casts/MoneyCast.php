@@ -6,7 +6,7 @@ use Cknow\Money\Money;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use InvalidArgumentException;
 
-class MoneyCast implements CastsAttributes 
+class MoneyCast implements CastsAttributes
 {
     /**
      * The currency code or the model attribute holding the currency code.
@@ -15,11 +15,8 @@ class MoneyCast implements CastsAttributes
      */
     protected $currency;
 
-
     /**
      * Instantiate the class.
-     *
-     * @param  ?string  $currency
      */
     public function __construct(?string $currency = null)
     {
