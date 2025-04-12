@@ -25,6 +25,7 @@
         "codeat3/blade-jam-icons": "^1.6",
         "faisal50x/blade-ionicons": "^1.0",
         "filament/filament": "^3.0",
+        "filament/spatie-laravel-media-library-plugin": "^3.0",
         "filament/spatie-laravel-tags-plugin": "^3.0",
         "overtrue/easy-sms": "^3.0",
         "postare/blade-mdi": "^1.1",
