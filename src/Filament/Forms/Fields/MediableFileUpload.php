@@ -6,12 +6,13 @@ use Closure;
 use Filament\Forms\Components\FileUpload;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use League\Flysystem\UnableToCheckFileExistence;
-use Plank\Mediable\MediableInterface;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Plank\Mediable\Media;
+use Plank\Mediable\MediableInterface;
 use Throwable;
 use Wsmallnews\Support\Filament\Concerns\HasMediaFilter;
+
 // use Filament\Support\Concerns\HasMediaFilter;
 // use Spatie\MediaLibrary\MediaCollections\FileAdder;
 // use Spatie\MediaLibrary\MediaCollections\MediaCollection;
@@ -29,7 +30,6 @@ class MediableFileUpload extends FileUpload
 
     protected array | Closure | null $customHeaders = null;
 
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -39,11 +39,11 @@ class MediableFileUpload extends FileUpload
             $media = $record->load('media')->getMedia($component->getTag() ?? 'default')
                 ->when(
                     $component->hasMediaFilter(),
-                    fn(Collection $media) => $component->filterMedia($media)
+                    fn (Collection $media) => $component->filterMedia($media)
                 )
                 ->when(
                     ! $component->isMultiple(),
-                    fn(Collection $media): Collection => $media->take(1),
+                    fn (Collection $media): Collection => $media->take(1),
                 )
                 ->mapWithKeys(function (Media $media): array {
                     $id = $media->getAttributeValue('id');
@@ -54,7 +54,6 @@ class MediableFileUpload extends FileUpload
 
             $component->state($media);
         });
-
 
         $this->afterStateHydrated(static function (MediableFileUpload $component, string | array | null $state): void {
             if (is_array($state)) {
@@ -156,8 +155,6 @@ class MediableFileUpload extends FileUpload
         });
     }
 
-
-
     public function deleteAbandonedFiles(): void
     {
         /** @var Model&MediableInterface $record */
@@ -166,13 +163,11 @@ class MediableFileUpload extends FileUpload
         $record
             ->getMedia($this->getTag() ?? 'default')
             ->whereNotIn('id', array_keys($this->getState() ?? []))
-            ->when($this->hasMediaFilter(), fn(Collection $media): Collection => $this->filterMedia($media))
-            ->each(fn(Media $media) => $media->delete());
+            ->when($this->hasMediaFilter(), fn (Collection $media): Collection => $this->filterMedia($media))
+            ->each(fn (Media $media) => $media->delete());
     }
 
-
     // use HasMediaFilter;
-
 
     // protected string | Closure | null $conversion = null;
 
@@ -337,7 +332,6 @@ class MediableFileUpload extends FileUpload
         return $this;
     }
 
-
     public function extensions(array | Closure | null $extensions): static
     {
         $this->extensions = $extensions;
@@ -376,8 +370,6 @@ class MediableFileUpload extends FileUpload
         return $this;
     }
 
-
-
     /**
      * @param  array<string, mixed> | Closure | null  $properties
      */
@@ -415,8 +407,6 @@ class MediableFileUpload extends FileUpload
         return $this;
     }
 
-    
-
     public function getDiskName(): string
     {
         if ($diskName = $this->evaluate($this->diskName)) {
@@ -447,6 +437,7 @@ class MediableFileUpload extends FileUpload
     {
         return $this->evaluate($this->extensions);
     }
+
     public function getAggregateTypes(): ?array
     {
         return $this->evaluate($this->aggregateTypes);
@@ -460,7 +451,6 @@ class MediableFileUpload extends FileUpload
         return $this->evaluate($this->customHeaders) ?? [];
     }
 
-
     public function getConversion(): ?string
     {
         return $this->evaluate($this->conversion);
@@ -470,8 +460,6 @@ class MediableFileUpload extends FileUpload
     {
         return $this->evaluate($this->conversionsDisk);
     }
-
-
 
     /**
      * @return array<string, mixed>
