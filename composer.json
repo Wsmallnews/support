@@ -27,6 +27,7 @@
         "filament/filament": "^3.0",
         "filament/spatie-laravel-media-library-plugin": "^3.0",
         "filament/spatie-laravel-tags-plugin": "^3.0",
+        "intervention/image-laravel": "^1.0",
         "overtrue/easy-sms": "^3.0",
         "plank/laravel-mediable": "^6.0",
         "postare/blade-mdi": "^1.1",

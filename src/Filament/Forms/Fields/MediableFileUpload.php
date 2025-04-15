@@ -10,6 +10,7 @@ use League\Flysystem\UnableToCheckFileExistence;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Plank\Mediable\Media;
 use Plank\Mediable\MediableInterface;
+use Plank\Mediable\Facades\MediaUploader;
 use Throwable;
 use Wsmallnews\Support\Filament\Concerns\HasMediaFilter;
 
@@ -22,7 +23,7 @@ class MediableFileUpload extends FileUpload
 {
     use HasMediaFilter;
 
-    protected string | Closure | null $tag = null;
+    protected array | Closure | null $tags = [];
 
     protected array | Closure | null $extensions = null;
 
@@ -35,20 +36,20 @@ class MediableFileUpload extends FileUpload
         parent::setUp();
 
         $this->loadStateFromRelationshipsUsing(static function (MediableFileUpload $component, MediableInterface $record): void {
-            /** @var Model&HasMedia $record */
-            $media = $record->load('media')->getMedia($component->getTag() ?? 'default')
+            /** @var Model&MediableInterface $record */
+            $media = $record->getMedia($component->getTags() ?? [])
                 ->when(
                     $component->hasMediaFilter(),
-                    fn (Collection $media) => $component->filterMedia($media)
+                    fn(Collection $media) => $component->filterMedia($media)
                 )
                 ->when(
                     ! $component->isMultiple(),
-                    fn (Collection $media): Collection => $media->take(1),
+                    fn(Collection $media): Collection => $media->take(1),
                 )
-                ->mapWithKeys(function (Media $media): array {
-                    $id = $media->getAttributeValue('id');
+                ->mapWithKeys(function (Media $media) use ($component): array {
+                    $unique_id = $component->getUniqueId($media);
 
-                    return [$id => $id];
+                    return [$unique_id => $unique_id];
                 })
                 ->toArray();
 
@@ -73,7 +74,10 @@ class MediableFileUpload extends FileUpload
             }
 
             /** @var ?Media $media */
-            $media = $component->getRecord()->getRelationValue('media')->firstWhere('uuid', $file);
+            // $media = $component->getRecord()->getRelationValue('media')->firstWhere('id', $file);
+            $media = $component->getRecord()->getRelationValue('media')->first(function ($media) use ($file) {
+                return $this->compareUniqueId($media, $file);
+            });
 
             $url = null;
 
@@ -107,7 +111,7 @@ class MediableFileUpload extends FileUpload
         });
 
         $this->saveUploadedFileUsing(static function (MediableFileUpload $component, TemporaryUploadedFile $file, ?Model $record): ?string {
-            if (! method_exists($record, 'addMediaFromString')) {
+            if (! $record) {
                 return $file;
             }
 
@@ -119,49 +123,89 @@ class MediableFileUpload extends FileUpload
                 return null;
             }
 
+            $media = MediaUploader::fromSource($file);
+            $media->toDestination($component->getDiskName(), $component->getDirectory())
+                // ->useHashForFilename('sha1')
+                ->withOptions($component->getCustomHeaders())
+                ->useFilename($component->getUploadedFileNameForStorage($file))
+                ->setMaximumSize($component->getMaxSize())
+                ->setAllowedMimeTypes($component->getAcceptedFileTypes())
+                ->setAllowedExtensions($component->getExtensions())
+                ->setAllowedAggregateTypes($component->getAggregateTypes())
+                ->onDuplicateUpdate()
+                ->upload();
+
+            $record->attachMedia($media, $component->getTags() ?? []);
+
+            return $this->getUniqueId($media);
+
+
+
+
+            // if (! method_exists($record, 'addMediaFromString')) {
+            //     return $file;
+            // }
+
+            // try {
+            //     if (! $file->exists()) {
+            //         return null;
+            //     }
+            // } catch (UnableToCheckFileExistence $exception) {
+            //     return null;
+            // }
+
             /** @var FileAdder $mediaAdder */
-            $mediaAdder = $record->addMediaFromString($file->get());
+            // $mediaAdder = $record->addMediaFromString($file->get());
 
-            $filename = $component->getUploadedFileNameForStorage($file);
+            // $filename = $component->getUploadedFileNameForStorage($file);
 
-            $media = $mediaAdder
-                ->addCustomHeaders($component->getCustomHeaders())
-                ->usingFileName($filename)
-                ->usingName($component->getMediaName($file) ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME))
-                ->storingConversionsOnDisk($component->getConversionsDisk() ?? '')
-                ->withCustomProperties($component->getCustomProperties())
-                ->withManipulations($component->getManipulations())
-                ->withResponsiveImagesIf($component->hasResponsiveImages())
-                ->withProperties($component->getProperties())
-                ->toMediaCollection($component->getCollection() ?? 'default', $component->getDiskName());
+            // $media = $mediaAdder
+            //     // ->addCustomHeaders($component->getCustomHeaders())
+            //     // ->usingFileName($filename)
+            //     ->usingName($component->getMediaName($file) ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME))
+            //     ->storingConversionsOnDisk($component->getConversionsDisk() ?? '')
+            //     ->withCustomProperties($component->getCustomProperties())
+            //     ->withManipulations($component->getManipulations())
+            //     ->withResponsiveImagesIf($component->hasResponsiveImages())
+            //     ->withProperties($component->getProperties())
+            //     ->toMediaCollection($component->getCollection() ?? 'default', $component->getDiskName());
 
-            return $media->getAttributeValue('uuid');
+            // return $media->getAttributeValue('uuid');
         });
 
         $this->reorderUploadedFilesUsing(static function (MediableFileUpload $component, ?Model $record, array $state): array {
-            $uuids = array_filter(array_values($state));
+            if (! $record) {
+                return $state;
+            }
 
-            $mediaClass = ($record && method_exists($record, 'getMediaModel')) ? $record->getMediaModel() : null;
-            $mediaClass ??= config('media-library.media_model', Media::class);
-
-            $mappedIds = $mediaClass::query()->whereIn('uuid', $uuids)->pluck(app($mediaClass)->getKeyName(), 'uuid')->toArray();
-
-            $mediaClass::setNewOrder([
-                ...array_flip($uuids),
-                ...$mappedIds,
-            ]);
+            $media = $record->getMedia($component->getTags() ?? []);
+            $record->syncMedia($media, $component->getTags() ?? []);
 
             return $state;
         });
     }
+
+
+    private function getUniqueId($media)
+    {
+        return md5($media->disk . '-' . $media->directory . '-' . $media->filename . '-' . $media->extension);
+    }
+
+    private function compareUniqueId($media, $key): bool
+    {
+        return $this->getUniqueId($media) === $key;
+    }
+
 
     public function deleteAbandonedFiles(): void
     {
         /** @var Model&MediableInterface $record */
         $record = $this->getRecord();
 
+        // @sn todo 这里不能直接删除 media ，要考虑别的地方引用了这个 media
+
         $record
-            ->getMedia($this->getTag() ?? 'default')
+            ->getMedia($this->getTags() ?? [])
             ->whereNotIn('id', array_keys($this->getState() ?? []))
             ->when($this->hasMediaFilter(), fn (Collection $media): Collection => $this->filterMedia($media))
             ->each(fn (Media $media) => $media->delete());
@@ -325,9 +369,9 @@ class MediableFileUpload extends FileUpload
     //     });
     // }
 
-    public function tag(string | Closure | null $tag): static
+    public function tags(array | Closure $tags): static
     {
-        $this->tag = $tag;
+        $this->tags = $tags;
 
         return $this;
     }
@@ -428,9 +472,9 @@ class MediableFileUpload extends FileUpload
         return $diskNameFromRegisteredConversions ?? config('filament.default_filesystem_disk');
     }
 
-    public function getTag(): ?string
+    public function getTags(): ?array
     {
-        return $this->evaluate($this->tag);
+        return $this->evaluate($this->tags);
     }
 
     public function getExtensions(): ?array
