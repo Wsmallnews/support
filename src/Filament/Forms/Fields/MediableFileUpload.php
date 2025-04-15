@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use League\Flysystem\UnableToCheckFileExistence;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Plank\Mediable\Facades\MediaUploader;
 use Plank\Mediable\Media;
 use Plank\Mediable\MediableInterface;
-use Plank\Mediable\Facades\MediaUploader;
 use Throwable;
 use Wsmallnews\Support\Filament\Concerns\HasMediaFilter;
 
@@ -40,11 +40,11 @@ class MediableFileUpload extends FileUpload
             $media = $record->getMedia($component->getTags() ?? [])
                 ->when(
                     $component->hasMediaFilter(),
-                    fn(Collection $media) => $component->filterMedia($media)
+                    fn (Collection $media) => $component->filterMedia($media)
                 )
                 ->when(
                     ! $component->isMultiple(),
-                    fn(Collection $media): Collection => $media->take(1),
+                    fn (Collection $media): Collection => $media->take(1),
                 )
                 ->mapWithKeys(function (Media $media) use ($component): array {
                     $unique_id = $component->getUniqueId($media);
@@ -139,9 +139,6 @@ class MediableFileUpload extends FileUpload
 
             return $this->getUniqueId($media);
 
-
-
-
             // if (! method_exists($record, 'addMediaFromString')) {
             //     return $file;
             // }
@@ -185,7 +182,6 @@ class MediableFileUpload extends FileUpload
         });
     }
 
-
     private function getUniqueId($media)
     {
         return md5($media->disk . '-' . $media->directory . '-' . $media->filename . '-' . $media->extension);
@@ -195,7 +191,6 @@ class MediableFileUpload extends FileUpload
     {
         return $this->getUniqueId($media) === $key;
     }
-
 
     public function deleteAbandonedFiles(): void
     {
