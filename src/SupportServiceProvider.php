@@ -11,7 +11,11 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
+use Intervention\Image\Image;
 use Livewire\Features\SupportTesting\Testable;
+use Plank\Mediable\Facades\ImageManipulator;
+use Plank\Mediable\ImageManipulation;
+use Plank\Mediable\Media;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -118,6 +122,28 @@ class SupportServiceProvider extends PackageServiceProvider
 
         // Cknow\Money
         \Cknow\Money\Money::setDefaultCurrency('CNY');
+
+        // 定义图片变体
+        ImageManipulator::defineVariant(
+            'thumbnail',
+            ImageManipulation::make(function (Image $image, Media $originalMedia) {
+                $image->scaleDown(200, 200);
+            })
+        );
+
+        ImageManipulator::defineVariant(
+            'medium',
+            ImageManipulation::make(function (Image $image, Media $originalMedia) {
+                $image->scaleDown(500, 500);
+            })
+        );
+
+        ImageManipulator::defineVariant(
+            'large',
+            ImageManipulation::make(function (Image $image, Media $originalMedia) {
+                $image->scaleDown(800, 800);
+            })
+        );
     }
 
     protected function getAssetPackageName(): ?string
