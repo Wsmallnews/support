@@ -32,7 +32,6 @@ class MediableFileUpload extends FileUpload
      */
     protected array | Closure | null $customProperties = null;
 
-
     /**
      * @var array<string, mixed> | Closure | null
      */
@@ -215,7 +214,6 @@ class MediableFileUpload extends FileUpload
         return $this;
     }
 
-
     public function tag(string | Closure $tag): static
     {
         $this->tag = $tag;
@@ -247,7 +245,6 @@ class MediableFileUpload extends FileUpload
         return $this;
     }
 
-
     /**
      * @param  array<string, mixed> | Closure | null  $properties
      */
@@ -258,8 +255,6 @@ class MediableFileUpload extends FileUpload
         return $this;
     }
 
-
-
     /**
      * @param  array<string, mixed> | Closure | null  $properties
      */
@@ -269,7 +264,6 @@ class MediableFileUpload extends FileUpload
 
         return $this;
     }
-
 
     public function getTag(): string
     {
@@ -294,7 +288,6 @@ class MediableFileUpload extends FileUpload
         return $this->evaluate($this->customHeaders) ?? [];
     }
 
-
     /**
      * @return array<string, mixed>
      */
@@ -303,7 +296,6 @@ class MediableFileUpload extends FileUpload
         return $this->evaluate($this->customProperties) ?? [];
     }
 
-
     /**
      * @return array<string, mixed>
      */
@@ -311,5 +303,4 @@ class MediableFileUpload extends FileUpload
     {
         return $this->evaluate($this->properties) ?? [];
     }
-
 }
