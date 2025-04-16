@@ -27,6 +27,17 @@ class MediableFileUpload extends FileUpload
 
     protected array | Closure | null $customHeaders = null;
 
+    /**
+     * @var array<string, mixed> | Closure | null
+     */
+    protected array | Closure | null $customProperties = null;
+
+
+    /**
+     * @var array<string, mixed> | Closure | null
+     */
+    protected array | Closure | null $properties = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -117,7 +128,6 @@ class MediableFileUpload extends FileUpload
             $media = MediaUploader::fromSource($file)
                 ->toDestination($component->getDiskName(), $component->getDirectory() ?? '')
                 ->useHashForFilename('sha1')
-                // ->useFilename($component->getUploadedFileNameForStorage($file))
                 ->withOptions($component->getCustomHeaders())
                 ->setMaximumSize($component->getMaxSize() ?? 0)
                 ->setAllowedMimeTypes($component->getAcceptedFileTypes() ?? [])
@@ -125,6 +135,19 @@ class MediableFileUpload extends FileUpload
                 ->setAllowedAggregateTypes($component->getAggregateTypes() ?? [])
                 ->withAltAttribute($file->getClientOriginalName())
                 ->onDuplicateUpdate()
+                // ->withCustomProperties($component->getCustomProperties())        // 待实现
+                // ->beforeSave(function (Media $media, $source) use ($component) {
+                //     if (method_exists($component->getLivewire(), 'getScopeInfo')) {
+                //         $scopeInfo = $component->getLivewire()->getScopeInfo();
+                //     }
+
+                //     $media->setAttribute('scope_type', $scopeInfo['scope_type'] ?? 'default');
+                //     $media->setAttribute('scope_id', $scopeInfo['scope_id'] ?? 0);
+
+                //     foreach ($component->getProperties() as $key => $value) {
+                //         $media->setAttribute($key, $value);
+                //     }
+                // })
                 ->upload();
 
             $record->attachMedia($media, [$component->getTag()]);
@@ -133,19 +156,6 @@ class MediableFileUpload extends FileUpload
             CreateImageVariants::dispatch($media, ['thumbnail', 'medium', 'large']);
 
             return $component->getUniqueId($media);
-
-            // $media = $mediaAdder
-            //     // ->addCustomHeaders($component->getCustomHeaders())
-            //     // ->usingFileName($filename)
-            //     ->usingName($component->getMediaName($file) ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME))
-            //     ->storingConversionsOnDisk($component->getConversionsDisk() ?? '')
-            //     ->withCustomProperties($component->getCustomProperties())
-            //     ->withManipulations($component->getManipulations())
-            //     ->withResponsiveImagesIf($component->hasResponsiveImages())
-            //     ->withProperties($component->getProperties())
-            //     ->toMediaCollection($component->getCollection() ?? 'default', $component->getDiskName());
-
-            // return $media->getAttributeValue('uuid');
         });
 
         $this->reorderUploadedFilesUsing(static function (MediableFileUpload $component, ?Model $record, array $state): array {
@@ -205,27 +215,6 @@ class MediableFileUpload extends FileUpload
         return $this;
     }
 
-    // protected bool | Closure $hasResponsiveImages = false;
-
-    // /**
-    //  * @var array<string, mixed> | Closure | null
-    //  */
-    // protected array | Closure | null $customHeaders = null;
-
-    // /**
-    //  * @var array<string, mixed> | Closure | null
-    //  */
-    // protected array | Closure | null $customProperties = null;
-
-    // /**
-    //  * @var array<string, array<string, string>> | Closure | null
-    //  */
-    // protected array | Closure | null $manipulations = null;
-
-    // /**
-    //  * @var array<string, mixed> | Closure | null
-    //  */
-    // protected array | Closure | null $properties = null;
 
     public function tag(string | Closure $tag): static
     {
@@ -258,49 +247,29 @@ class MediableFileUpload extends FileUpload
         return $this;
     }
 
-    // public function conversion(string | Closure | null $conversion): static
-    // {
-    //     $this->conversion = $conversion;
 
-    //     return $this;
-    // }
+    /**
+     * @param  array<string, mixed> | Closure | null  $properties
+     */
+    public function customProperties(array | Closure | null $properties): static
+    {
+        $this->customProperties = $properties;
 
-    // /**
-    //  * @param  array<string, mixed> | Closure | null  $properties
-    //  */
-    // public function customProperties(array | Closure | null $properties): static
-    // {
-    //     $this->customProperties = $properties;
+        return $this;
+    }
 
-    //     return $this;
-    // }
 
-    // /**
-    //  * @param  array<string, array<string, string>> | Closure | null  $manipulations
-    //  */
-    // public function manipulations(array | Closure | null $manipulations): static
-    // {
-    //     $this->manipulations = $manipulations;
 
-    //     return $this;
-    // }
+    /**
+     * @param  array<string, mixed> | Closure | null  $properties
+     */
+    public function properties(array | Closure | null $properties): static
+    {
+        $this->properties = $properties;
 
-    // /**
-    //  * @param  array<string, mixed> | Closure | null  $properties
-    //  */
-    // public function properties(array | Closure | null $properties): static
-    // {
-    //     $this->properties = $properties;
+        return $this;
+    }
 
-    //     return $this;
-    // }
-
-    // public function responsiveImages(bool | Closure $condition = true): static
-    // {
-    //     $this->hasResponsiveImages = $condition;
-
-    //     return $this;
-    // }
 
     public function getTag(): string
     {
@@ -325,38 +294,22 @@ class MediableFileUpload extends FileUpload
         return $this->evaluate($this->customHeaders) ?? [];
     }
 
-    // public function getConversion(): ?string
-    // {
-    //     return $this->evaluate($this->conversion);
-    // }
 
-    // /**
-    //  * @return array<string, mixed>
-    //  */
-    // public function getCustomProperties(): array
-    // {
-    //     return $this->evaluate($this->customProperties) ?? [];
-    // }
+    /**
+     * @return array<string, mixed>
+     */
+    public function getCustomProperties(): array
+    {
+        return $this->evaluate($this->customProperties) ?? [];
+    }
 
-    // /**
-    //  * @return array<string, array<string, string>>
-    //  */
-    // public function getManipulations(): array
-    // {
-    //     return $this->evaluate($this->manipulations) ?? [];
-    // }
 
-    // /**
-    //  * @return array<string, mixed>
-    //  */
-    // public function getProperties(): array
-    // {
-    //     return $this->evaluate($this->properties) ?? [];
-    // }
-
-    // public function hasResponsiveImages(): bool
-    // {
-    //     return (bool) $this->evaluate($this->hasResponsiveImages);
-    // }
+    /**
+     * @return array<string, mixed>
+     */
+    public function getProperties(): array
+    {
+        return $this->evaluate($this->properties) ?? [];
+    }
 
 }
