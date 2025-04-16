@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use League\Flysystem\UnableToCheckFileExistence;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Plank\Mediable\Facades\ImageManipulator;
 use Plank\Mediable\Facades\MediaUploader;
 use Plank\Mediable\Jobs\CreateImageVariants;
 use Plank\Mediable\Media;
@@ -135,8 +134,6 @@ class MediableFileUpload extends FileUpload
 
             return $component->getUniqueId($media);
 
-
-
             // $media = $mediaAdder
             //     // ->addCustomHeaders($component->getCustomHeaders())
             //     // ->usingFileName($filename)
@@ -195,8 +192,6 @@ class MediableFileUpload extends FileUpload
         $record->detachMedia($medias, [$component->getTag()]);
     }
 
-
-
     /**
      * 限制上传图片
      */
@@ -204,15 +199,13 @@ class MediableFileUpload extends FileUpload
     {
         $this->aggregateTypes([
             Media::TYPE_IMAGE,          // 图片聚合类型
-            Media::TYPE_IMAGE_VECTOR,   // 矢量图 聚合类型  
+            Media::TYPE_IMAGE_VECTOR,   // 矢量图 聚合类型
         ]);
 
         return $this;
     }
 
-
     // protected bool | Closure $hasResponsiveImages = false;
-
 
     // /**
     //  * @var array<string, mixed> | Closure | null
@@ -233,8 +226,6 @@ class MediableFileUpload extends FileUpload
     //  * @var array<string, mixed> | Closure | null
     //  */
     // protected array | Closure | null $properties = null;
-
-
 
     public function tag(string | Closure $tag): static
     {
@@ -266,8 +257,6 @@ class MediableFileUpload extends FileUpload
 
         return $this;
     }
-
-
 
     // public function conversion(string | Closure | null $conversion): static
     // {
@@ -313,7 +302,6 @@ class MediableFileUpload extends FileUpload
     //     return $this;
     // }
 
-
     public function getTag(): string
     {
         return $this->evaluate($this->tag) ?: 'default';
@@ -341,7 +329,6 @@ class MediableFileUpload extends FileUpload
     // {
     //     return $this->evaluate($this->conversion);
     // }
-
 
     // /**
     //  * @return array<string, mixed>
