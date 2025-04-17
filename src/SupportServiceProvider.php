@@ -183,6 +183,7 @@ class SupportServiceProvider extends PackageServiceProvider
     {
         return [
             '2025_01_20_113658_create_sn_sms_logs_table',
+            '2025_04_17_105524_add_scopeinfo_to_media_table',
         ];
     }
 }

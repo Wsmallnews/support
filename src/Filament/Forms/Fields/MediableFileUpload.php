@@ -124,9 +124,16 @@ class MediableFileUpload extends FileUpload
                 return null;
             }
 
+            $scopeInfo = ['scope_type' => 'default', 'scope_id' => 0];
+            if (method_exists($component->getLivewire(), 'getScopeInfo')) {
+                $scopeInfo = $component->getLivewire()->getScopeInfo();
+            }
+
+            $filename = $component->getUploadedFileNameForStorageScopeInfo($file, $scopeInfo);      // 根据 scopeInfo 生成文件名
+
             $media = MediaUploader::fromSource($file)
                 ->toDestination($component->getDiskName(), $component->getDirectory() ?? '')
-                ->useHashForFilename('sha1')
+                ->useFilename($filename)                        // 自定义文件名
                 ->withOptions($component->getCustomHeaders())
                 ->setMaximumSize($component->getMaxSize() ?? 0)
                 ->setAllowedMimeTypes($component->getAcceptedFileTypes() ?? [])
@@ -135,18 +142,18 @@ class MediableFileUpload extends FileUpload
                 ->withAltAttribute($file->getClientOriginalName())
                 ->onDuplicateUpdate()
                 // ->withCustomProperties($component->getCustomProperties())        // 待实现
-                // ->beforeSave(function (Media $media, $source) use ($component) {
-                //     if (method_exists($component->getLivewire(), 'getScopeInfo')) {
-                //         $scopeInfo = $component->getLivewire()->getScopeInfo();
-                //     }
+                ->beforeSave(function (Media $media, $source) use ($component) {
+                    if (method_exists($component->getLivewire(), 'getScopeInfo')) {
+                        $scopeInfo = $component->getLivewire()->getScopeInfo();
+                    }
 
-                //     $media->setAttribute('scope_type', $scopeInfo['scope_type'] ?? 'default');
-                //     $media->setAttribute('scope_id', $scopeInfo['scope_id'] ?? 0);
+                    $media->setAttribute('scope_type', $scopeInfo['scope_type'] ?? 'default');
+                    $media->setAttribute('scope_id', $scopeInfo['scope_id'] ?? 0);
 
-                //     foreach ($component->getProperties() as $key => $value) {
-                //         $media->setAttribute($key, $value);
-                //     }
-                // })
+                    foreach ($component->getProperties() as $key => $value) {
+                        $media->setAttribute($key, $value);
+                    }
+                })
                 ->upload();
 
             $record->attachMedia($media, [$component->getTag()]);
@@ -176,6 +183,20 @@ class MediableFileUpload extends FileUpload
             return $state;
         });
     }
+
+
+    /**
+     * 自定义文件名
+     *
+     * @param TemporaryUploadedFile $file
+     * @param array $scopeInfo
+     * @return string
+     */
+    private function getUploadedFileNameForStorageScopeInfo(TemporaryUploadedFile $file, array $scopeInfo): string
+    {
+        return sha1($scopeInfo['scope_type'] . '-' . $scopeInfo['scope_id'] . '-' . hash_file('sha1', $file->getRealPath()));
+    }
+
 
     private function getUniqueId($media)
     {
