@@ -50,12 +50,8 @@ class MediableImageColumn extends ImageColumn
         });
     }
 
-
     /**
      * 获取指定图片地址
-     *
-     * @param string|null $state
-     * @return string|null
      */
     public function getImageUrl(?string $state = null): ?string
     {
@@ -85,7 +81,7 @@ class MediableImageColumn extends ImageColumn
                         return $media->findVariant($variant)?->getTemporaryUrl(
                             now()->addMinutes(5),
                         );
-                    } 
+                    }
 
                     return $media->getTemporaryUrl(
                         now()->addMinutes(5),
@@ -96,7 +92,7 @@ class MediableImageColumn extends ImageColumn
             }
 
             if ($variant) {
-                return $media->findVariant($variant)?->getUrl(); 
+                return $media->findVariant($variant)?->getUrl();
             }
 
             return $media->getUrl();
@@ -104,7 +100,6 @@ class MediableImageColumn extends ImageColumn
 
         return null;
     }
-
 
     /**
      * @return array<string>
@@ -140,16 +135,13 @@ class MediableImageColumn extends ImageColumn
                         ->all(),
                 ];
             }
+
             return array_unique($state);
         });
     }
 
-
     /**
      * table 查询时，追加查询条件
-     * 
-     * @param Builder|Relation $query
-     * @return Builder|Relation
      */
     public function applyEagerLoading(Builder | Relation $query): Builder | Relation
     {
@@ -169,11 +161,10 @@ class MediableImageColumn extends ImageColumn
         return $query->with(['media' => $modifyMediaQuery]);
     }
 
-
     /**
      * 给图片资源生成一个全新的唯一 id，标记图片用，不存库
      *
-     * @param Media $media
+     * @param  Media  $media
      * @return string
      */
     private function getUniqueId($media)
@@ -186,14 +177,12 @@ class MediableImageColumn extends ImageColumn
         return $this->getUniqueId($media) === $key;
     }
 
-
     public function tag(string | Closure $tag): static
     {
         $this->tag = $tag;
 
         return $this;
     }
-
 
     public function variant(string | Closure | null $variant): static
     {
@@ -206,7 +195,6 @@ class MediableImageColumn extends ImageColumn
     {
         return $this->evaluate($this->tag) ?: 'default';
     }
-
 
     public function getVariant(): ?string
     {

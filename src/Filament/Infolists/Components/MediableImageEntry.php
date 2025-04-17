@@ -19,7 +19,6 @@ class MediableImageEntry extends ImageEntry
 
     protected string | Closure | null $variant = null;
 
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -47,8 +46,6 @@ class MediableImageEntry extends ImageEntry
             return null;
         });
     }
-
-    
 
     public function getImageUrl(?string $state = null): ?string
     {
@@ -82,7 +79,7 @@ class MediableImageEntry extends ImageEntry
                         return $media->findVariant($variant)?->getTemporaryUrl(
                             now()->addMinutes(5),
                         );
-                    } 
+                    }
 
                     return $media->getTemporaryUrl(
                         now()->addMinutes(5),
@@ -93,7 +90,7 @@ class MediableImageEntry extends ImageEntry
             }
 
             if ($variant) {
-                return $media->findVariant($variant)?->getUrl(); 
+                return $media->findVariant($variant)?->getUrl();
             }
 
             return $media->getUrl();
@@ -124,7 +121,7 @@ class MediableImageEntry extends ImageEntry
             $state = [
                 ...$state,
                 ...$record->getRelationValue('media')
-                    ->filter(fn(Media $media): bool => $media->pivot->tag === $tag)
+                    ->filter(fn (Media $media): bool => $media->pivot->tag === $tag)
                     ->when(
                         $this->hasMediaFilter(),
                         fn (Collection $media) => $this->filterMedia($media)
@@ -139,11 +136,10 @@ class MediableImageEntry extends ImageEntry
         return array_unique($state);
     }
 
-
     /**
      * 给图片资源生成一个全新的唯一 id，标记图片用，不存库
      *
-     * @param Media $media
+     * @param  Media  $media
      * @return string
      */
     private function getUniqueId($media)
@@ -156,14 +152,12 @@ class MediableImageEntry extends ImageEntry
         return $this->getUniqueId($media) === $key;
     }
 
-
     public function tag(string | Closure $tag): static
     {
         $this->tag = $tag;
 
         return $this;
     }
-
 
     public function variant(string | Closure | null $variant): static
     {
@@ -176,7 +170,6 @@ class MediableImageEntry extends ImageEntry
     {
         return $this->evaluate($this->tag) ?: 'default';
     }
-
 
     public function getVariant(): ?string
     {

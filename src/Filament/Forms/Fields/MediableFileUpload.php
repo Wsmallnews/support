@@ -184,19 +184,13 @@ class MediableFileUpload extends FileUpload
         });
     }
 
-
     /**
      * 自定义文件名
-     *
-     * @param TemporaryUploadedFile $file
-     * @param array $scopeInfo
-     * @return string
      */
     private function getUploadedFileNameForStorageScopeInfo(TemporaryUploadedFile $file, array $scopeInfo): string
     {
         return sha1($scopeInfo['scope_type'] . '-' . $scopeInfo['scope_id'] . '-' . hash_file('sha1', $file->getRealPath()));
     }
-
 
     private function getUniqueId($media)
     {
