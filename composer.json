@@ -24,6 +24,7 @@
         "codeat3/blade-element-plus-icons": "^1.0",
         "codeat3/blade-jam-icons": "^1.6",
         "codeat3/blade-mono-icons": "^1.0",
+        "codewithdennis/filament-select-tree": "^3.0",
         "faisal50x/blade-ionicons": "^1.0",
         "filament/filament": "^3.0",
         "filament/spatie-laravel-media-library-plugin": "^3.0",
