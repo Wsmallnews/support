@@ -3,7 +3,6 @@
 namespace Wsmallnews\Support\Features;
 
 use GuzzleHttp\Client;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Wsmallnews\Support\Exceptions\SupportException;
 
@@ -11,16 +10,19 @@ class District
 {
     protected $key = 'ODBBZ-BZN6Z-CCUXX-7736U-HVLST-N4FJQ';
 
-    protected $url = "https://apis.map.qq.com/ws/district/v1/list";
-
+    protected $url = 'https://apis.map.qq.com/ws/district/v1/list';
 
     protected $province = [];
-    protected $city = [];
-    protected $district = [];
-    protected $cascader = [];
-    protected $tilearea = [];
-    protected $region = [];
 
+    protected $city = [];
+
+    protected $district = [];
+
+    protected $cascader = [];
+
+    protected $tilearea = [];
+
+    protected $region = [];
 
     /**
      * 获取省份列表
@@ -40,9 +42,6 @@ class District
         return $province;
     }
 
-
-
-
     /**
      * 获取城市列表
      */
@@ -58,7 +57,7 @@ class District
             }
         }
 
-        if (!empty($city) && !empty($cidx)) {
+        if (! empty($city) && ! empty($cidx)) {
             $city_tmp = [];
 
             for ($i = $cidx[0]; $i <= $cidx[count($cidx) - 1]; $i++) {
@@ -70,7 +69,6 @@ class District
 
         return $city;
     }
-
 
     /**
      * 获取地区列表
@@ -87,7 +85,7 @@ class District
             }
         }
 
-        if (!empty($district) && !empty($cidx)) {
+        if (! empty($district) && ! empty($cidx)) {
             $district_tmp = [];
 
             for ($i = $cidx[0]; $i <= $cidx[count($cidx) - 1]; $i++) {
@@ -100,10 +98,9 @@ class District
         return $district;
     }
 
-
     /**
      * 获取 cascader 级联列表
-     * 
+     *
      * @return array
      */
     public function getCascader()
@@ -120,8 +117,6 @@ class District
 
         return $cascader;
     }
-
-
 
     /**
      * 获取 用户端 省市区三级联动
@@ -140,11 +135,9 @@ class District
     //     return $region;
     // }
 
-
-
     /**
      * 获取 Tile 数据
-     * 
+     *
      * @return array
      */
     public function getTileArea()
@@ -161,7 +154,6 @@ class District
 
         return $tilearea;
     }
-
 
     /**
      * 更新行政区划
@@ -191,11 +183,9 @@ class District
 
             return true;
         } else {
-            throw new SupportException("同步行政区划失败");
+            throw new SupportException('同步行政区划失败');
         }
     }
-
-
 
     /**
      * 设置后台 elemetn cascader 数据格式
@@ -209,7 +199,7 @@ class District
             $tmp_arr = $this->getCascaderFormat($value, 'province');
 
             // 如果这个省下面存在城市
-            if (isset($value['cidx']) && !empty($value['cidx'])) {
+            if (isset($value['cidx']) && ! empty($value['cidx'])) {
                 $cidx = $value['cidx'];
 
                 // 将城市放入 citys
@@ -220,12 +210,12 @@ class District
                 }
 
                 // 如果城市存在，循环省下面的城市
-                if (isset($citys) && !empty($citys)) {
+                if (isset($citys) && ! empty($citys)) {
                     $tmp_citys = [];
                     foreach ($citys as $k => $v) {
                         $tmp_city = $this->getCascaderFormat($v, 'city', $value['id']);
 
-                        if (isset($v['cidx']) && !empty($v['cidx'])) {
+                        if (isset($v['cidx']) && ! empty($v['cidx'])) {
                             $cx = $v['cidx'];
 
                             // 将地区放入 tmp_district
@@ -278,28 +268,25 @@ class District
         return $cascaders;
     }
 
-
     /**
      * 格式化 cascader 数据
-     *  
-     * @param array $address
-     * @param string $level
-     * @param integer $parent_id
+     *
+     * @param  array  $address
+     * @param  string  $level
+     * @param  int  $parent_id
      * @return array
      */
     protected function getCascaderFormat($address, $level = 'province', $parent_id = 0)
     {
         $tmp_arr['name'] = $address['fullname'];
-        $tmp_arr['short_name']  = isset($address['name']) ? $address['name'] : $address['fullname'];
-        $tmp_arr['id']  = (string)$address['id'];
-        $tmp_arr['parent_id']  = (string)$parent_id;
-        $tmp_arr['level']  = $level;
+        $tmp_arr['short_name'] = isset($address['name']) ? $address['name'] : $address['fullname'];
+        $tmp_arr['id'] = (string) $address['id'];
+        $tmp_arr['parent_id'] = (string) $parent_id;
+        $tmp_arr['level'] = $level;
         $tmp_arr['children'] = [];
 
         return $tmp_arr;
     }
-
-
 
     /**
      * 将省市区放到一个数组中，然后key 就是 id（区划代码）
@@ -326,7 +313,6 @@ class District
         return $tileArea;
     }
 
-
     /**
      * 直辖市城市 ids
      *
@@ -340,25 +326,23 @@ class District
             '310000',
             '500000',
             '810000',
-            '820000'
+            '820000',
         ];
 
         return $directCode;
     }
 
-
-
     /**
      * 一般 微信接口请求
-     * 
-     * @param string $method 
-     * @param string $url
-     * @param array $data
+     *
+     * @param  string  $method
+     * @param  string  $url
+     * @param  array  $data
      * @return array
      */
     protected function request()
     {
-        $client = new Client();
+        $client = new Client;
 
         $response = $client->request('get', $this->url, [
             'query' => ['key' => $this->key],

@@ -2,7 +2,6 @@
 
 namespace Wsmallnews\Support\Filament\Forms\Fields;
 
-use Closure;
 use Filament\Forms\Components\Concerns\CanBeDisabled;
 use Filament\Forms\Components\Concerns\CanBeSearchable;
 use Filament\Forms\Components\Concerns\HasActions;
@@ -22,18 +21,18 @@ class DistrictSelect extends Field implements HasAffixActions
     use CanBeSearchable;
     use HasActions;
     use HasAffixes;
+    use HasExtraAlpineAttributes;
     use HasExtraInputAttributes;
     use HasOptions;
     use HasPlaceholder;
-    use HasExtraAlpineAttributes;
 
     protected string $view = 'sn-support::forms.fields.district-select';
-
 
     protected function setUp(): void
     {
         $this->options(function () {
             $districtData = (new District)->getCascader();
+
             return is_array($districtData) ? $districtData : json_decode($districtData, true);
         });
 
@@ -41,9 +40,10 @@ class DistrictSelect extends Field implements HasAffixActions
         $this->afterStateHydrated(function (DistrictSelect $component, ?array $state) {
             $record = $component->getRecord();
 
-            if (!$record) {
+            if (! $record) {
                 $component->state($state);
-                return ;
+
+                return;
             }
 
             $component->state([
