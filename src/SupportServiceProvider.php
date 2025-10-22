@@ -13,9 +13,6 @@ use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Intervention\Image\Image;
 use Livewire\Features\SupportTesting\Testable;
-use Plank\Mediable\Facades\ImageManipulator;
-use Plank\Mediable\ImageManipulation;
-use Plank\Mediable\Media;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -104,46 +101,46 @@ class SupportServiceProvider extends PackageServiceProvider
             return $symbol;
         });
 
-        \Filament\Tables\Table::$defaultCurrency = 'CNY';
-        \Filament\Tables\Table::$defaultDateDisplayFormat = 'M j, Y';
-        \Filament\Tables\Table::$defaultDateTimeDisplayFormat = 'M j, Y H:i:s';
-        \Filament\Tables\Table::$defaultNumberLocale = null;
-        \Filament\Tables\Table::$defaultTimeDisplayFormat = 'H:i:s';
+        // \Filament\Tables\Table::$defaultCurrency = 'CNY';
+        // \Filament\Tables\Table::$defaultDateDisplayFormat = 'M j, Y';
+        // \Filament\Tables\Table::$defaultDateTimeDisplayFormat = 'M j, Y H:i:s';
+        // \Filament\Tables\Table::$defaultNumberLocale = null;
+        // \Filament\Tables\Table::$defaultTimeDisplayFormat = 'H:i:s';
 
-        \Filament\Infolists\Infolist::$defaultCurrency = 'CNY';
-        \Filament\Infolists\Infolist::$defaultDateDisplayFormat = 'M j, Y';
-        \Filament\Infolists\Infolist::$defaultDateTimeDisplayFormat = 'M j, Y H:i:s';
-        \Filament\Infolists\Infolist::$defaultNumberLocale = null;
-        \Filament\Infolists\Infolist::$defaultTimeDisplayFormat = 'H:i:s';
+        // \Filament\Infolists\Infolist::$defaultCurrency = 'CNY';
+        // \Filament\Infolists\Infolist::$defaultDateDisplayFormat = 'M j, Y';
+        // \Filament\Infolists\Infolist::$defaultDateTimeDisplayFormat = 'M j, Y H:i:s';
+        // \Filament\Infolists\Infolist::$defaultNumberLocale = null;
+        // \Filament\Infolists\Infolist::$defaultTimeDisplayFormat = 'H:i:s';
 
-        // laravel number 类库
-        \Illuminate\Support\Number::useLocale(config('app.locale'));
-        \Illuminate\Support\Number::useCurrency('CNY');
+        // // laravel number 类库
+        // \Illuminate\Support\Number::useLocale(config('app.locale'));
+        // \Illuminate\Support\Number::useCurrency('CNY');
 
-        // Cknow\Money
-        \Cknow\Money\Money::setDefaultCurrency('CNY');
+        // // Cknow\Money
+        // \Cknow\Money\Money::setDefaultCurrency('CNY');
 
         // 定义图片变体
-        ImageManipulator::defineVariant(
-            'thumbnail',
-            ImageManipulation::make(function (Image $image, Media $originalMedia) {
-                $image->scaleDown(200, 200);
-            })
-        );
+        // ImageManipulator::defineVariant(
+        //     'thumbnail',
+        //     ImageManipulation::make(function (Image $image, Media $originalMedia) {
+        //         $image->scaleDown(200, 200);
+        //     })
+        // );
 
-        ImageManipulator::defineVariant(
-            'medium',
-            ImageManipulation::make(function (Image $image, Media $originalMedia) {
-                $image->scaleDown(500, 500);
-            })
-        );
+        // ImageManipulator::defineVariant(
+        //     'medium',
+        //     ImageManipulation::make(function (Image $image, Media $originalMedia) {
+        //         $image->scaleDown(500, 500);
+        //     })
+        // );
 
-        ImageManipulator::defineVariant(
-            'large',
-            ImageManipulation::make(function (Image $image, Media $originalMedia) {
-                $image->scaleDown(800, 800);
-            })
-        );
+        // ImageManipulator::defineVariant(
+        //     'large',
+        //     ImageManipulation::make(function (Image $image, Media $originalMedia) {
+        //         $image->scaleDown(800, 800);
+        //     })
+        // );
     }
 
     protected function getAssetPackageName(): ?string
@@ -157,11 +154,11 @@ class SupportServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            AlpineComponent::make('forms-arrange', __DIR__ . '/../resources/dist/forms/arrange.js'),
-            AlpineComponent::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.js'),
-            AlpineComponent::make('components-file-upload', __DIR__ . '/../resources/dist/components/file-upload.js'),
-            Css::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.css')->loadedOnRequest(),
-            Css::make('support-styles', __DIR__ . '/../resources/dist/support.css'),
+            // AlpineComponent::make('forms-arrange', __DIR__ . '/../resources/dist/forms/arrange.js'),
+            // AlpineComponent::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.js'),
+            // AlpineComponent::make('components-file-upload', __DIR__ . '/../resources/dist/components/file-upload.js'),
+            // Css::make('components-swiper', __DIR__ . '/../resources/dist/components/swiper.css')->loadedOnRequest(),
+            // Css::make('support-styles', __DIR__ . '/../resources/dist/support.css'),
 
             // AlpineComponent::make('support', __DIR__ . '/../resources/dist/components/support.js'),
             // Js::make('support-scripts', __DIR__ . '/../resources/dist/support.js'),
@@ -182,8 +179,8 @@ class SupportServiceProvider extends PackageServiceProvider
     protected function getMigrations(): array
     {
         return [
-            '2025_01_20_113658_create_sn_sms_logs_table',
-            '2025_04_17_105524_add_scopeinfo_to_media_table',
+            // '2025_01_20_113658_create_sn_sms_logs_table',
+            // '2025_04_17_105524_add_scopeinfo_to_media_table',
         ];
     }
 }
