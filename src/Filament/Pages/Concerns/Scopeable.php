@@ -1,6 +1,6 @@
 <?php
 
-namespace Wsmallnews\Support\Filament\Resources\Concerns;
+namespace Wsmallnews\Support\Filament\Pages\Concerns;
 
 trait Scopeable
 {
