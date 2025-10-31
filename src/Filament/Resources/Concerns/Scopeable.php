@@ -10,24 +10,20 @@ trait Scopeable
 
     protected static int $scopeId = 0;
 
-
     public static function getScopeType(): string
     {
         return static::$scopeType;
     }
-
 
     public static function scopeType(?string $scope_type): void
     {
         static::$scopeType = $scope_type;
     }
 
-
     public static function getScopeId(): int
     {
         return static::$scopeId;
     }
-
 
     public static function scopeId(int $scope_id): void
     {
@@ -41,7 +37,6 @@ trait Scopeable
             'scope_id' => static::$scopeId,
         ];
     }
-
 
     // public static function getEloquentQuery(): Builder
     // {

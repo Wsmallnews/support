@@ -9,8 +9,6 @@ trait Scopeable
 {
     /**
      * 范围类型查询
-     *
-     * @param  string  $scope_type
      */
     public function scopeScopeType(Builder $query, string $scope_type): Builder
     {
@@ -19,20 +17,16 @@ trait Scopeable
 
     /**
      * 范围值查询
-     *
-     * @param  int|array  $scope_id
      */
     public function scopeScopeId(Builder $query, int | array $scope_id = 0): Builder
     {
         $scope_id = Arr::wrap($scope_id);
+
         return $query->whereIn('scope_id', $scope_id);
     }
 
     /**
      * 范围查询
-     *
-     * @param  string  $scope_type
-     * @param  int|array  $scope_id
      */
     public function scopeScopeable(Builder $query, string $scope_type, int | array $scope_id = 0): Builder
     {
