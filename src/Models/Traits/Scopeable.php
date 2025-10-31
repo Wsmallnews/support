@@ -3,6 +3,7 @@
 namespace Wsmallnews\Support\Models\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 
 trait Scopeable
 {
@@ -11,7 +12,7 @@ trait Scopeable
      *
      * @param  string  $scope_type
      */
-    public function scopeScopeType(Builder $query, $scope_type): Builder
+    public function scopeScopeType(Builder $query, string $scope_type): Builder
     {
         return $query->where('scope_type', $scope_type);
     }
@@ -19,20 +20,21 @@ trait Scopeable
     /**
      * 范围值查询
      *
-     * @param  int  $scope_id
+     * @param  int|array  $scope_id
      */
-    public function scopeScopeId(Builder $query, $scope_id): Builder
+    public function scopeScopeId(Builder $query, int | array $scope_id = 0): Builder
     {
-        return $query->where('scope_id', $scope_id);
+        $scope_id = Arr::wrap($scope_id);
+        return $query->whereIn('scope_id', $scope_id);
     }
 
     /**
      * 范围查询
      *
      * @param  string  $scope_type
-     * @param  int  $scope_id
+     * @param  int|array  $scope_id
      */
-    public function scopeScopeable(Builder $query, $scope_type, $scope_id = 0): Builder
+    public function scopeScopeable(Builder $query, string $scope_type, int | array $scope_id = 0): Builder
     {
         return $query->scopeType($scope_type)->scopeId($scope_id);
     }
