@@ -15,7 +15,7 @@ return new class extends Migration
             'media',
             'scope_type',
             function (Blueprint $table) {
-                $table->string('scope_type', 20)->nullable()->comment('范围类型');
+                $table->string('scope_type', 60)->nullable()->comment('范围类型');
             }
         );
         Schema::whenTableDoesntHaveColumn(
