@@ -1,14 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
-use Wsmallnews\Support\Features\Currency;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Arr;
+use Wsmallnews\Support\Features\Currency;
 
 if (! function_exists('get_sn')) {
     /**
@@ -162,7 +162,6 @@ if (! function_exists('files_url')) {
     }
 }
 
-
 if (! function_exists('filter_richeditor')) {
     function filter_richeditor($content)
     {
@@ -172,10 +171,10 @@ if (! function_exists('filter_richeditor')) {
     }
 }
 
-
 if (! function_exists('has_tenancy')) {
     /**
      * 是否有租户
+     *
      * @return bool
      */
     function has_tenancy()
@@ -184,10 +183,10 @@ if (! function_exists('has_tenancy')) {
     }
 }
 
-
 if (! function_exists('current_tenant')) {
     /**
      * 当前租户
+     *
      * @return Model
      */
     function current_tenant()
@@ -196,14 +195,13 @@ if (! function_exists('current_tenant')) {
     }
 }
 
-
 if (! function_exists('sn_route')) {
     function sn_route($name, $parameters = [], $absolute = true)
     {
         if (has_tenancy()) {
             $parameters = Arr::wrap($parameters);
 
-            if (!isset($parameters['tenant'])) {        // 没有租户参数,则添加租户参数
+            if (! isset($parameters['tenant'])) {        // 没有租户参数,则添加租户参数
                 $tenant = current_tenant();
                 $parameters['tenant'] = $tenant;        // 租户参数
             }
