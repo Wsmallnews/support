@@ -163,7 +163,6 @@ if (! function_exists('files_url')) {
     }
 }
 
-
 if (! function_exists('filter_richeditor')) {
     function filter_richeditor($content)
     {
@@ -172,7 +171,6 @@ if (! function_exists('filter_richeditor')) {
         return preg_replace($regex, '$1', $content);
     }
 }
-
 
 if (! function_exists('has_tenancy')) {
     /**
@@ -186,7 +184,6 @@ if (! function_exists('has_tenancy')) {
     }
 }
 
-
 if (! function_exists('current_tenant')) {
     /**
      * 当前租户
@@ -199,11 +196,9 @@ if (! function_exists('current_tenant')) {
     }
 }
 
-
 if (! function_exists('general_has_tenancy')) {
     /**
      * 全局是否有租户（包括用户端租户信息）
-     * @return bool
      */
     function general_has_tenancy(): bool
     {
@@ -211,11 +206,9 @@ if (! function_exists('general_has_tenancy')) {
     }
 }
 
-
 if (! function_exists('general_current_tenant')) {
     /**
      * 全局当前租户（包括用户端租户信息）
-     * @return ?Model
      */
     function general_current_tenant(): ?Model
     {
@@ -233,7 +226,6 @@ if (! function_exists('general_current_tenant')) {
         return $teannt;
     }
 }
-
 
 if (! function_exists('sn_route')) {
     function sn_route($name, $parameters = [], $absolute = true)
