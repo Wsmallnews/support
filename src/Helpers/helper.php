@@ -1,5 +1,6 @@
 <?php
 
+use Filament\Facades\Filament;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
@@ -162,6 +163,7 @@ if (! function_exists('files_url')) {
     }
 }
 
+
 if (! function_exists('filter_richeditor')) {
     function filter_richeditor($content)
     {
@@ -170,6 +172,7 @@ if (! function_exists('filter_richeditor')) {
         return preg_replace($regex, '$1', $content);
     }
 }
+
 
 if (! function_exists('has_tenancy')) {
     /**
@@ -183,6 +186,7 @@ if (! function_exists('has_tenancy')) {
     }
 }
 
+
 if (! function_exists('current_tenant')) {
     /**
      * 当前租户
@@ -194,6 +198,42 @@ if (! function_exists('current_tenant')) {
         return request()->attributes->get('current_tenant', null);
     }
 }
+
+
+if (! function_exists('general_has_tenancy')) {
+    /**
+     * 全局是否有租户（包括用户端租户信息）
+     * @return bool
+     */
+    function general_has_tenancy(): bool
+    {
+        return is_null(general_current_tenant()) ? false : true;
+    }
+}
+
+
+if (! function_exists('general_current_tenant')) {
+    /**
+     * 全局当前租户（包括用户端租户信息）
+     * @return ?Model
+     */
+    function general_current_tenant(): ?Model
+    {
+        $teannt = null;
+        if (Filament::getCurrentPanel()) {
+            // 当前在后台面板
+            $teannt = Filament::getTenant();
+        } else {
+            // 用户端
+            if (has_tenancy()) {
+                $teannt = current_tenant();
+            }
+        }
+
+        return $teannt;
+    }
+}
+
 
 if (! function_exists('sn_route')) {
     function sn_route($name, $parameters = [], $absolute = true)
