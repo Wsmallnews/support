@@ -1,14 +1,12 @@
 <?php
 
-namespace Wsmallnews\Support\Traits\Components;
+namespace Wsmallnews\Support\Livewire\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
-use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
 
 trait CanPagination
 {
-    use WithoutUrlPagination;
     use WithPagination;
 
     /**
@@ -38,14 +36,29 @@ trait CanPagination
      */
     protected $links = null;
 
+
+    public function pageType(string $pageType)
+    {
+        $this->pageType = $pageType;
+        return $this;
+    }
+
+
+    public function getPageType(): string
+    {
+        return $this->pageType;
+    }
+
     public function withPagination(Builder $builder)
     {
-        if ($this->pageType == 'paginator') {
+        if ($this->getPageType() == 'paginator') {
+            /** @var \Illuminate\Pagination\LengthAwarePaginator $current */
             $current = $builder->paginate($this->perPage, pageName: $this->pageName);
             $collections = $current->getCollection();        // 获取 collection 格式的数据
         } else {
+            /** @var \Illuminate\Pagination\Paginator $current */
             $current = $builder->simplePaginate($this->perPage, pageName: $this->pageName);
-            $collections = $this->products->merge($current->items());
+            $collections = $this->getCurrents()->merge($current->items());
         }
 
         // 分页链接
@@ -60,7 +73,7 @@ trait CanPagination
             'is_last_page' => 0,                                                // 默认不是最有一页
         ];
 
-        if ($this->pageType == 'paginator') {
+        if ($this->getPageType() == 'paginator') {
             $this->pageInfo['total'] = $current->total();                  // 满足条件总条数
             $this->pageInfo['last_page'] = $current->lastPage();           // 最后的页码
 

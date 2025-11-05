@@ -2,10 +2,10 @@
     'pageType',
     'pageInfo',
     'pageName',
-    'paginatorLink'
+    'paginatorLink',
 ])
 
-<div class="w-full">
+<div {{ $attributes->merge(['class' => 'w-full']) }}>
     {{ $slot }}
-    <x-sn-support::paginators :page-type="$pageType" :page-info="$pageInfo" :paginator-link="$paginatorLink" :page-name="$pageName" />
+    <x-paginators :page-type="$pageType" :page-info="$pageInfo" :paginator-link="$paginatorLink" :page-name="$pageName" />
 </div>

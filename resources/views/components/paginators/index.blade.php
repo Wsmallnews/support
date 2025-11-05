@@ -5,7 +5,7 @@
     'paginatorLink'
 ])
 
-<div class="w-full mx-auto">
+<div class="w-full mx-auto p-8">
     @if ($pageType == 'scroll')
         @if ($pageInfo['load_status'] == 'loading')
             <div class="flex justify-center items-center text-gray-400" x-intersect="$wire.nextPage('{{ $pageName }}')">
