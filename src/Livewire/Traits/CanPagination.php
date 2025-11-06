@@ -36,13 +36,12 @@ trait CanPagination
      */
     protected $links = null;
 
-
     public function pageType(string $pageType)
     {
         $this->pageType = $pageType;
+
         return $this;
     }
-
 
     public function getPageType(): string
     {
