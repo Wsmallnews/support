@@ -15,6 +15,11 @@ trait HasCustomProperties
 
     public function customProperties(array | Closure | null $customProperties): static
     {
+        // 获取插件默认自定义属性
+        $defaultProperties = $this->getPluginDefault('customProperties', $this->activeResourceContext ?? null);
+        // 合并传入的自定义属性
+        $customProperties = array_merge($defaultProperties, $customProperties);
+
         if (method_exists($this, 'setContextualProperty')) {
             return $this->setContextualProperty('customProperties', $customProperties);
         }
