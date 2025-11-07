@@ -1,6 +1,6 @@
 <?php
 
-namespace Wsmallnews\Support\Livewire\Traits;
+namespace Wsmallnews\Support\Livewire\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\WithPagination;

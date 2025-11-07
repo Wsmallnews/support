@@ -237,8 +237,10 @@ if (! function_exists('sn_route')) {
                 $tenant = current_tenant();
                 $parameters['tenant'] = $tenant;        // 租户参数
             }
+
+            return route('tenant.' . $name, $parameters, $absolute);
         }
 
-        return route('tenant.' . $name, $parameters, $absolute);
+        return route($name, $parameters, $absolute);
     }
 }
