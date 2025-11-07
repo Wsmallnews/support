@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Wsmallnews\Support\Concerns\Plugin;
 
 use BezhanSalleh\PluginEssentials\Concerns\Plugin\HasPluginDefaults;
-use Closure;
 
 trait HasCustomProperties
 {
