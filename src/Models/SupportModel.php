@@ -10,7 +10,6 @@ class SupportModel extends Model
 {
     use Scopeable;
 
-
     public function scopeScopeTenant(Builder $query): Builder
     {
         if (has_tenancy()) {
@@ -19,7 +18,6 @@ class SupportModel extends Model
             return $query->whereNull('team_id');
         }
     }
-
 
     /**
      * 范围查询 和 租户查询合并
