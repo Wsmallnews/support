@@ -6,6 +6,23 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/wsmallnews/support.svg?style=flat-square)](https://packagist.org/packages/wsmallnews/support)
 
 
+### 后续文档一些记录
+
+* media-library 需要更改 observer 为 Wsmallnews\Support\Tenant\MediaLibrary\Observers\MediaObserver，否则删除 media 时，会删除文件系统中的文件，导致其他租户的文件也被删除。
+
+* laravel-settings
+    * boot 方法中注册事件监听器，可以在数据库中初始化 settings 配置
+    * 多租户时，settings.php 中添加 team_database 配置项，指定 team_settings 表
+        ```
+        'team_database' => [
+            'type' => Wsmallnews\Support\Tenant\Settings\Repositories\DatabaseSettingsRepository::class,
+            'model' => null,
+            'table' => 'sn_team_settings',
+            'connection' => null,
+        ],
+        ```
+
+
 
 This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
 

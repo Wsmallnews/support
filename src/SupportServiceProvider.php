@@ -9,6 +9,7 @@ use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Intervention\Image\Image;
@@ -16,7 +17,9 @@ use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Spatie\LaravelSettings\Events\SavingSettings;
 use Wsmallnews\Support\Models\SmsLog;
+use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
 use Wsmallnews\Support\Testing\TestsSupport;
 
 class SupportServiceProvider extends PackageServiceProvider
@@ -62,6 +65,12 @@ class SupportServiceProvider extends PackageServiceProvider
         Relation::enforceMorphMap([
             'sn_sms_log' => SmsLog::class,
         ]);
+
+        // 多租户时注册自动创建设置监听器 (不需要迁移默认配置)
+        // Event::listen(
+        //     SavingSettings::class,
+        //     SavingSettingsAutoCreate::class,
+        // );
 
         // Asset Registration
         FilamentAsset::register(
@@ -181,6 +190,7 @@ class SupportServiceProvider extends PackageServiceProvider
         return [
             // '2025_01_20_113658_create_sn_sms_logs_table',
             // '2025_04_17_105524_add_scopeinfo_to_media_table',
+            // '2025_10_29_110527_create_sn_team_settings_table',
         ];
     }
 }
