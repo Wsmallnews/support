@@ -2,7 +2,6 @@
 
 namespace Wsmallnews\Support\Tenant\Settings\Repositories;
 
-use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\LaravelSettings\Models\SettingsProperty;
 use Spatie\LaravelSettings\SettingsRepositories\SettingsRepository;
@@ -152,11 +151,8 @@ class DatabaseSettingsRepository implements SettingsRepository
         return $decoder($payload, $associative);
     }
 
-
     /**
      * 获取当前租户 id
-     *
-     * @return int
      */
     protected function getTeamId(): int
     {

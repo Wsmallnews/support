@@ -2,8 +2,6 @@
 
 namespace Wsmallnews\Support\Tenant\Settings\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Spatie\LaravelSettings\Events\SavingSettings;
 use Spatie\LaravelSettings\Support\Crypto;
 
