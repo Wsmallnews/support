@@ -228,7 +228,15 @@ if (! function_exists('general_current_tenant')) {
 }
 
 if (! function_exists('sn_route')) {
-    function sn_route($name, $parameters = [], $absolute = true)
+    /**
+     * 多租户路由处理
+     *
+     * @param string $name
+     * @param mixed $parameters
+     * @param boolean $absolute
+     * @return string
+     */
+    function sn_route($name, $parameters = [], $absolute = true): string
     {
         if (has_tenancy()) {
             $parameters = Arr::wrap($parameters);
@@ -237,8 +245,6 @@ if (! function_exists('sn_route')) {
                 $tenant = current_tenant();
                 $parameters['tenant'] = $tenant;        // 租户参数
             }
-
-            return route('tenant.' . $name, $parameters, $absolute);
         }
 
         return route($name, $parameters, $absolute);
