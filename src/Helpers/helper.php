@@ -231,10 +231,9 @@ if (! function_exists('sn_route')) {
     /**
      * 多租户路由处理
      *
-     * @param string $name
-     * @param mixed $parameters
-     * @param boolean $absolute
-     * @return string
+     * @param  string  $name
+     * @param  mixed  $parameters
+     * @param  bool  $absolute
      */
     function sn_route($name, $parameters = [], $absolute = true): string
     {
