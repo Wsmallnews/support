@@ -6,12 +6,13 @@ import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 
-export default function supportSwiper({ swiperIsSquare, hasThumb, thumbPosition, thumbScale }) {
+export default function supportSwiper({ isSquare, hasThumb, thumbNum, thumbPosition, thumbScale }) {
     return {
         swiper: null,
         thumbSwiper: null,
-        swiperIsSquare,
+        isSquare,
         hasThumb,
+        thumbNum,
         thumbPosition,
         thumbScale,
         swiperHeight: null,
@@ -32,7 +33,7 @@ export default function supportSwiper({ swiperIsSquare, hasThumb, thumbPosition,
                     modules: [FreeMode, Navigation, Thumbs],
                     loop: true,
                     spaceBetween: 10,       // 滑动时两个幻灯片之间的距离 px
-                    slidesPerView: 6,       // 可视区域可见幻灯片数量
+                    slidesPerView: Number(this.thumbNum),       // 可视区域可见幻灯片数量
                     freeMode: true,
                     watchSlidesProgress: true,      // 启用此功能以计算每个幻灯片的进度和可见性(视口中的幻灯片将有额外的可见类
                 });
@@ -45,7 +46,7 @@ export default function supportSwiper({ swiperIsSquare, hasThumb, thumbPosition,
             this.swiper = new Swiper(".detail-swiper", swiperOptions);
         },
         setSwiperHeight: function () {
-            if (!this.swiperIsSquare) {
+            if (!this.isSquare) {
                 this.swiperHeight = this.$height
             } else {
                 if (this.hasThumb) {
