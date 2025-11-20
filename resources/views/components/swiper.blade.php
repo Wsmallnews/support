@@ -27,23 +27,16 @@
      
     use Filament\Support\Facades\FilamentView;
 
-    $thumbSwiperScale = (100 / $thumbNum) . '% !important';
+    // 如果有缩略图，并且是放到左右，则 swiper 宽度会变小，比如 80%
+    $shouldSetWidth = $hasThumb && in_array($thumbPosition, ['left', 'right']);
 
-    if ($hasThumb && in_array($thumbPosition, ['left', 'right'])) {
+    $swiperWidth = 'w-full';
+    $thumbWidth = 'w-full';
+    if ($shouldSetWidth) {
         // 有缩略图，并且是放到左右
-        $swiperWidth = (100 - $thumbScale) . '%';
-        $thumbWidth = $thumbScale . '%';
+        $swiperWidth = 'w-[' . (100 - $thumbScale) . '%]';
+        $thumbWidth = 'w-[' . $thumbScale . '%]';
     }
-
-
-
-
-    // if (!$hasThumb) {
-    //     $thumbScale = 0;       // 比例改为 0
-    // }
-
-    // $swiperScaleFmt = (100 - $thumbScale) . '%';
-    // $thumbScaleFmt = $thumbScale . '%';
 @endphp
 
 @assets
@@ -83,65 +76,47 @@
     .detail-swiper-thumbs .swiper-slide-thumb-active {
         opacity: 1;
     }
-
-    /* .detail-swiper-thumbs.directionl {
-        padding-right: 10px !important;
-    }
-    .detail-swiper-thumbs.directionr {
-        padding-left: 10px !important;
-    }
-    .detail-swiper-thumbs.directiont {
-        padding-bottom: 10px !important;
-    }
-    .detail-swiper-thumbs.directionb {
-        padding-top: 10px !important;
-    }
-
-    .detail-swiper-thumbs.directionx .swiper-slide {
-        margin-right: 0px;
-        margin-bottom: 10px;
-        width: 100% !important;
-        height: {{$thumbSwiperScale}};
-    } */
 </style>
 @endassets
 
 <div 
-    wire:ignore
-    x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('components-swiper', 'wsmallnews/support'))]"
-    x-data="supportSwiper({
-        isSquare: @js($isSquare),
-        hasThumb: @js($hasThumb),
-        thumbNum: @js($thumbNum),
-        thumbPosition: @js($thumbPosition),
-        {{-- thumbScale: @js($thumbScale), --}}
-    })"
-    x-cloak
-    x-resize="setSwiperHeight"
-    :style="{ height: swiperHeight + 'px' }"
-    {{
-        $attributes
-            ->class([
-                'swiper-container', 'flex',
-                match ($thumbPosition) {
-                    'left' => 'flex-row-reverse',
-                    'right' => 'flex-row',
-                    'top' => 'flex-col-reverse',
-                    'bottom' => 'flex-col'
-                }
-            ])
+    {{ $attributes
+        ->class([
+            'swiper-container', 'flex', 'gap-4',
+            match ($thumbPosition) {
+                'left' => 'flex-row-reverse',
+                'right' => 'flex-row',
+                'top' => 'flex-col-reverse',
+                'bottom' => 'flex-col'
+            }
+        ])
     }}
 >
 
     <div 
         @class([
-            'swiper detail-swiper {{$swiperCss}}',
-            'w-[' . $swiperWidth . ']' => $hasThumb && in_array($thumbPosition, ['left', 'right']),
+            'swiper detail-swiper',
+            $swiperCss,
+            $swiperWidth,
         ])
+        wire:ignore
+        x-data="supportSwiper({
+            isSquare: @js($isSquare),
+            hasThumb: @js($hasThumb),
+            thumbNum: @js($thumbNum),
+            thumbPosition: @js($thumbPosition),
+            thumbScale: @js($thumbScale),
+        })"
+        x-cloak
+        x-resize="setSwiperHeight"
+        :style="{ height: swiperHeight + 'px' }"
     >
         <div class="swiper-wrapper">
             @foreach($images as $image)
-                <div class="swiper-slide">
+                <div @class([
+                        'swiper-slide',
+                    ])
+                >
                     <img src="{{$image}}" class="w-full h-full object-contain" />
                 </div>
             @endforeach
@@ -152,29 +127,23 @@
 
     @if($hasThumb)
         <div @class([
-                'swiper detail-swiper-thumbs {{$thumbCss}}',
-                'w-[' . $thumbWidth . ']' => $hasThumb && in_array($thumbPosition, ['left', 'right']),
+                'swiper detail-swiper-thumbs',
+                $thumbCss, 
+                $thumbWidth,
             ]) 
         >
             <div @class([
                     'swiper-wrapper flex',
-                    match ($thumbPosition) {
-                        'left', 'right' => 'flex-col',
-                        'top', 'bottom' => 'flex-row',
-                    }
                 ])
             >
                 @foreach($images as $image)
                     <div class="swiper-slide">
-                        <img src="{{$image}}" />
+                        <img src="{{$image}}" class="w-full h-full object-contain" />
                     </div>
                 @endforeach
             </div>
         </div>
     @endif
-
-    <div class="w-[20%] h-[20%] hidden"></div>
-    <div class="w-[80%] h-[80%] hidden"></div>
 </div>
 
 @assets
@@ -213,6 +182,7 @@
                 if (this.hasThumb) {        // 包含缩略 swiper
                     this.thumbSwiper = new Swiper(".detail-swiper-thumbs", {
                         // modules: [FreeMode, Navigation, Thumbs],
+                        direction: ['left', 'right'].includes(this.thumbPosition) ? 'vertical' : 'horizontal',
                         loop: true,
                         spaceBetween: 10,       // 滑动时两个幻灯片之间的距离 px
                         slidesPerView: Number(this.thumbNum),       // 可视区域可见幻灯片数量
@@ -229,16 +199,17 @@
             },
             setSwiperHeight: function () {
                 if (this.isSquare) {
-                    if (this.hasThumb) {
-                        if (['left', 'right'].includes(this.thumbPosition)) {
-                            this.swiperHeight = ((this.$width * (100 - this.thumbScale)) / 100).toFixed(2);
-                        } else {
-                            this.swiperHeight = (this.$width / ((100 - this.thumbScale) / 100)).toFixed(2);
-                        }
-                    } else {
-                        // 没有缩略图的正方形，高度等于宽度
-                        this.swiperHeight = this.$width;
-                    }
+                    this.swiperHeight = this.$width;
+                    // if (this.hasThumb) {
+                    //     if (['left', 'right'].includes(this.thumbPosition)) {
+                    //         this.swiperHeight = ((this.$width * (100 - this.thumbScale)) / 100).toFixed(2);
+                    //     } else {
+                    //         this.swiperHeight = (this.$width / ((100 - this.thumbScale) / 100)).toFixed(2);
+                    //     }
+                    // } else {
+                    //     // 没有缩略图的正方形，高度等于宽度
+                    //     this.swiperHeight = this.$width;
+                    // }
                 } else {
                     // 非正方形，高度还是等于当前容器高度
                     this.swiperHeight = this.$height
