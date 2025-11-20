@@ -48,6 +48,10 @@ const defaultOptions = {
 
 compile({
     ...defaultOptions,
-    entryPoints: ['./resources/js/forms/arrange.js', './resources/js/components/swiper.js', './resources/js/components/file-upload.js'],
+    entryPoints: [
+        // './resources/js/forms/arrange.js', 
+        './resources/js/components/swiper.js', 
+        // './resources/js/components/file-upload.js'
+    ],
     outdir: './resources/dist/',
 })
