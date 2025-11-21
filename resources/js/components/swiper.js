@@ -6,10 +6,12 @@ import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 
-export default function supportSwiper({ isSquare, hasThumb, thumbNum, thumbPosition, thumbScale }) {
+export default function supportSwiper({ bindMainKey, bindThumbKey, isSquare, hasThumb, thumbNum, thumbPosition, thumbScale }) {
     return {
         swiper: null,
         thumbSwiper: null,
+        bindMainKey,
+        bindThumbKey,
         isSquare,
         hasThumb,
         thumbNum,
@@ -29,8 +31,9 @@ export default function supportSwiper({ isSquare, hasThumb, thumbNum, thumbPosit
             }
 
             if (this.hasThumb) {        // 包含缩略 swiper
-                this.thumbSwiper = new Swiper(".detail-swiper-thumbs", {
+                this.thumbSwiper = new Swiper("." + this.bindThumbKey, {
                     modules: [FreeMode, Navigation, Thumbs],
+                    direction: ['left', 'right'].includes(this.thumbPosition) ? 'vertical' : 'horizontal',
                     loop: true,
                     spaceBetween: 10,       // 滑动时两个幻灯片之间的距离 px
                     slidesPerView: Number(this.thumbNum),       // 可视区域可见幻灯片数量
@@ -43,22 +46,11 @@ export default function supportSwiper({ isSquare, hasThumb, thumbNum, thumbPosit
                 }
             }
 
-            this.swiper = new Swiper(".detail-swiper", swiperOptions);
+            this.swiper = new Swiper("." + this.bindMainKey, swiperOptions);
         },
         setSwiperHeight: function () {
-            if (!this.isSquare) {
-                this.swiperHeight = this.$height
-            } else {
-                if (this.hasThumb) {
-                    if (['left', 'right'].includes(this.thumbPosition)) {
-                        this.swiperHeight = ((this.$width * (100 - this.thumbScale)) / 100).toFixed(2);
-                    } else {
-                        this.swiperHeight = (this.$width / ((100 - this.thumbScale) / 100)).toFixed(2);
-                    }
-                } else {
-                    this.swiperHeight = this.$width;
-                }
-            }
+            // 只有 isSquare 为 true 时，才会被调用，轮播图的高度，等于主轮播图的宽度
+            this.swiperHeight = this.$width;
         }
     }
 }
