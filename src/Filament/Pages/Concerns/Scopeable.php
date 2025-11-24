@@ -28,7 +28,7 @@ trait Scopeable
         return static::$scopeId;
     }
 
-    public static function getScopeInfo(): array
+    public static function getScopeable(): array
     {
         return [
             'scope_type' => static::getScopeType(),

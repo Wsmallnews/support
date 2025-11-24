@@ -1,6 +1,6 @@
 <?php
 
-namespace Wsmallnews\Support\Tenant\MediaLibrary\Observers;
+namespace Wsmallnews\Support\Observers\MediaLibrary;
 
 use Spatie\MediaLibrary\Conversions\FileManipulator;
 use Spatie\MediaLibrary\MediaCollections\Filesystem;

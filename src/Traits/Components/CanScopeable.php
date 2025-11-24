@@ -12,7 +12,7 @@ trait CanScopeable
     #[Locked]
     public int $scope_id = 0;
 
-    public function getScopeInfo(): array
+    public function getScopeable(): array
     {
         return ['scope_type' => $this->scope_type, 'scope_id' => $this->scope_id];
     }
