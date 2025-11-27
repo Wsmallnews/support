@@ -9,9 +9,9 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
+use Wsmallnews\Support\Filament\Resources\Concerns\Scopeable;
 use Wsmallnews\Support\Filament\Resources\Tags\Schemas\TagForm;
 use Wsmallnews\Support\Filament\Resources\Tags\Tables\TagsTable;
-use Wsmallnews\Support\Filament\Resources\Concerns\Scopeable;
 use Wsmallnews\Support\Models\Tag;
 
 abstract class BaseResource extends Resource
@@ -19,7 +19,7 @@ abstract class BaseResource extends Resource
     use Scopeable;
 
     protected static ?string $model = Tag::class;
-    
+
     protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedHashtag;
 
     protected static string | BackedEnum | null $activeNavigationIcon = 'heroicon-s-tag';
