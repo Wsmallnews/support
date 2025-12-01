@@ -12,7 +12,6 @@ return [
     */
     'filesystem_disk' => null,
 
-
     /*
     |--------------------------------------------------------------------------
     | Multi-Tenancy
@@ -23,7 +22,5 @@ return [
     |
     */
     'tenant_model' => null,
-
-
 
 ];
