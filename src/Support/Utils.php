@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Wsmallnews\Support\Support;
 
-use Wsmallnews\Support\Exceptions\SupportException;
-
 class Utils
 {
     public static function getConfig($name = null, $default = null)
@@ -14,7 +12,6 @@ class Utils
 
         return $name ? (data_get($config, $name) ?? $default) : $config;
     }
-
 
     /**
      * 获取 租户模型
@@ -31,7 +28,6 @@ class Utils
     {
         return self::getTenantModel() !== null;
     }
-
 
     /**
      * 获取 文件系统磁盘
