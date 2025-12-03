@@ -227,6 +227,30 @@ if (! function_exists('general_current_tenant')) {
     }
 }
 
+
+if (! function_exists('tree_to_flatten')) {
+    /**
+     * 递归将树结构转换为平面数组
+     *
+     * @param  Collection  $tree
+     * @return Collection
+     */
+    function tree_to_flatten($tree, $unsetChildren = true)
+    {
+        return $tree->flatMap(function ($node) use ($unsetChildren) {
+            // 递归处理子节点，并将当前节点与子节点数组合并
+            $children = $node->relationLoaded('children') ? tree_to_flatten($node->children, $unsetChildren) : collect();
+
+            // 移除 'children' 字段
+            $unsetChildren && $node->unsetRelation('children');
+
+            // 将当前节点和所有子节点合并成一个新集合
+            return collect([$node])->merge($children);
+        });
+    }
+}
+
+
 if (! function_exists('sn_route')) {
     /**
      * 多租户路由处理
