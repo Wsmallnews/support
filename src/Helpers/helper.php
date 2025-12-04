@@ -235,14 +235,11 @@ if (! function_exists('tree_to_flatten')) {
      * @param  Collection  $tree
      * @return Collection
      */
-    function tree_to_flatten($tree, $unsetChildren = true)
+    function tree_to_flatten($tree)
     {
-        return $tree->flatMap(function ($node) use ($unsetChildren) {
+        return $tree->flatMap(function ($node) {
             // 递归处理子节点，并将当前节点与子节点数组合并
-            $children = $node->relationLoaded('children') ? tree_to_flatten($node->children, $unsetChildren) : collect();
-
-            // 移除 'children' 字段
-            $unsetChildren && $node->unsetRelation('children');
+            $children = $node->relationLoaded('children') ? tree_to_flatten($node->children) : collect();
 
             // 将当前节点和所有子节点合并成一个新集合
             return collect([$node])->merge($children);
