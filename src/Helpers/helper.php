@@ -227,7 +227,6 @@ if (! function_exists('general_current_tenant')) {
     }
 }
 
-
 if (! function_exists('tree_to_flatten')) {
     /**
      * 递归将树结构转换为平面数组
@@ -246,7 +245,6 @@ if (! function_exists('tree_to_flatten')) {
         });
     }
 }
-
 
 if (! function_exists('sn_route')) {
     /**
