@@ -14,10 +14,12 @@ use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Intervention\Image\Image;
 use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\LaravelSettings\Events\SavingSettings;
+use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Models\SmsLog;
 use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
 use Wsmallnews\Support\Testing\TestsSupport;
@@ -91,6 +93,11 @@ class SupportServiceProvider extends PackageServiceProvider
                 ], 'support-stubs');
             }
         }
+
+        // 全局注册 租户校验中间件(前端请求的)
+        Livewire::addPersistentMiddleware([
+            IdentifyTenant::class,
+        ]);
 
         // Testing
         Testable::mixin(new TestsSupport);
