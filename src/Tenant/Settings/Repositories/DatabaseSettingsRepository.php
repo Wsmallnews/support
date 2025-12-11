@@ -156,7 +156,7 @@ class DatabaseSettingsRepository implements SettingsRepository
      */
     protected function getTeamId(): int
     {
-        $team_id = general_current_tenant()?->id;
+        $team_id = current_tenant()?->id;
 
         if (is_null($team_id)) {
             throw new \Exception('Team setting: Tenant not found.');

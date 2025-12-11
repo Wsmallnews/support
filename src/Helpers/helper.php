@@ -172,45 +172,45 @@ if (! function_exists('filter_richeditor')) {
     }
 }
 
-if (! function_exists('has_tenancy')) {
+if (! function_exists('frontend_has_tenancy')) {
     /**
-     * 是否有租户
+     * 前端是否有租户
      *
      * @return bool
      */
-    function has_tenancy()
+    function frontend_has_tenancy()
     {
         return request()->attributes->get('has_tenancy', false);
     }
 }
 
-if (! function_exists('current_tenant')) {
+if (! function_exists('frontend_current_tenant')) {
     /**
-     * 当前租户
+     * 前端当前租户
      *
      * @return Model
      */
-    function current_tenant()
+    function frontend_current_tenant()
     {
         return request()->attributes->get('current_tenant', null);
     }
 }
 
-if (! function_exists('general_has_tenancy')) {
+if (! function_exists('has_tenancy')) {
     /**
      * 全局是否有租户（包括用户端租户信息）
      */
-    function general_has_tenancy(): bool
+    function has_tenancy(): bool
     {
-        return is_null(general_current_tenant()) ? false : true;
+        return is_null(current_tenant()) ? false : true;
     }
 }
 
-if (! function_exists('general_current_tenant')) {
+if (! function_exists('current_tenant')) {
     /**
      * 全局当前租户（包括用户端租户信息）
      */
-    function general_current_tenant(): ?Model
+    function current_tenant(): ?Model
     {
         $teannt = null;
         if (Filament::getCurrentPanel()) {
