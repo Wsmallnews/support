@@ -218,8 +218,8 @@ if (! function_exists('current_tenant')) {
             $teannt = Filament::getTenant();
         } else {
             // 用户端
-            if (has_tenancy()) {
-                $teannt = current_tenant();
+            if (frontend_has_tenancy()) {
+                $teannt = frontend_current_tenant();
             }
         }
 
