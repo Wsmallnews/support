@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Intervention\Image\Image;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use RalphJSmit\Livewire\Urls\Middleware\LivewireUrlsMiddleware;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -97,6 +98,8 @@ class SupportServiceProvider extends PackageServiceProvider
         // 全局注册 租户校验中间件(前端请求的)
         Livewire::addPersistentMiddleware([
             IdentifyTenant::class,
+            // 记录路由历史
+            LivewireUrlsMiddleware::class,
         ]);
 
         // Testing

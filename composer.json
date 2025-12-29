@@ -28,6 +28,7 @@
         "intervention/image-laravel": "^1.0",
         "overtrue/easy-sms": "^3.0",
         "postare/blade-mdi": "^1.1",
+        "ralphjsmit/livewire-urls": "^1.0",
         "spatie/laravel-package-tools": "^1.15.0"
     },
     "require-dev": {
