@@ -4,7 +4,7 @@ namespace Wsmallnews\Support\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Tags\Tag as BaseTagModel;
-use Wsmallnews\Support\Models\Traits\Scopeable;
+use Wsmallnews\Support\Models\Concerns\Scopeable;
 
 class Tag extends BaseTagModel
 {

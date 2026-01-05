@@ -1,6 +1,6 @@
 <?php
 
-namespace Wsmallnews\Support\Models\Traits;
+namespace Wsmallnews\Support\Models\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;

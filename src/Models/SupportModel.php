@@ -4,7 +4,7 @@ namespace Wsmallnews\Support\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Wsmallnews\Support\Models\Traits\Scopeable;
+use Wsmallnews\Support\Models\Concerns\Scopeable;
 
 class SupportModel extends Model
 {
