@@ -3,3 +3,7 @@
 @variant dark (&:where(.dark, .dark *));
 
 @source '../views/**/*';
+
+/* CodeWithDennis\SimpleAlert */
+@source '../../../../vendor/codewithdennis/filament-simple-alert/resources/**/*.blade.php';
+@source inline('animate-{spin,pulse,bounce}');
