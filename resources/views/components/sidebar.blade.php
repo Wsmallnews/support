@@ -2,6 +2,13 @@
     'sidebar' => []
 ])
 
+@php
+    use Filament\Support\Facades\FilamentView;
+    use function Filament\Support\generate_href_html;
+
+    $spaMode = FilamentView::hasSpaMode();
+@endphp
+
 <ul
     @class([
         'w-full flex flex-col',
@@ -11,6 +18,7 @@
     @foreach ($sidebar as $item)
         @php
             $isActive = ($item['active'] ?? false);
+            $url = $item['url'] ?? null;
         @endphp
 
         <li
@@ -22,7 +30,7 @@
                     'text-gray-700 dark:text-white' => !$isActive,
                     'text-primary-500 dark:text-primary-600' => $isActive,
                 ])
-                {{ $item['url'] ?? 'href=javascript:;' }}
+                {{ $url ? generate_href_html($url, ($item['target'] ?? false), $item['spaMode'] ?? $spaMode) : 'href=javascript:;' }}
             >
                 <div class="flex items-center gap-1">
                     {{ $item['label'] }}
