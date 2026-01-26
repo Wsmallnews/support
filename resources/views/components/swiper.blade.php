@@ -91,10 +91,9 @@
         thumbPosition: @js($thumbPosition),
         thumbScale: @js($thumbScale),
     })"
-    x-cloak
     {{ $attributes
         ->class([
-            'swiper-container', 'flex', 'gap-4',
+            'swiper-container flex overflow-hidden gap-2 md:gap-4',
             match ($thumbPosition) {
                 'left' => 'flex-row-reverse',
                 'right' => 'flex-row',
@@ -115,6 +114,7 @@
             x-resize="setSwiperHeight"
             :style="{ height: swiperHeight + 'px' }"
         @endif
+        x-cloak
     >
         <div class="swiper-wrapper" >
             @foreach($images as $image)
