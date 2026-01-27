@@ -44,6 +44,8 @@
     $slides = Arr::map($slides, function ($slide) {
         return is_string($slide) ? ['image' => $slide] : $slide;
     });
+
+    $spaModel = FilamentView::hasSpaMode();
 @endphp
 
 @assets
@@ -123,11 +125,23 @@
     >
         <div class="swiper-wrapper" >
             @foreach($slides as $slide)
-                <div @class([
+                @php
+                    $url = (isset($slide['url']) && $slide['url']) ? $slide['url'] : null;
+                    $label = (isset($slide['label']) && $slide['label']) ? $slide['label'] : null;
+                @endphp
+                <div
+                    @class([
                         'swiper-slide',
+                        'cursor-pointer' => $url,
                     ])
+                    @if ($url)
+                        @click="jumpToUrl('{{ $url }}', @js($spaModel))"
+                    @endif
                 >
                     <img src="{{$slide['image']}}" class="w-full h-full object-contain" />
+                    @if (isset($slide['label']) && $slide['label'])
+                        <div class="swiper-slide-label absolute bottom-0 left-0 right-0 text-base text-left text-white bg-black/50 px-2 py-1">{{ $slide['label'] }}</div>
+                    @endif
                 </div>
             @endforeach
         </div>

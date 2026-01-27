@@ -48,6 +48,13 @@ export default function supportSwiper({ bindMainKey, bindThumbKey, isSquare, has
 
             this.swiper = new Swiper("." + this.bindMainKey, swiperOptions);
         },
+        jumpToUrl: function (url, spaModel) {
+            if (spaModel) {
+                Livewire.navigate(url);
+            } else {
+                window.location.href = url;
+            }
+        },
         setSwiperHeight: function () {
             // 只有 isSquare 为 true 时，才会被调用，轮播图的高度，等于主轮播图的宽度
             this.swiperHeight = this.$width;
