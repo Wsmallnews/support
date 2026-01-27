@@ -1,6 +1,6 @@
 @props([
     'key' => null,
-    'images' => [],                // 图片数组
+    'slides' => [],                // 幻灯片内容
     'swiperCss' => '',          // 给 swiper 最外层容器附加 css
     'isSquare' => false,            // 主 swiper 是否是正方形
     'hasThumb' => true,            // 是否有缩略图 swiper
@@ -25,6 +25,7 @@
      */
 
     use Filament\Support\Facades\FilamentView;
+    use Illuminate\Support\Arr;
 
     $bindMainKey = $key ? $key . '-main' : 'swiper-main-' . rand(10000, 99999);
     $bindThumbKey = $key ? $key . '-thumb' : 'swiper-thumb-' . rand(10000, 99999);
@@ -39,6 +40,10 @@
         $swiperWidth = 'w-[' . (100 - $thumbScale) . '%]';
         $thumbWidth = 'w-[' . $thumbScale . '%]';
     }
+
+    $slides = Arr::map($slides, function ($slide) {
+        return is_string($slide) ? ['image' => $slide] : $slide;
+    });
 @endphp
 
 @assets
@@ -117,12 +122,12 @@
         @endif
     >
         <div class="swiper-wrapper" >
-            @foreach($images as $image)
+            @foreach($slides as $slide)
                 <div @class([
                         'swiper-slide',
                     ])
                 >
-                    <img src="{{$image}}" class="w-full h-full object-contain" />
+                    <img src="{{$slide['image']}}" class="w-full h-full object-contain" />
                 </div>
             @endforeach
         </div>
@@ -142,9 +147,9 @@
                     'swiper-wrapper flex',
                 ])
             >
-                @foreach($images as $image)
+                @foreach($slides as $slide)
                     <div class="swiper-slide">
-                        <img src="{{$image}}" class="w-full h-full object-contain" />
+                        <img src="{{$slide['image']}}" class="w-full h-full object-contain" />
                     </div>
                 @endforeach
             </div>
