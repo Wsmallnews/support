@@ -22,6 +22,7 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\LaravelSettings\Events\SavingSettings;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Models\SmsLog;
+use Wsmallnews\Support\Support\Utils as SupportUtils;
 use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
 use Wsmallnews\Support\Testing\TestsSupport;
 
@@ -70,10 +71,12 @@ class SupportServiceProvider extends PackageServiceProvider
         ]);
 
         // 多租户时注册自动创建设置监听器 (不需要迁移默认配置)
-        // Event::listen(
-        //     SavingSettings::class,
-        //     SavingSettingsAutoCreate::class,
-        // );
+        if (SupportUtils::isTenancyEnabled()) {
+            Event::listen(
+                SavingSettings::class,
+                SavingSettingsAutoCreate::class,
+            );
+        }
 
         // Asset Registration
         FilamentAsset::register(
@@ -200,7 +203,7 @@ class SupportServiceProvider extends PackageServiceProvider
         return [
             // '2025_01_20_113658_create_sn_sms_logs_table',
             // '2025_04_17_105524_add_scopeinfo_to_media_table',
-            // '2025_10_29_110527_create_sn_team_settings_table',
+            '2025_10_29_110527_create_sn_team_settings_table',
         ];
     }
 }

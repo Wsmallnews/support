@@ -153,6 +153,8 @@ class DatabaseSettingsRepository implements SettingsRepository
 
     /**
      * 获取当前租户 id
+     *
+     * @return int
      */
     protected function getTeamId(): int
     {

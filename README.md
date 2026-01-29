@@ -12,7 +12,7 @@
 
 * laravel-settings
     * boot 方法中注册事件监听器，可以在数据库中初始化 settings 配置
-    * 多租户时，settings.php 中添加 team_database 配置项，指定 team_settings 表
+    * 多租户时，settings.php 中添加 team_database 配置项，指定 sn_team_settings 表
         ```
         'team_database' => [
             'type' => Wsmallnews\Support\Tenant\Settings\Repositories\DatabaseSettingsRepository::class,
