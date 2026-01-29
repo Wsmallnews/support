@@ -100,13 +100,14 @@
     })"
     {{ $attributes
         ->class([
-            'swiper-container flex overflow-hidden gap-2 md:gap-4',
-            match ($thumbPosition) {
+            'swiper-container flex overflow-hidden',
+            'gap-2 md:gap-4' => $hasThumb,
+            $hasThumb ? match ($thumbPosition) {
                 'left' => 'flex-row-reverse',
                 'right' => 'flex-row',
                 'top' => 'flex-col-reverse',
                 'bottom' => 'flex-col'
-            }
+            } : ''
         ])
     }}
 >
