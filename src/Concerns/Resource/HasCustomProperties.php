@@ -31,9 +31,6 @@ trait HasCustomProperties
 
     /**
      * 快捷获取自定义的 table
-     *
-     * @param Table $table
-     * @return Table|null
      */
     public static function getCustomTable(Table $table): ?Table
     {
@@ -44,9 +41,6 @@ trait HasCustomProperties
 
     /**
      * 快捷获取自定义的 form schema
-     *
-     * @param Schema $schema
-     * @return Schema|null
      */
     public static function getCustomForm(Schema $schema): ?Schema
     {
@@ -57,23 +51,16 @@ trait HasCustomProperties
 
     /**
      * 快捷获取自定义的 form array 数组 (比如：filament-nestedset 插件)
-     *
-     * @param Array $arguments
-     * @return Array|null
      */
-    public static function getCustomFormArray(Array $arguments): ?Array
+    public static function getCustomFormArray(array $arguments): ?array
     {
         return self::getCustomProperty('form_array') instanceof Closure ?
             self::getCustomProperty('form_array')($arguments, self::class)
             : null;
     }
 
-
     /**
      * 快捷获取自定义的 infolist schema
-     *
-     * @param Schema $schema
-     * @return Schema|null
      */
     public static function getCustomInfolist(Schema $schema): ?Schema
     {
@@ -85,8 +72,7 @@ trait HasCustomProperties
     /**
      * 快捷获取自定义的 infolist array 数组 (比如：filament-nestedset 插件)
      *
-     * @param Array $arguments
-     * @return Array|null
+     * @param  array  $arguments
      */
     public static function getCustomInfolistArray(): ?array
     {
