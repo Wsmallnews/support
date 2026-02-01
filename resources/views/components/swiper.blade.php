@@ -141,7 +141,7 @@
                 >
                     <img src="{{$slide['image']}}" class="w-full h-full object-contain" />
                     @if (isset($slide['label']) && $slide['label'])
-                        <div class="swiper-slide-label absolute bottom-0 left-0 right-0 text-base text-left text-white bg-black/50 px-2 py-1">{{ $slide['label'] }}</div>
+                        <div class="swiper-slide-label absolute bottom-0 left-0 right-0 text-base text-left text-white leading-7 bg-black/50 px-2 py-1 line-clamp-1">{{ $slide['label'] }}</div>
                     @endif
                 </div>
             @endforeach
