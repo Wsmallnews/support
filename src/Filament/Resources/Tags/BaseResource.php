@@ -20,9 +20,9 @@ abstract class BaseResource extends Resource
 
     protected static ?string $model = Tag::class;
 
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedHashtag;
+    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedTag;
 
-    protected static string | BackedEnum | null $activeNavigationIcon = 'heroicon-s-tag';
+    protected static string | BackedEnum | null $activeNavigationIcon = Heroicon::Tag;
 
     protected static ?string $navigationLabel = '标签管理';
 
