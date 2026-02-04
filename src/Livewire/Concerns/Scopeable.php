@@ -16,4 +16,14 @@ trait Scopeable
     {
         return ['scope_type' => $this->scopeType, 'scope_id' => $this->scopeId];
     }
+
+    public function getScopeType(): string
+    {
+        return $this->scopeType;
+    }
+
+    public function getScopeId(): int
+    {
+        return $this->scopeId;
+    }
 }
