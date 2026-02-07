@@ -87,8 +87,8 @@
         x-load
     @endif
     wire:ignore
-    x-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('components-swiper', 'wsmallnews/support') }}"
-    x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('components-swiper', 'wsmallnews/support'))]"
+    x-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('sn-support-components-swiper', 'wsmallnews/support') }}"
+    x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('sn-support-components-swiper', 'wsmallnews/support'))]"
     x-data="supportSwiper({
         bindMainKey: @js($bindMainKey),
         bindThumbKey: @js($bindThumbKey),
