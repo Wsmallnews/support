@@ -1,7 +1,3 @@
-@import "tailwindcss";
-
-@variant dark (&:where(.dark, .dark *));
-
 @source '../views/**/*';
 
 /* CodeWithDennis\SimpleAlert */
