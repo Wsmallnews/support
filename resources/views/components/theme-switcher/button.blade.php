@@ -16,10 +16,10 @@
         theme: $store.snSupportFrontendTheme,
     }"
     x-bind:class="{ 
-        'text-primary-500 bg-gray-50': theme === @js($theme),
+        'text-primary-500 bg-gray-50 dark:bg-white/5': theme === @js($theme),
         'text-gray-400 hover:text-gray-500': theme !== @js($theme)
     }"
-    class="sn-support-theme-switcher-btn flex justify-center rounded-md p-2 hover:bg-gray-50"
+    class="sn-support-theme-switcher-btn flex justify-center rounded-md p-2 hover:bg-gray-50 dark:hover:bg-white/5"
 >
     {{
         \Filament\Support\generate_icon_html($icon, alias: match ($theme) {
