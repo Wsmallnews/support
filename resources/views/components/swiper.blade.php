@@ -132,7 +132,7 @@
                 @endphp
                 <div
                     @class([
-                        'swiper-slide',
+                        'swiper-slide sn-bg',
                         'cursor-pointer' => $url,
                     ])
                     @if ($url)
