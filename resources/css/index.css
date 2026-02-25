@@ -3,3 +3,187 @@
 /* CodeWithDennis\SimpleAlert */
 @source '../../../../vendor/codewithdennis/filament-simple-alert/resources/**/*.blade.php';
 @source inline('animate-{spin,pulse,bounce}');
+
+
+/** ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ 自定义 class ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ **/
+
+/* 区块背景色，支持暗黑 */
+.sn-bg {
+    @apply bg-white dark:bg-gray-900;
+}
+/** 主要背景色 **/
+.sn-primary-bg {
+    @apply bg-primary-500 dark:bg-primary-600;
+}
+
+/** 灰色背景 **/
+.sn-gray-bg {
+    @apply bg-gray-100 dark:bg-gray-800;
+}
+
+/* 区块轮廓，四边都有 */
+.sn-contour {
+    @apply shadow-sm shadow-gray-800/20 dark:shadow-gray-800/80 ring-1 ring-gray-200/80 dark:ring-gray-800/60;
+
+    &.sn-hover {    /** 当前 hover */
+        @apply hover:shadow-lg hover:ring-gray-200 dark:hover:ring-gray-700/80;
+    }
+}
+
+/* 区块轮廓，这里用的是 border ring 不支持设置单条边 需要外面指定那条边存在 */
+.sn-contour-only {
+    @apply shadow-sm shadow-gray-800/20 dark:shadow-gray-800/80 border-gray-200/80 dark:border-gray-800/60;
+
+    &.sn-hover {    /** 当前 hover */
+        @apply hover:shadow-lg hover:border-gray-200 dark:hover:border-gray-700/80;
+    }
+}
+
+/* 区块圆角 */
+.sn-rounded {
+    @apply rounded-md;
+}
+
+/* 容器分隔线 水平方向 */
+.sn-divide-x {
+    @apply divide-x divide-gray-200 dark:divide-gray-700;
+}
+/* 容器分隔线 垂直方向 */
+.sn-divide-y {
+    @apply divide-y divide-gray-200 dark:divide-gray-700;
+}
+
+
+/** sn 文字 **/
+.sn-h1-text {
+    @apply text-gray-900 dark:text-gray-100 text-2xl md:text-3xl lg:text-4xl font-bold;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply transition-all duration-300;
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-h2-text {
+    @apply text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-semibold;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply transition-all duration-300;
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-h3-text {
+    @apply text-gray-700 dark:text-gray-300 text-lg md:text-xl font-semibold;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply transition-all duration-300;
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-h4-text {
+    @apply text-gray-700 dark:text-gray-300 text-lg font-semibold;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply transition-all duration-300;
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-content-text {
+    @apply text-gray-600 dark:text-gray-300 text-base leading-relaxed;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply transition-all duration-300;
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600 font-semibold;
+    }
+}
+.sn-descript-text {
+    @apply text-gray-500 dark:text-gray-400 text-sm;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply transition-all duration-300;
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-tip-text {
+    @apply text-gray-500 dark:text-gray-400 text-xs;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply transition-all duration-300;
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-primary-text {
+    @apply text-primary-500 dark:text-primary-600;
+}
+/** sn 文字 **/
+
+
+
+/* 区块样式 */
+.sn-container {
+    @apply bg-white dark:bg-gray-900;
+    @apply shadow-sm shadow-gray-800/20 dark:shadow-gray-800/80 ring-1 ring-gray-200/80 dark:ring-gray-800/60;
+    @apply rounded-md transition-all duration-300;
+
+    &.sn-hover {    /** 当前 hover */
+        @apply hover:shadow-lg hover:ring-gray-200 dark:hover:ring-gray-700/80;
+    }
+
+    &.sn-link {      /** 当前 link, 如果当前 容器就是 link ,则增加 hover 背景(posts 列表) */
+        @apply hover:bg-primary-100/50 dark:hover:bg-primary-900/30;
+    }
+
+    .sn-link {      /** 内部link，容器内部 链接 样式 (index-posts 列表) */
+        @apply hover:bg-primary-100/50 dark:hover:bg-primary-900/30;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply bg-primary-100 dark:bg-primary-900;
+    }
+    .sn-active {    /** 内部 active */
+        @apply bg-primary-100 dark:bg-primary-900;
+    }
+}
+
+/** ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ 自定义 class ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ **/

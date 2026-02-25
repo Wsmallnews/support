@@ -11,14 +11,14 @@
 
 <ul
     @class([
-        'w-full flex flex-col',
+        'sn-container w-full flex flex-col py-4',
     ])
     role="menu"
 >
-    @foreach ($sidebar as $item)
+    @foreach ($sidebar as $menu)
         @php
-            $isActive = ($item['active'] ?? false);
-            $url = $item['url'] ?? null;
+            $isActive = ($menu['is_active'] ?? false);
+            $url = $menu['url'] ?? null;
         @endphp
 
         <li
@@ -26,14 +26,14 @@
             role="menuitem"
         >
             <a @class([
-                    'flex w-full h-10 justify-between items-center px-4 gap-2 rounded-md group hover:text-primary-500 dark:hover:text-primary-600 hover:bg-gray-200 dark:hover:bg-gray-800',
-                    'text-gray-700 dark:text-white' => !$isActive,
-                    'text-primary-500 dark:text-primary-600' => $isActive,
+                    'flex w-full h-10 justify-between items-center px-4 gap-2 group',
+                    'sn-link sn-descript-text sn-hover',
+                    'sn-active' => $isActive,
                 ])
-                {{ $url ? generate_href_html($url, ($item['target'] ?? false), $item['spaMode'] ?? $spaMode) : 'href=javascript:;' }}
+                {{ $url ? generate_href_html($url, ($menu['target'] ?? false), $menu['spaMode'] ?? $spaMode) : 'href=javascript:;' }}
             >
                 <div class="flex items-center gap-1">
-                    {{ $item['label'] }}
+                    {{ $menu['label'] }}
                 </div>
             </a>
         </li>
