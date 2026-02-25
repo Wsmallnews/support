@@ -14,11 +14,47 @@
 /** 主要背景色 **/
 .sn-primary-bg {
     @apply bg-primary-500 dark:bg-primary-600;
+
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:bg-primary-600 dark:hover:bg-primary-700;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply bg-primary-600 dark:bg-primary-700;
+    }
 }
 
 /** 灰色背景 **/
 .sn-gray-bg {
     @apply bg-gray-100 dark:bg-gray-800;
+
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:bg-gray-200 dark:hover:bg-gray-700;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply bg-gray-200 dark:bg-gray-700;
+    }
+}
+
+/** 没有背景 **/
+.sn-no-bg {
+    @apply bg-transparent;
+
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:bg-gray-100 dark:hover:bg-gray-800;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {    /** 当前 active */
+        @apply bg-gray-100 dark:bg-gray-800;
+    }
 }
 
 /* 区块轮廓，四边都有 */
@@ -27,6 +63,7 @@
 
     &.sn-hover {    /** 当前 hover */
         @apply hover:shadow-lg hover:ring-gray-200 dark:hover:ring-gray-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
     }
 }
 
@@ -36,6 +73,7 @@
 
     &.sn-hover {    /** 当前 hover */
         @apply hover:shadow-lg hover:border-gray-200 dark:hover:border-gray-700/80;
+        @apply transition-all duration-300 ease-in-out;
     }
 }
 
@@ -60,9 +98,9 @@
 
     &.sn-hover {
         /** 当前 hover 支持 group */
-        @apply transition-all duration-300;
         @apply hover:text-primary-500 dark:hover:text-primary-600;
         @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
     }
 
     &.sn-active {    /** 当前 active */
@@ -74,9 +112,9 @@
 
     &.sn-hover {
         /** 当前 hover 支持 group */
-        @apply transition-all duration-300;
         @apply hover:text-primary-500 dark:hover:text-primary-600;
         @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
     }
 
     &.sn-active {    /** 当前 active */
@@ -88,9 +126,9 @@
 
     &.sn-hover {
         /** 当前 hover 支持 group */
-        @apply transition-all duration-300;
         @apply hover:text-primary-500 dark:hover:text-primary-600;
         @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
     }
 
     &.sn-active {    /** 当前 active */
@@ -102,9 +140,9 @@
 
     &.sn-hover {
         /** 当前 hover 支持 group */
-        @apply transition-all duration-300;
         @apply hover:text-primary-500 dark:hover:text-primary-600;
         @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
     }
 
     &.sn-active {    /** 当前 active */
@@ -116,9 +154,9 @@
 
     &.sn-hover {
         /** 当前 hover 支持 group */
-        @apply transition-all duration-300;
         @apply hover:text-primary-500 dark:hover:text-primary-600;
         @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
     }
 
     &.sn-active {    /** 当前 active */
@@ -130,9 +168,9 @@
 
     &.sn-hover {
         /** 当前 hover 支持 group */
-        @apply transition-all duration-300;
         @apply hover:text-primary-500 dark:hover:text-primary-600;
         @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
     }
 
     &.sn-active {    /** 当前 active */
@@ -144,9 +182,9 @@
 
     &.sn-hover {
         /** 当前 hover 支持 group */
-        @apply transition-all duration-300;
         @apply hover:text-primary-500 dark:hover:text-primary-600;
         @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
     }
 
     &.sn-active {    /** 当前 active */
@@ -164,7 +202,7 @@
 .sn-container {
     @apply bg-white dark:bg-gray-900;
     @apply shadow-sm shadow-gray-800/20 dark:shadow-gray-800/80 ring-1 ring-gray-200/80 dark:ring-gray-800/60;
-    @apply rounded-md transition-all duration-300;
+    @apply rounded-md transition-all duration-300 ease-in-out;
 
     &.sn-hover {    /** 当前 hover */
         @apply hover:shadow-lg hover:ring-gray-200 dark:hover:ring-gray-700/80;
