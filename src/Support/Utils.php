@@ -4,9 +4,21 @@ declare(strict_types=1);
 
 namespace Wsmallnews\Support\Support;
 
+use Wsmallnews\Support\Data\ScopeableContext;
+
+/**
+ * Utility class for support package configuration.
+ */
 class Utils
 {
-    public static function getConfig($name = null, $default = null)
+    /**
+     * Get configuration value.
+     *
+     * @param  string|null  $name  Configuration key (dot notation)
+     * @param  mixed  $default  Default value if not found
+     * @return mixed
+     */
+    public static function getConfig(?string $name = null, mixed $default = null): mixed
     {
         $config = config('sn-support');
 
@@ -14,15 +26,19 @@ class Utils
     }
 
     /**
-     * 获取 租户模型
+     * Get the tenant model class.
+     *
+     * @return string|null
      */
     public static function getTenantModel(): ?string
     {
-        return self::getConfig('tenant_model') ?? null;
+        return self::getConfig('tenant_model');
     }
 
     /**
-     * 是否启用了租户
+     * Check if tenancy is enabled.
+     *
+     * @return bool
      */
     public static function isTenancyEnabled(): bool
     {
@@ -30,10 +46,26 @@ class Utils
     }
 
     /**
-     * 获取 文件系统磁盘
+     * Get the filesystem disk for file storage.
+     *
+     * @return string|null
      */
     public static function getFilesystemDisk(): ?string
     {
-        return self::getConfig('filesystem_disk', null) ?: config('filament.default_filesystem_disk');
+        return self::getConfig('filesystem_disk') ?: config('filament.default_filesystem_disk');
+    }
+
+    /**
+     * Get scope context from configuration.
+     * This is a helper method for packages that store scope in their config.
+     *
+     * @param  string  $configKey  Full config key (e.g., 'sn-cms.scopeable')
+     * @return ScopeableContext
+     *
+     * @throws \Wsmallnews\Support\Exceptions\InvalidScopeException
+     */
+    public static function getScopeFromConfig(string $configKey): ScopeableContext
+    {
+        return ScopeableContext::fromConfig($configKey);
     }
 }

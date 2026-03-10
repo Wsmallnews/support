@@ -55,7 +55,6 @@ abstract class BaseResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->scopeable(static::getScopeType(), static::getScopeId());
+        return static::applyScopeableToQuery(parent::getEloquentQuery());
     }
 }

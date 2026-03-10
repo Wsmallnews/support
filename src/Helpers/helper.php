@@ -268,3 +268,30 @@ if (! function_exists('sn_route')) {
         return route($name, $parameters, $absolute);
     }
 }
+
+if (! function_exists('scopeable_context')) {
+    /**
+     * Create a ScopeableContext instance from various inputs.
+     *
+     * @param  mixed  $input  Array, ScopeableContext, or config key
+     * @return \Wsmallnews\Support\Data\ScopeableContext
+     */
+    function scopeable_context(mixed $input): \Wsmallnews\Support\Data\ScopeableContext
+    {
+        return \Wsmallnews\Support\Helpers\ScopeableHelper::resolve($input);
+    }
+}
+
+if (! function_exists('scopeable_query')) {
+    /**
+     * Apply scope to a query builder.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  mixed  $scope  Array, ScopeableContext, or config key
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    function scopeable_query($query, mixed $scope)
+    {
+        return \Wsmallnews\Support\Helpers\ScopeableHelper::applyToQuery($query, $scope);
+    }
+}

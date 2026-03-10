@@ -80,4 +80,42 @@ trait HasCustomProperties
             self::getCustomProperty('infolist_array')(self::class)
             : null;
     }
+
+
+    /**
+     * Get scopeable array (legacy method for backward compatibility).
+     *
+     * @return array{scope_type: string, scope_id: int}
+     *
+     * @throws CmsException
+     */
+    public static function getCustomScopeable(): array
+    {
+        return self::getCustomProperty('scopeable');
+    }
+
+    /**
+     * Get scope type.
+     *
+     * @return string
+     *
+     * @throws CmsException
+     */
+    public static function getCustomScopeType(): string
+    {
+        return self::getCustomScopeable()['scopeType'] ?? null;
+    }
+
+
+    /**
+     * Get custom scope ID.
+     *
+     * @return int
+     *
+     * @throws CmsException
+     */
+    public static function getCustomScopeId(): int
+    {
+        return self::getCustomScopeable()['scopeId'] ?? null;
+    }
 }

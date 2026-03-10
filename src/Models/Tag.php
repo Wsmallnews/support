@@ -10,17 +10,29 @@ class Tag extends BaseTagModel
 {
     use Scopeable;
 
+    /**
+     * Scope query to current tenant.
+     *
+     * @param  Builder  $query
+     * @return Builder
+     */
     public function scopeScopeTenant(Builder $query): Builder
     {
         if (has_tenancy()) {
             return $query->where('team_id', current_tenant()->id);
-        } else {
-            return $query->whereNull('team_id');
         }
+
+        return $query->whereNull('team_id');
     }
 
     /**
-     * 范围查询 和 租户查询合并
+     * Combined scope query: scopeable + tenant.
+     * This is a convenience method for common filtering patterns.
+     *
+     * @param  Builder  $query
+     * @param  string  $scope_type
+     * @param  int|array  $scope_id
+     * @return Builder
      */
     public function scopeSnScope(Builder $query, string $scope_type, int | array $scope_id = 0): Builder
     {

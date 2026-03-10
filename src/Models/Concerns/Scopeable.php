@@ -5,10 +5,18 @@ namespace Wsmallnews\Support\Models\Concerns;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 
+/**
+ * Scopeable trait for Eloquent models.
+ * Provides query scopes for filtering by scope_type and scope_id.
+ */
 trait Scopeable
 {
     /**
-     * 范围类型查询
+     * Scope query by scope type.
+     *
+     * @param  Builder  $query
+     * @param  string  $scope_type
+     * @return Builder
      */
     public function scopeScopeType(Builder $query, string $scope_type): Builder
     {
@@ -16,7 +24,11 @@ trait Scopeable
     }
 
     /**
-     * 范围值查询
+     * Scope query by scope ID(s).
+     *
+     * @param  Builder  $query
+     * @param  int|array  $scope_id
+     * @return Builder
      */
     public function scopeScopeId(Builder $query, int | array $scope_id = 0): Builder
     {
@@ -26,10 +38,29 @@ trait Scopeable
     }
 
     /**
-     * 范围查询
+     * Scope query by both scope type and scope ID(s).
+     *
+     * @param  Builder  $query
+     * @param  string  $scope_type
+     * @param  int|array  $scope_id
+     * @return Builder
      */
     public function scopeScopeable(Builder $query, string $scope_type, int | array $scope_id = 0): Builder
     {
         return $query->scopeType($scope_type)->scopeId($scope_id);
     }
+
+    /**
+     * Initialize scope attributes when creating a new model instance.
+     */
+    // protected function initializeDefaultScopeAttributes(): void
+    // {
+    //     if (! isset($this->attributes['scope_type'])) {
+    //         $this->attributes['scope_type'] = null;
+    //     }
+
+    //     if (! isset($this->attributes['scope_id'])) {
+    //         $this->attributes['scope_id'] = 0;
+    //     }
+    // }
 }
