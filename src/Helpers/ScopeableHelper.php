@@ -13,7 +13,6 @@ class ScopeableHelper
      * Create a scope context from various input formats.
      *
      * @param  mixed  $input  Can be array, ScopeableContext, or config key string
-     * @return ScopeableContext
      */
     public static function resolve(mixed $input): ScopeableContext
     {
@@ -62,7 +61,6 @@ class ScopeableHelper
      *
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @param  ScopeableContext|array|string  $scope
-     * @return bool
      */
     public static function modelBelongsToScopeable($model, mixed $scope): bool
     {

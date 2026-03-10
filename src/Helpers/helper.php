@@ -274,7 +274,6 @@ if (! function_exists('scopeable_context')) {
      * Create a ScopeableContext instance from various inputs.
      *
      * @param  mixed  $input  Array, ScopeableContext, or config key
-     * @return \Wsmallnews\Support\Data\ScopeableContext
      */
     function scopeable_context(mixed $input): \Wsmallnews\Support\Data\ScopeableContext
     {

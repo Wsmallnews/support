@@ -27,7 +27,6 @@ class ScopeableContext
      * Create from array.
      *
      * @param  array  $data  Array with 'scope_type' and 'scope_id' keys
-     * @return self
      *
      * @throws InvalidScopeException
      */
@@ -51,7 +50,6 @@ class ScopeableContext
      * Create from configuration key.
      *
      * @param  string  $configKey  Configuration key (e.g., 'sn-cms.scopeable')
-     * @return self
      *
      * @throws InvalidScopeException
      */

@@ -13,10 +13,6 @@ trait Scopeable
 {
     /**
      * Scope query by scope type.
-     *
-     * @param  Builder  $query
-     * @param  string  $scope_type
-     * @return Builder
      */
     public function scopeScopeType(Builder $query, string $scope_type): Builder
     {
@@ -25,10 +21,6 @@ trait Scopeable
 
     /**
      * Scope query by scope ID(s).
-     *
-     * @param  Builder  $query
-     * @param  int|array  $scope_id
-     * @return Builder
      */
     public function scopeScopeId(Builder $query, int | array $scope_id = 0): Builder
     {
@@ -39,11 +31,6 @@ trait Scopeable
 
     /**
      * Scope query by both scope type and scope ID(s).
-     *
-     * @param  Builder  $query
-     * @param  string  $scope_type
-     * @param  int|array  $scope_id
-     * @return Builder
      */
     public function scopeScopeable(Builder $query, string $scope_type, int | array $scope_id = 0): Builder
     {

@@ -16,7 +16,6 @@ class Utils
      *
      * @param  string|null  $name  Configuration key (dot notation)
      * @param  mixed  $default  Default value if not found
-     * @return mixed
      */
     public static function getConfig(?string $name = null, mixed $default = null): mixed
     {
@@ -27,8 +26,6 @@ class Utils
 
     /**
      * Get the tenant model class.
-     *
-     * @return string|null
      */
     public static function getTenantModel(): ?string
     {
@@ -37,8 +34,6 @@ class Utils
 
     /**
      * Check if tenancy is enabled.
-     *
-     * @return bool
      */
     public static function isTenancyEnabled(): bool
     {
@@ -47,8 +42,6 @@ class Utils
 
     /**
      * Get the filesystem disk for file storage.
-     *
-     * @return string|null
      */
     public static function getFilesystemDisk(): ?string
     {
@@ -60,7 +53,6 @@ class Utils
      * This is a helper method for packages that store scope in their config.
      *
      * @param  string  $configKey  Full config key (e.g., 'sn-cms.scopeable')
-     * @return ScopeableContext
      *
      * @throws \Wsmallnews\Support\Exceptions\InvalidScopeException
      */

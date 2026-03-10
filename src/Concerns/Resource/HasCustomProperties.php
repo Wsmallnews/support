@@ -81,7 +81,6 @@ trait HasCustomProperties
             : null;
     }
 
-
     /**
      * Get scopeable array (legacy method for backward compatibility).
      *
@@ -97,7 +96,6 @@ trait HasCustomProperties
     /**
      * Get scope type.
      *
-     * @return string
      *
      * @throws CmsException
      */
@@ -106,11 +104,9 @@ trait HasCustomProperties
         return self::getCustomScopeable()['scopeType'] ?? null;
     }
 
-
     /**
      * Get custom scope ID.
      *
-     * @return int
      *
      * @throws CmsException
      */
