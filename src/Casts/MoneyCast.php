@@ -4,7 +4,9 @@ namespace Wsmallnews\Support\Casts;
 
 use Cknow\Money\Money;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
+use Money\Currency;
 
 class MoneyCast implements CastsAttributes
 {
@@ -36,9 +38,9 @@ class MoneyCast implements CastsAttributes
     /**
      * Transform the attribute from the underlying model values.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  Model  $model
      * @param  mixed  $value
-     * @return \Cknow\Money\Money|null
+     * @return Money|null
      */
     public function get($model, string $key, $value, array $attributes)
     {
@@ -52,11 +54,11 @@ class MoneyCast implements CastsAttributes
     /**
      * Transform the attribute to its underlying model values.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  Model  $model
      * @param  mixed  $value
      * @return array
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function set($model, string $key, $value, array $attributes)
     {
@@ -84,7 +86,7 @@ class MoneyCast implements CastsAttributes
     /**
      * Get currency.
      *
-     * @return \Money\Currency
+     * @return Currency
      */
     protected function getCurrency(array $attributes)
     {

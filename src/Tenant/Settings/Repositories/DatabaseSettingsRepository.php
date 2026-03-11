@@ -3,12 +3,13 @@
 namespace Wsmallnews\Support\Tenant\Settings\Repositories;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Spatie\LaravelSettings\Models\SettingsProperty;
 use Spatie\LaravelSettings\SettingsRepositories\SettingsRepository;
 
 class DatabaseSettingsRepository implements SettingsRepository
 {
-    /** @var class-string<\Illuminate\Database\Eloquent\Model> */
+    /** @var class-string<Model> */
     protected string $propertyModel;
 
     protected ?string $connection;

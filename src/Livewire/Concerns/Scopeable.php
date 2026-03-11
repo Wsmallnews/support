@@ -2,6 +2,7 @@
 
 namespace Wsmallnews\Support\Livewire\Concerns;
 
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Locked;
 
 /**
@@ -47,7 +48,7 @@ trait Scopeable
      * Convenience method to quickly get a scoped query.
      *
      * @param  string  $modelClass
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     // protected function getScopedQuery(string $modelClass = null)
     // {

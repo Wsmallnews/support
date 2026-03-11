@@ -3,13 +3,16 @@
 use Filament\Facades\Filament;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
+use Wsmallnews\Support\Data\ScopeableContext;
 use Wsmallnews\Support\Features\Currency;
+use Wsmallnews\Support\Helpers\ScopeableHelper;
 use Wsmallnews\Support\Support\Utils;
 
 if (! function_exists('get_sn')) {
@@ -76,7 +79,7 @@ if (! function_exists('sn_currency')) {
     /**
      * 获取自定义 currency 操作类
      *
-     * @return \Wsmallnews\Support\Features\Currency
+     * @return Currency
      */
     function sn_currency()
     {
@@ -277,9 +280,9 @@ if (! function_exists('scopeable_context')) {
      *
      * @param  mixed  $input  Array, ScopeableContext, or config key
      */
-    function scopeable_context(mixed $input): \Wsmallnews\Support\Data\ScopeableContext
+    function scopeable_context(mixed $input): ScopeableContext
     {
-        return \Wsmallnews\Support\Helpers\ScopeableHelper::resolve($input);
+        return ScopeableHelper::resolve($input);
     }
 }
 
@@ -287,12 +290,12 @@ if (! function_exists('scopeable_query')) {
     /**
      * Apply scope to a query builder.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  Builder  $query
      * @param  mixed  $scope  Array, ScopeableContext, or config key
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     function scopeable_query($query, mixed $scope)
     {
-        return \Wsmallnews\Support\Helpers\ScopeableHelper::applyToQuery($query, $scope);
+        return ScopeableHelper::applyToQuery($query, $scope);
     }
 }

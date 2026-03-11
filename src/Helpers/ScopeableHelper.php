@@ -2,6 +2,8 @@
 
 namespace Wsmallnews\Support\Helpers;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Wsmallnews\Support\Data\ScopeableContext;
 
 /**
@@ -45,9 +47,9 @@ class ScopeableHelper
     /**
      * Apply scope to a query builder.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  Builder  $query
      * @param  ScopeableContext|array|string  $scope
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public static function applyToQuery($query, mixed $scope)
     {
@@ -59,7 +61,7 @@ class ScopeableHelper
     /**
      * Check if a model belongs to a specific scope.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  Model  $model
      * @param  ScopeableContext|array|string  $scope
      */
     public static function modelBelongsToScopeable($model, mixed $scope): bool

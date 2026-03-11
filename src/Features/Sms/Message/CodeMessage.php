@@ -2,6 +2,7 @@
 
 namespace Wsmallnews\Support\Features\Sms\Message;
 
+use Carbon\Carbon;
 use Overtrue\EasySms\Contracts\GatewayInterface;
 use Overtrue\EasySms\Contracts\PhoneNumberInterface;
 use Overtrue\EasySms\Message as EasySmsMessage;
@@ -128,7 +129,7 @@ class CodeMessage extends EasySmsMessage
         $smsLog->code = $this->code;
         $smsLog->times = 0;
         $smsLog->ip_address = request()->ip();
-        $smsLog->created_at = \Carbon\Carbon::now();
+        $smsLog->created_at = Carbon::now();
         $smsLog->save();
 
         return $this->code;
@@ -154,7 +155,7 @@ class CodeMessage extends EasySmsMessage
             return false;
         }
 
-        if ($smsLog->created_at < \Carbon\Carbon::now()->subSeconds($this->expire) || $smsLog->times >= $this->maxTimes) {
+        if ($smsLog->created_at < Carbon::now()->subSeconds($this->expire) || $smsLog->times >= $this->maxTimes) {
             $smsLog->delete();
             if ($exception) {
                 throw new SupportException('验证码不正确');

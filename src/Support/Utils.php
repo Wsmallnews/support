@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Wsmallnews\Support\Support;
 
 use Wsmallnews\Support\Data\ScopeableContext;
+use Wsmallnews\Support\Exceptions\InvalidScopeException;
 
 /**
  * Utility class for support package configuration.
@@ -54,7 +55,7 @@ class Utils
      *
      * @param  string  $configKey  Full config key (e.g., 'sn-cms.scopeable')
      *
-     * @throws \Wsmallnews\Support\Exceptions\InvalidScopeException
+     * @throws InvalidScopeException
      */
     public static function getScopeFromConfig(string $configKey): ScopeableContext
     {

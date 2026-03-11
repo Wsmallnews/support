@@ -3,6 +3,8 @@
 namespace Wsmallnews\Support\Livewire\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Livewire\WithPagination;
 
 trait CanPagination
@@ -51,11 +53,11 @@ trait CanPagination
     public function withPagination(Builder $builder)
     {
         if ($this->getPageType() == 'paginator') {
-            /** @var \Illuminate\Pagination\LengthAwarePaginator $current */
+            /** @var LengthAwarePaginator $current */
             $current = $builder->paginate($this->perPage, pageName: $this->pageName);
             $collections = $current->getCollection();        // 获取 collection 格式的数据
         } else {
-            /** @var \Illuminate\Pagination\Paginator $current */
+            /** @var Paginator $current */
             $current = $builder->simplePaginate($this->perPage, pageName: $this->pageName);
             $collections = $this->getCurrents()->merge($current->items());
         }
