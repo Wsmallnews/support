@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 use Wsmallnews\Support\Features\Currency;
+use Wsmallnews\Support\Support\Utils;
 
 if (! function_exists('get_sn')) {
     /**
@@ -151,12 +152,13 @@ if (! function_exists('href_format')) {
 if (! function_exists('files_url')) {
     function files_url($originalFiles, $disk = null)
     {
-        $disk = $disk ?? config('filesystems.default');
+        $disk = $disk ?? Utils::getFilesystemDisk();
 
         $files = Arr::wrap($originalFiles);
 
-        $files = Arr::map($files, function ($file) use ($disk) {
-            return config('filesystems.disks.' . $disk . '.url') . '/' . $file;
+        $diskUrl = config('filesystems.disks.' . $disk . '.url');
+        $files = Arr::map($files, function ($file) use ($diskUrl) {
+            return $diskUrl . '/' . $file;
         });
 
         return Arr::accessible($originalFiles) ? $files : Arr::first($files);

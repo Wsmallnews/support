@@ -88,7 +88,7 @@ trait HasCustomProperties
      *
      * @throws CmsException
      */
-    public static function getCustomScopeable(): array
+    public static function getCustomScopeable(): ?array
     {
         return self::getCustomProperty('scopeable');
     }
@@ -99,7 +99,7 @@ trait HasCustomProperties
      *
      * @throws CmsException
      */
-    public static function getCustomScopeType(): string
+    public static function getCustomScopeType(): ?string
     {
         return self::getCustomScopeable()['scopeType'] ?? null;
     }
@@ -110,7 +110,7 @@ trait HasCustomProperties
      *
      * @throws CmsException
      */
-    public static function getCustomScopeId(): int
+    public static function getCustomScopeId(): ?int
     {
         return self::getCustomScopeable()['scopeId'] ?? null;
     }
