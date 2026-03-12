@@ -21,7 +21,6 @@ use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\LaravelSettings\Events\SavingSettings;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
-use Wsmallnews\Support\Models\SmsLog;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
 use Wsmallnews\Support\Testing\TestsSupport;

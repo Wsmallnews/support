@@ -26,7 +26,6 @@ class Utils
         return $name ? (data_get($config, $name) ?? $default) : $config;
     }
 
-
     /**
      * Get model class by name.
      *
@@ -65,7 +64,6 @@ class Utils
     {
         return self::getModel('content');
     }
-
 
     /**
      * Get the tenant model class.
