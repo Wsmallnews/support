@@ -6,6 +6,7 @@ namespace Wsmallnews\Support\Support;
 
 use Wsmallnews\Support\Data\ScopeableContext;
 use Wsmallnews\Support\Exceptions\InvalidScopeException;
+use Wsmallnews\Support\Exceptions\SupportException;
 
 /**
  * Utility class for support package configuration.
@@ -24,6 +25,47 @@ class Utils
 
         return $name ? (data_get($config, $name) ?? $default) : $config;
     }
+
+
+    /**
+     * Get model class by name.
+     *
+     * @param  string  $name  Model name (e.g., 'post', 'navigation')
+     * @param  bool  $shouldException  Whether to throw exception if not found
+     *
+     * @throws SupportException
+     */
+    public static function getModel(string $name, bool $shouldException = true): ?string
+    {
+        $model = self::getConfig('models')[$name] ?? null;
+
+        if (blank($model) && $shouldException) {
+            throw new SupportException("模型 {$name} 不存在");
+        }
+
+        return $model;
+    }
+
+    /**
+     * Get sms log model class.
+     *
+     * @return string Models\SmsLog
+     */
+    public static function getSmsLogModel(): string
+    {
+        return self::getModel('sms_log');
+    }
+
+    /**
+     * Get content model class.
+     *
+     * @return string Models\Content
+     */
+    public static function getContentModel(): string
+    {
+        return self::getModel('content');
+    }
+
 
     /**
      * Get the tenant model class.

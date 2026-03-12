@@ -1,5 +1,7 @@
 <?php
 
+use Wsmallnews\Support\Models;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -11,6 +13,15 @@ return [
     |
     */
     'filesystem_disk' => null,
+
+    /**
+     * Custom models
+     */
+    'models' => [
+        'content' => Models\Content::class,
+        'sms_log' => Models\SmsLog::class,
+    ],
+
 
     /*
     |--------------------------------------------------------------------------

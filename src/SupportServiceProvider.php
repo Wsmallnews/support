@@ -67,7 +67,8 @@ class SupportServiceProvider extends PackageServiceProvider
     {
         // 注册模型别名
         Relation::enforceMorphMap([
-            'sn_sms_log' => SmsLog::class,
+            'sn_sms_log' => SupportUtils::getSmsLogModel(),
+            'sn_content' => SupportUtils::getContentModel(),
         ]);
 
         // 多租户时注册自动创建设置监听器 (不需要迁移默认配置)
@@ -206,6 +207,7 @@ class SupportServiceProvider extends PackageServiceProvider
             // '2025_01_20_113658_create_sn_sms_logs_table',
             // '2025_04_17_105524_add_scopeinfo_to_media_table',
             '2025_10_29_110527_create_sn_team_settings_table',
+            '2025_11_01_213119_create_sn_contents_table',
         ];
     }
 }
