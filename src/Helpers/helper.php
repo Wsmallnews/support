@@ -232,19 +232,15 @@ if (! function_exists('current_tenant')) {
     }
 }
 
-
 if (! function_exists('is_in_panel')) {
     /**
      * 全局是否有面板（包括用户端租户信息）
-     * 
-     * @return bool
      */
     function is_in_panel(): bool
     {
         return ! is_null(Filament::getCurrentPanel());
     }
 }
-
 
 if (! function_exists('tree_to_flatten')) {
     /**
