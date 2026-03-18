@@ -14,24 +14,20 @@ class FilamentHelper
 {
     /**
      * 创建时间，更新时间 筛选
-     *
-     * @return array
      */
     public static function createUpdateRangeFilter(): array
     {
         return [
             static::dateTimeRangeFilter('created_at', '创建'),
-            static::dateTimeRangeFilter('updated_at', '更新')
+            static::dateTimeRangeFilter('updated_at', '更新'),
         ];
     }
-
 
     /**
      * 时间区间筛选
      *
-     * @param string $field_name
-     * @param string | null $label
-     * @return Tables\Filters\Filter
+     * @param  string  $field_name
+     * @param  string | null  $label
      */
     public static function dateTimeRangeFilter($field_name, $label = null): Tables\Filters\Filter
     {
@@ -46,11 +42,11 @@ class FilamentHelper
                 return $query
                     ->when(
                         $data[$field_name . '_from'],
-                        fn(Builder $query, $date): Builder => $query->whereDate($field_name, '>=', $date),
+                        fn (Builder $query, $date): Builder => $query->whereDate($field_name, '>=', $date),
                     )
                     ->when(
                         $data[$field_name . '_until'],
-                        fn(Builder $query, $date): Builder => $query->whereDate($field_name, '<=', $date),
+                        fn (Builder $query, $date): Builder => $query->whereDate($field_name, '<=', $date),
                     );
             });
     }
