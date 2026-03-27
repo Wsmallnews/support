@@ -8,8 +8,8 @@ use BackedEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
-use Filament\Support\Icons\Heroicon;
 use Filament\Support\Enums\IconSize;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use Wsmallnews\Support\Enums\Traits\EnumHelper;
 

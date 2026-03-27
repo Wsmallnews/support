@@ -3,8 +3,9 @@
 namespace Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns;
 
 use Filament\Facades\Filament;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\EloquentUserProvider;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class ActivityLogCauser
 {
@@ -14,7 +15,7 @@ class ActivityLogCauser
      * In multi-panel applications, it tries to get the model from the current panel's guard provider.
      * Falls back to the default Laravel user model configuration.
      *
-     * @return class-string<\Illuminate\Database\Eloquent\Model>|null
+     * @return class-string<Model>|null
      */
     public static function resolveModelClass(): ?string
     {
@@ -29,7 +30,7 @@ class ActivityLogCauser
                     $provider = $guard->getProvider();
 
                     if ($provider instanceof EloquentUserProvider) {
-                        /** @var class-string<\Illuminate\Database\Eloquent\Model> $model */
+                        /** @var class-string<Model> $model */
                         $model = $provider->getModel();
 
                         return $model;
@@ -38,7 +39,7 @@ class ActivityLogCauser
             }
         }
 
-        /** @var class-string<\Illuminate\Database\Eloquent\Model>|null $model */
+        /** @var class-string<Model>|null $model */
         $model = config('auth.providers.users.model');
 
         return $model;

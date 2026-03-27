@@ -33,8 +33,8 @@ class ActivityLogInfolist
                                                 ->badge()
                                                 ->label(__('filament-activity-log::activity.infolist.entry.event'))
                                                 ->formatStateUsing(fn ($state) => ucfirst($state))
-                                                ->color(fn($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
-                                                ->icon(fn($state) => ActivityLogEvent::tryFrom($state)?->getIcon()),
+                                                ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
+                                                ->icon(fn ($state) => ActivityLogEvent::tryFrom($state)?->getIcon()),
 
                                             TextEntry::make('created_at')
                                                 ->label(__('filament-activity-log::activity.infolist.entry.created_at'))

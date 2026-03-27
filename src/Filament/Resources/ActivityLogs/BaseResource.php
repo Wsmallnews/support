@@ -9,8 +9,8 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
-use Wsmallnews\Support\Filament\Resources\ActivityLogs\Tables\ActivityLogTable;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Schemas\ActivityLogInfolist;
+use Wsmallnews\Support\Filament\Resources\ActivityLogs\Tables\ActivityLogTable;
 use Wsmallnews\Support\Models\Activity;
 
 abstract class BaseResource extends Resource
@@ -34,7 +34,6 @@ abstract class BaseResource extends Resource
     protected static ?string $pluralModelLabel = '日志';
 
     protected static ?int $navigationSort = 3;
-
 
     public static function table(Table $table): Table
     {

@@ -13,12 +13,8 @@ use Wsmallnews\Support\Contracts\HasModelLabel;
 
 class ActivityLogFormat
 {
-
     /**
      * Get the title for the model's activity.
-     * 
-     * @param mixed $model
-     * @return string
      */
     public static function getTitle(mixed $model): string
     {
@@ -30,7 +26,7 @@ class ActivityLogFormat
 
         // Nested resource support: if the model has a parent defined, prepend it
         if (method_exists($model, 'getActivityLogParent') && ($parent = $model->getActivityLogParent()) instanceof Model) {
-            $title = static::resolveTitle($parent).' > '.$title;
+            $title = static::resolveTitle($parent) . ' > ' . $title;
         }
 
         return $title;
@@ -38,9 +34,6 @@ class ActivityLogFormat
 
     /**
      * Get the URL for the model's activity.
-     * 
-     * @param ?Model $model
-     * @return string|null
      */
     public static function getUrl(?Model $model): ?string
     {
@@ -64,11 +57,9 @@ class ActivityLogFormat
         return null;
     }
 
-
     /**
      * 获取 subject type options
      *
-     * @param Collection $subjectTypes
      * @return array
      */
     public static function getSubjectTypeOptions(Collection $subjectTypes)
@@ -85,12 +76,8 @@ class ActivityLogFormat
         return $options;
     }
 
-
     /**
      * Get the custom URL for the model's activity.
-     * 
-     * @param ?Model $model
-     * @return string|null
      */
     public static function customUrl(?Model $model): ?string
     {
@@ -105,12 +92,8 @@ class ActivityLogFormat
         return null;
     }
 
-
     /**
      * Resolve the base title for a model.
-     * 
-     * @param Model $model
-     * @return string
      */
     protected static function resolveTitle(Model $model): string
     {
@@ -128,15 +111,11 @@ class ActivityLogFormat
             }
         }
 
-        return class_basename($model).' #'.$model->getKey();
+        return class_basename($model) . ' #' . $model->getKey();
     }
-
 
     /**
      * 模型 label
-     *
-     * @param string $model
-     * @return string
      */
     protected static function resolveModelLabel(string $model): string
     {

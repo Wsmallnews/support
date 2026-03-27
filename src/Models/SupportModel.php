@@ -17,14 +17,11 @@ class SupportModel extends Model implements HasModelLabel
 
     /**
      * 默认模型名称
-     *
-     * @return string
      */
     public static function getModelLabel(): string
     {
         return class_basename(static::class);
     }
-
 
     /**
      * Scope query to current tenant.

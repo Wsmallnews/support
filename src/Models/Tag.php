@@ -13,8 +13,6 @@ class Tag extends BaseTagModel implements HasModelLabel
 
     /**
      * 默认模型名称
-     *
-     * @return string
      */
     public static function getModelLabel(): string
     {

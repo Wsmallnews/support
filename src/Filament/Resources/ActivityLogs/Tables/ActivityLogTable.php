@@ -8,18 +8,14 @@ use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ExportAction as FilamentExportAction;
 use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Checkbox;
 use Filament\Notifications\Notification;
-use Filament\Support\Enums\Width;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Support\Str;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogCauser;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
@@ -28,7 +24,6 @@ use Wsmallnews\Support\Models\Activity;
 
 class ActivityLogTable
 {
-
     public static function configure(Table $table): Table
     {
         return $table
@@ -63,54 +58,54 @@ class ActivityLogTable
             ])
             ->recordActions([
                 ActionGroup::make([
-                //     // ActivityLogTimelineTableAction::make()
-                //     //     ->visible(config('filament-activity-log.table.actions.timeline', true)),
+                    //     // ActivityLogTimelineTableAction::make()
+                    //     //     ->visible(config('filament-activity-log.table.actions.timeline', true)),
                     ViewAction::make(),
 
-                //     // Action::make('view_batch')
-                //     //     ->label(__('filament-activity-log::activity.action.batch.label'))
-                //     //     ->icon('heroicon-m-rectangle-stack')
-                //     //     ->color('gray')
-                //     //     ->visible(fn ($record) => $record->batch_uuid &&
-                //     //         (config('filament-activity-log.permissions.enabled') === false || Gate::allows('view', $record))
-                //     //     )
-                //     //     ->url(fn ($record) => request()->url().'?tableFilters[batch_uuid][value]='.$record->batch_uuid),
+                    //     // Action::make('view_batch')
+                    //     //     ->label(__('filament-activity-log::activity.action.batch.label'))
+                    //     //     ->icon('heroicon-m-rectangle-stack')
+                    //     //     ->color('gray')
+                    //     //     ->visible(fn ($record) => $record->batch_uuid &&
+                    //     //         (config('filament-activity-log.permissions.enabled') === false || Gate::allows('view', $record))
+                    //     //     )
+                    //     //     ->url(fn ($record) => request()->url().'?tableFilters[batch_uuid][value]='.$record->batch_uuid),
 
-                //     static::revertAction(),
+                    //     static::revertAction(),
 
-                //     // Action::make('restore')
-                //     //     ->label(__('filament-activity-log::activity.action.restore.label'))
-                //     //     ->icon('heroicon-m-arrow-path')
-                //     //     ->color('success')
-                //     //     ->requiresConfirmation()
-                //     //     ->modalHeading(__('filament-activity-log::activity.action.restore.heading'))
-                //     //     ->action(function ($record) {
-                //     //         $modelClass = $record->subject_type;
-                //     //         if (! $modelClass || ! class_exists($modelClass)) {
-                //     //             return;
-                //     //         }
+                    //     // Action::make('restore')
+                    //     //     ->label(__('filament-activity-log::activity.action.restore.label'))
+                    //     //     ->icon('heroicon-m-arrow-path')
+                    //     //     ->color('success')
+                    //     //     ->requiresConfirmation()
+                    //     //     ->modalHeading(__('filament-activity-log::activity.action.restore.heading'))
+                    //     //     ->action(function ($record) {
+                    //     //         $modelClass = $record->subject_type;
+                    //     //         if (! $modelClass || ! class_exists($modelClass)) {
+                    //     //             return;
+                    //     //         }
 
-                //     //         $attributes = $record->properties['old'] ?? $record->properties['attributes'] ?? [];
-                //     //         if (empty($attributes)) {
-                //     //             return;
-                //     //         }
+                    //     //         $attributes = $record->properties['old'] ?? $record->properties['attributes'] ?? [];
+                    //     //         if (empty($attributes)) {
+                    //     //             return;
+                    //     //         }
 
-                //     //         $modelClass::create($attributes);
-                //     //         Notification::make()->success()->title(__('filament-activity-log::activity.action.restore.success'))->send();
-                //     //     })
-                //     //     ->visible(fn ($record) => config('filament-activity-log.table.actions.restore', true) &&
-                //     //         $record->event === 'deleted' &&
-                //     //         $record->subject === null &&
-                //     //         (config('filament-activity-log.permissions.enabled') === false || Gate::allows('restore', $record))
-                //     //     ),
-                //     // DeleteAction::make()
-                //     //     ->requiresConfirmation()
-                //     //     ->modalHeading(__('filament-activity-log::activity.action.delete.heading'))
-                //     //     ->modalDescription(__('filament-activity-log::activity.action.delete.confirmation'))
-                //     //     ->modalSubmitActionLabel(__('filament-activity-log::activity.action.delete.button'))
-                //     //     ->visible(fn ($record) => config('filament-activity-log.table.actions.delete', true) &&
-                //     //         (config('filament-activity-log.permissions.enabled') === false || Gate::allows('delete', $record))
-                //     //     ),
+                    //     //         $modelClass::create($attributes);
+                    //     //         Notification::make()->success()->title(__('filament-activity-log::activity.action.restore.success'))->send();
+                    //     //     })
+                    //     //     ->visible(fn ($record) => config('filament-activity-log.table.actions.restore', true) &&
+                    //     //         $record->event === 'deleted' &&
+                    //     //         $record->subject === null &&
+                    //     //         (config('filament-activity-log.permissions.enabled') === false || Gate::allows('restore', $record))
+                    //     //     ),
+                    //     // DeleteAction::make()
+                    //     //     ->requiresConfirmation()
+                    //     //     ->modalHeading(__('filament-activity-log::activity.action.delete.heading'))
+                    //     //     ->modalDescription(__('filament-activity-log::activity.action.delete.confirmation'))
+                    //     //     ->modalSubmitActionLabel(__('filament-activity-log::activity.action.delete.button'))
+                    //     //     ->visible(fn ($record) => config('filament-activity-log.table.actions.delete', true) &&
+                    //     //         (config('filament-activity-log.permissions.enabled') === false || Gate::allows('delete', $record))
+                    //     //     ),
                 ]),
             ])
             ->toolbarActions([
@@ -230,7 +225,6 @@ class ActivityLogTable
             ->toggleable();
     }
 
-
     protected static function ipAddressColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('properties.ip_address')
@@ -256,7 +250,6 @@ class ActivityLogTable
             ->toggleable();
     }
 
-
     protected static function descriptionColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('description')
@@ -274,7 +267,6 @@ class ActivityLogTable
             ->toggleable();
     }
 
-
     protected static function createdAtColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('created_at')
@@ -284,7 +276,6 @@ class ActivityLogTable
             ->toggleable();
     }
 
-
     // ---------------------------- Filters --------------------------------
 
     protected static function eventFilter()
@@ -293,7 +284,6 @@ class ActivityLogTable
             ->label('Event')
             ->options(ActivityLogEvent::class);
     }
-
 
     protected static function causerFilter()
     {
@@ -305,7 +295,7 @@ class ActivityLogTable
                     return [];
                 }
 
-                /** @var \Illuminate\Database\Eloquent\Builder $query */
+                /** @var Builder $query */
                 $query = $causerClass::query();
 
                 return $query
@@ -335,7 +325,6 @@ class ActivityLogTable
                 return ActivityLogFormat::getSubjectTypeOptions($subjectTypes);
             });
     }
-
 
     protected static function revertAction()
     {
@@ -385,7 +374,8 @@ class ActivityLogTable
                 $subject->update($revertData);
                 Notification::make()->success()->title(__('filament-activity-log::activity.action.revert.success'))->send();
             })
-            ->visible(fn ($record) => config('filament-activity-log.table.actions.revert', true) &&
+            ->visible(
+                fn ($record) => config('filament-activity-log.table.actions.revert', true) &&
                 $record->event === 'updated' &&
                 $record->properties->has('old') &&
                 $record->subject !== null &&
