@@ -4,15 +4,27 @@ namespace Wsmallnews\Support\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Wsmallnews\Support\Contracts\HasModelLabel;
 use Wsmallnews\Support\Models\Concerns\Scopeable;
 
 /**
  * Base model for all support package models.
  * Provides scopeable and tenant-aware functionality.
  */
-class SupportModel extends Model
+class SupportModel extends Model implements HasModelLabel
 {
     use Scopeable;
+
+    /**
+     * 默认模型名称
+     *
+     * @return string
+     */
+    public static function getModelLabel(): string
+    {
+        return class_basename(static::class);
+    }
+
 
     /**
      * Scope query to current tenant.

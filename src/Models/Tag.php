@@ -4,11 +4,22 @@ namespace Wsmallnews\Support\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Tags\Tag as BaseTagModel;
+use Wsmallnews\Support\Contracts\HasModelLabel;
 use Wsmallnews\Support\Models\Concerns\Scopeable;
 
-class Tag extends BaseTagModel
+class Tag extends BaseTagModel implements HasModelLabel
 {
     use Scopeable;
+
+    /**
+     * 默认模型名称
+     *
+     * @return string
+     */
+    public static function getModelLabel(): string
+    {
+        return class_basename(static::class);
+    }
 
     /**
      * Scope query to current tenant.
