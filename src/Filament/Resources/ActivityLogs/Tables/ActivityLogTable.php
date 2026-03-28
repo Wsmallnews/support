@@ -11,8 +11,10 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction as FilamentExportAction;
 use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\Checkbox;
+use Filament\Forms;
 use Filament\Notifications\Notification;
+use Filament\Schemas;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -71,114 +73,15 @@ class ActivityLogTable
                     //     //     )
                     //     //     ->url(fn ($record) => request()->url().'?tableFilters[batch_uuid][value]='.$record->batch_uuid),
 
-                    //     static::revertAction(),
+                    static::revertAction(),
 
-                    //     // Action::make('restore')
-                    //     //     ->label(__('filament-activity-log::activity.action.restore.label'))
-                    //     //     ->icon('heroicon-m-arrow-path')
-                    //     //     ->color('success')
-                    //     //     ->requiresConfirmation()
-                    //     //     ->modalHeading(__('filament-activity-log::activity.action.restore.heading'))
-                    //     //     ->action(function ($record) {
-                    //     //         $modelClass = $record->subject_type;
-                    //     //         if (! $modelClass || ! class_exists($modelClass)) {
-                    //     //             return;
-                    //     //         }
-
-                    //     //         $attributes = $record->properties['old'] ?? $record->properties['attributes'] ?? [];
-                    //     //         if (empty($attributes)) {
-                    //     //             return;
-                    //     //         }
-
-                    //     //         $modelClass::create($attributes);
-                    //     //         Notification::make()->success()->title(__('filament-activity-log::activity.action.restore.success'))->send();
-                    //     //     })
-                    //     //     ->visible(fn ($record) => config('filament-activity-log.table.actions.restore', true) &&
-                    //     //         $record->event === 'deleted' &&
-                    //     //         $record->subject === null &&
-                    //     //         (config('filament-activity-log.permissions.enabled') === false || Gate::allows('restore', $record))
-                    //     //     ),
-                    //     // DeleteAction::make()
-                    //     //     ->requiresConfirmation()
-                    //     //     ->modalHeading(__('filament-activity-log::activity.action.delete.heading'))
-                    //     //     ->modalDescription(__('filament-activity-log::activity.action.delete.confirmation'))
-                    //     //     ->modalSubmitActionLabel(__('filament-activity-log::activity.action.delete.button'))
-                    //     //     ->visible(fn ($record) => config('filament-activity-log.table.actions.delete', true) &&
-                    //     //         (config('filament-activity-log.permissions.enabled') === false || Gate::allows('delete', $record))
-                    //     //     ),
+                    static::deleteAction(),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->modalDescription(__('filament-activity-log::activity.action.bulk.delete.confirmation'))
-                        ->visible(config('filament-activity-log.table.bulk_actions.delete', true)),
-
-                    BulkAction::make('restore_selected')
-                        ->label(__('filament-activity-log::activity.action.bulk.restore.label'))
-                        ->icon('heroicon-m-arrow-path')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->modalHeading(__('filament-activity-log::activity.action.bulk.restore.label'))
-                        ->modalDescription(__('filament-activity-log::activity.action.bulk.restore.confirmation'))
-                        ->action(function ($records) {
-                            $restoredCount = 0;
-
-                            foreach ($records as $record) {
-                                if ($record->event !== 'deleted' || $record->subject !== null) {
-                                    continue;
-                                }
-
-                                $modelClass = $record->subject_type;
-                                if (! $modelClass || ! class_exists($modelClass)) {
-                                    continue;
-                                }
-
-                                $attributes = $record->properties['old'] ?? $record->properties['attributes'] ?? [];
-                                if (empty($attributes)) {
-                                    continue;
-                                }
-
-                                $modelClass::create($attributes);
-                                $restoredCount++;
-                            }
-
-                            if ($restoredCount > 0) {
-                                Notification::make()
-                                    ->success()
-                                    ->title(__('filament-activity-log::activity.action.bulk.restore.success', ['count' => $restoredCount]))
-                                    ->send();
-                            }
-                        })
-                        ->visible(fn () => config('filament-activity-log.table.actions.restore', true)),
-
-                    BulkAction::make('revert_selected')
-                        ->label(__('filament-activity-log::activity.action.bulk.revert.label'))
-                        ->icon('heroicon-m-arrow-uturn-left')
-                        ->color('warning')
-                        ->requiresConfirmation()
-                        ->modalHeading(__('filament-activity-log::activity.action.bulk.revert.label'))
-                        ->modalDescription(__('filament-activity-log::activity.action.bulk.revert.confirmation'))
-                        ->action(function ($records) {
-                            $revertedCount = 0;
-
-                            foreach ($records as $record) {
-                                if ($record->event !== 'updated' || ! $record->properties->has('old') || ! $record->subject) {
-                                    continue;
-                                }
-
-                                $record->subject->update($record->properties['old']);
-                                $revertedCount++;
-                            }
-
-                            if ($revertedCount > 0) {
-                                Notification::make()
-                                    ->success()
-                                    ->title(__('filament-activity-log::activity.action.bulk.revert.success', ['count' => $revertedCount]))
-                                    ->send();
-                            }
-                        })
-                        ->visible(fn () => config('filament-activity-log.table.actions.revert', true)),
+                    static::deleteBulkAction(),
+                    static::revertBulkAction(),
                 ]),
             ]);
     }
@@ -287,29 +190,35 @@ class ActivityLogTable
 
     protected static function causerFilter()
     {
-        return Tables\Filters\SelectFilter::make('causer_id')
-            ->label('Causer')
-            ->options(function () {
-                $causerClass = ActivityLogCauser::resolveModelClass();
-                if (! $causerClass || ! class_exists($causerClass)) {
-                    return [];
-                }
+        return Tables\Filters\Filter::make('causer')
+            ->schema([
+                Schemas\Components\FusedGroup::make([
+                    Forms\Components\Select::make('causer_type')
+                        ->placeholder('Causer Type')
+                        ->options(function () {
+                            $causerTypes = Activity::query()
+                                ->distinct()
+                                ->whereNotNull('causer_type')
+                                ->pluck('causer_type', 'causer_type');
 
-                /** @var Builder $query */
-                $query = $causerClass::query();
-
+                            return ActivityLogFormat::getTypeOptions($causerTypes);
+                        })->columnSpan(1),
+                    Forms\Components\TextInput::make('causer_keyword')
+                        ->placeholder('Causer Keyword')
+                        ->columnSpan(2),
+                ])->columns(3),
+            ])
+            ->query(function (Builder $query, array $data): Builder {
                 return $query
-                    ->whereIn(
-                        'id',
-                        Activity::query()
-                            ->distinct()
-                            ->whereNotNull('causer_id')
-                            ->pluck('causer_id')
-                    )
-                    ->pluck('name', 'id')
-                    ->toArray();
-            })
-            ->searchable();
+                    ->when(
+                        $data['causer_keyword'],
+                        function (Builder $query, $causer_keyword) use ($data) {
+                            $causer_type = $data['causer_type'] ?? 'user';
+                            return $query->where('causer_type', $causer_type)
+                                ->whereHas('causer', fn ($query) => $query->where('name', 'like', "%{$causer_keyword}%"));
+                        }
+                    );
+            });
     }
 
     protected static function subjectTypeFilter()
@@ -322,15 +231,15 @@ class ActivityLogTable
                     ->whereNotNull('subject_type')
                     ->pluck('subject_type', 'subject_type');
 
-                return ActivityLogFormat::getSubjectTypeOptions($subjectTypes);
+                return ActivityLogFormat::getTypeOptions($subjectTypes);
             });
     }
 
     protected static function revertAction()
     {
-        Action::make('revert')
+        return Action::make('revert')
             ->label(__('filament-activity-log::activity.action.revert.label'))
-            ->icon('heroicon-m-arrow-uturn-left')
+            ->icon(Heroicon::ArrowUturnLeft)
             ->color('warning')
             ->schema(function ($record) {
                 $old = $record->properties['old'] ?? [];
@@ -339,21 +248,19 @@ class ActivityLogTable
                 $fields = [];
                 foreach ($old as $key => $value) {
                     $currentValue = data_get($attributes, $key);
-                    $fields[] = Checkbox::make("revert_attributes.{$key}")
+                    $fields[] = Forms\Components\Checkbox::make("revert_attributes.{$key}")
                         ->label($key)
                         ->helperText(__('filament-activity-log::activity.action.revert.helper_text', [
                             'old' => $value,
                             'new' => $currentValue,
                         ]));
                 }
-
                 return $fields;
             })
             ->action(function ($record, array $data) {
                 $subject = $record->subject;
                 if (! $subject) {
                     Notification::make()->danger()->title(__('filament-activity-log::activity.action.revert.subject_not_found'))->send();
-
                     return;
                 }
 
@@ -367,7 +274,6 @@ class ActivityLogTable
 
                 if (empty($revertData)) {
                     Notification::make()->warning()->title(__('filament-activity-log::activity.action.revert.nothing_selected'))->send();
-
                     return;
                 }
 
@@ -375,11 +281,62 @@ class ActivityLogTable
                 Notification::make()->success()->title(__('filament-activity-log::activity.action.revert.success'))->send();
             })
             ->visible(
-                fn ($record) => config('filament-activity-log.table.actions.revert', true) &&
+                fn ($record) => 
                 $record->event === 'updated' &&
                 $record->properties->has('old') &&
-                $record->subject !== null &&
-                (config('filament-activity-log.permissions.enabled') === false || Gate::allows('update', $record))
+                $record->subject !== null 
+                // &&
+                // (config('filament-activity-log.permissions.enabled') === false || Gate::allows('update', $record))
             );
+    }
+
+    protected static function deleteAction()
+    {
+        return DeleteAction::make()
+            ->requiresConfirmation()
+            ->modalHeading(__('filament-activity-log::activity.action.delete.heading'))
+            ->modalDescription(__('filament-activity-log::activity.action.delete.confirmation'))
+            ->modalSubmitActionLabel(__('filament-activity-log::activity.action.delete.button'))
+            // ->visible(fn ($record) => Gate::allows('delete', $record))
+            ;
+    }
+
+
+    protected static function deleteBulkAction()
+    {
+        return DeleteBulkAction::make()
+            ->modalDescription(__('filament-activity-log::activity.action.bulk.delete.confirmation'))
+            // ->visible(config('filament-activity-log.table.bulk_actions.delete', true))
+            ;
+    }
+
+    protected static function revertBulkAction()
+    {
+        return BulkAction::make('revert_selected')
+            ->label(__('filament-activity-log::activity.action.bulk.revert.label'))
+            ->icon(Heroicon::ArrowUturnLeft)
+            ->color('warning')
+            ->requiresConfirmation()
+            ->modalHeading(__('filament-activity-log::activity.action.bulk.revert.label'))
+            ->modalDescription(__('filament-activity-log::activity.action.bulk.revert.confirmation'))
+            ->action(function ($records) {
+                $revertedCount = 0;
+
+                foreach ($records as $record) {
+                    if ($record->event !== 'updated' || ! $record->properties->has('old') || ! $record->subject) {
+                        continue;
+                    }
+
+                    $record->subject->update($record->properties['old']);
+                    $revertedCount++;
+                }
+
+                if ($revertedCount > 0) {
+                    Notification::make()
+                        ->success()
+                        ->title(__('filament-activity-log::activity.action.bulk.revert.success', ['count' => $revertedCount]))
+                        ->send();
+                }
+            });
     }
 }

@@ -62,9 +62,9 @@ class ActivityLogFormat
      *
      * @return array
      */
-    public static function getSubjectTypeOptions(Collection $subjectTypes)
+    public static function getTypeOptions(Collection $types)
     {
-        $options = $subjectTypes->mapWithKeys(function ($type) {
+        $options = $types->mapWithKeys(function ($type) {
             $model = Str::contains($type, '\\') ? $type : Relation::getMorphedModel($type);
             $model = filled($model) ? $model : $type;       // 防止误判
 

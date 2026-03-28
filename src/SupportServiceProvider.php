@@ -16,6 +16,7 @@ use Intervention\Image\Image;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use RalphJSmit\Livewire\Urls\Middleware\LivewireUrlsMiddleware;
+use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -68,6 +69,7 @@ class SupportServiceProvider extends PackageServiceProvider
         Relation::enforceMorphMap([
             'sn_sms_log' => SupportUtils::getSmsLogModel(),
             'sn_content' => SupportUtils::getContentModel(),
+            'activity' => ActivitylogServiceProvider::determineActivityModel(),
         ]);
 
         // 多租户时注册自动创建设置监听器 (不需要迁移默认配置)
