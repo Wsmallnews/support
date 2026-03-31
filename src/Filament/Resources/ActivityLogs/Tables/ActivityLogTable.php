@@ -19,7 +19,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
-use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogCauser;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
 use Wsmallnews\Support\Helpers\FilamentHelper;
@@ -198,6 +197,7 @@ class ActivityLogTable
                         $data['causer_keyword'],
                         function (Builder $query, $causer_keyword) use ($data) {
                             $causer_type = $data['causer_type'] ?? 'user';
+
                             return $query->where('causer_type', $causer_type)
                                 ->whereHas('causer', fn ($query) => $query->where('name', 'like', "%{$causer_keyword}%"));
                         }
@@ -239,12 +239,14 @@ class ActivityLogTable
                             'new' => $currentValue,
                         ]));
                 }
+
                 return $fields;
             })
             ->action(function ($record, array $data) {
                 $subject = $record->subject;
                 if (! $subject) {
                     Notification::make()->danger()->title(__('filament-activity-log::activity.action.revert.subject_not_found'))->send();
+
                     return;
                 }
 
@@ -258,6 +260,7 @@ class ActivityLogTable
 
                 if (empty($revertData)) {
                     Notification::make()->warning()->title(__('filament-activity-log::activity.action.revert.nothing_selected'))->send();
+
                     return;
                 }
 
@@ -265,10 +268,9 @@ class ActivityLogTable
                 Notification::make()->success()->title(__('filament-activity-log::activity.action.revert.success'))->send();
             })
             ->visible(
-                fn ($record) => 
-                $record->event === 'updated' &&
+                fn ($record) => $record->event === 'updated' &&
                 $record->properties->has('old') &&
-                $record->subject !== null 
+                $record->subject !== null
                 // &&
                 // (config('filament-activity-log.permissions.enabled') === false || Gate::allows('update', $record))
             );
@@ -280,18 +282,15 @@ class ActivityLogTable
             ->requiresConfirmation()
             ->modalHeading(__('filament-activity-log::activity.action.delete.heading'))
             ->modalDescription(__('filament-activity-log::activity.action.delete.confirmation'))
-            ->modalSubmitActionLabel(__('filament-activity-log::activity.action.delete.button'))
-            // ->visible(fn ($record) => Gate::allows('delete', $record))
-            ;
+            ->modalSubmitActionLabel(__('filament-activity-log::activity.action.delete.button'));
+        // ->visible(fn ($record) => Gate::allows('delete', $record))
     }
-
 
     protected static function deleteBulkAction()
     {
         return DeleteBulkAction::make()
-            ->modalDescription(__('filament-activity-log::activity.action.bulk.delete.confirmation'))
-            // ->visible(config('filament-activity-log.table.bulk_actions.delete', true))
-            ;
+            ->modalDescription(__('filament-activity-log::activity.action.bulk.delete.confirmation'));
+        // ->visible(config('filament-activity-log.table.bulk_actions.delete', true))
     }
 
     protected static function revertBulkAction()
