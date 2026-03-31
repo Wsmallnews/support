@@ -194,6 +194,21 @@
 .sn-primary-text {
     @apply text-primary-500 dark:text-primary-600;
 }
+.sn-danger-text {
+    @apply text-danger-500 dark:text-danger-600;
+}
+.sn-success-text {
+    @apply text-success-500 dark:text-success-600;
+}
+.sn-info-text {
+    @apply text-info-500 dark:text-info-600;
+}
+.sn-warning-text {
+    @apply text-warning-500 dark:text-warning-600;
+}
+.sn-gray-text {
+    @apply text-gray-500 dark:text-gray-400;
+}
 /** sn 文字 **/
 
 

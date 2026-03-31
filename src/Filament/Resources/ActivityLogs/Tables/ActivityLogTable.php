@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogCauser;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
+use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
 use Wsmallnews\Support\Helpers\FilamentHelper;
 use Wsmallnews\Support\Models\Activity;
 
@@ -44,13 +45,6 @@ class ActivityLogTable
                 static::causerFilter(),
                 static::subjectTypeFilter(),
                 FilamentHelper::dateTimeRangeFilter('created_at', '发生'),
-
-                // Tables\Filters\Filter::make('batch_uuid')
-                //     ->label('Batch UUID')
-                //     ->query(fn (Builder $query, array $data): Builder => $query->when(
-                //         $data['value'] ?? null,
-                //         fn (Builder $query, $uuid): Builder => $query->where('batch_uuid', $uuid)
-                //     )),
             ])
             ->headerActions([
                 // FilamentExportAction::make()
@@ -60,21 +54,9 @@ class ActivityLogTable
             ])
             ->recordActions([
                 ActionGroup::make([
-                    //     // ActivityLogTimelineTableAction::make()
-                    //     //     ->visible(config('filament-activity-log.table.actions.timeline', true)),
+                    SubjectTimelineAction::make(),
                     ViewAction::make(),
-
-                    //     // Action::make('view_batch')
-                    //     //     ->label(__('filament-activity-log::activity.action.batch.label'))
-                    //     //     ->icon('heroicon-m-rectangle-stack')
-                    //     //     ->color('gray')
-                    //     //     ->visible(fn ($record) => $record->batch_uuid &&
-                    //     //         (config('filament-activity-log.permissions.enabled') === false || Gate::allows('view', $record))
-                    //     //     )
-                    //     //     ->url(fn ($record) => request()->url().'?tableFilters[batch_uuid][value]='.$record->batch_uuid),
-
                     static::revertAction(),
-
                     static::deleteAction(),
                 ]),
             ])
@@ -201,7 +183,9 @@ class ActivityLogTable
                                 ->whereNotNull('causer_type')
                                 ->pluck('causer_type', 'causer_type');
 
-                            return ActivityLogFormat::getTypeOptions($causerTypes);
+                            $options = ActivityLogFormat::getTypeOptions($causerTypes);
+                            // $options = ['admin' => 'Admin'] + $options;
+                            return $options;
                         })->columnSpan(1),
                     Forms\Components\TextInput::make('causer_keyword')
                         ->placeholder('Causer Keyword')
