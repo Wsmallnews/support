@@ -12,7 +12,6 @@ use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogForma
 
 class ActivityLogExporter extends Exporter
 {
-
     /**
      * @return class-string<Model>
      */
@@ -28,13 +27,13 @@ class ActivityLogExporter extends Exporter
                 ->label(__('filament-activity-log::activity.table.column.id')),
             ExportColumn::make('event')
                 ->label(__('filament-activity-log::activity.table.column.event'))
-                ->formatStateUsing(fn($state) => ActivityLogEvent::tryFrom($state)?->getLabel() ?? ucfirst((string) $state)),
+                ->formatStateUsing(fn ($state) => ActivityLogEvent::tryFrom($state)?->getLabel() ?? ucfirst((string) $state)),
             ExportColumn::make('subject_label')
                 ->label(__('filament-activity-log::activity.table.column.subject_type'))
-                ->formatStateUsing(fn($state, $record) => ActivityLogFormat::getTypeLabel($record->subject_type)),
+                ->formatStateUsing(fn ($state, $record) => ActivityLogFormat::getTypeLabel($record->subject_type)),
             ExportColumn::make('subject_type')
                 ->label(__('filament-activity-log::activity.table.column.subject_type'))
-                ->formatStateUsing(fn($state, $record) => ActivityLogFormat::getTitle($record->subject)),
+                ->formatStateUsing(fn ($state, $record) => ActivityLogFormat::getTitle($record->subject)),
             ExportColumn::make('subject_id')
                 ->label(__('filament-activity-log::activity.table.column.subject_id')),
             ExportColumn::make('description')
@@ -61,7 +60,6 @@ class ActivityLogExporter extends Exporter
     {
         return "activity-log-export-{$export->getKey()}";
     }
-
 
     public static function getCompletedNotificationBody(Export $export): string
     {

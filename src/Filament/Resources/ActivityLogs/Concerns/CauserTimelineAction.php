@@ -13,12 +13,11 @@ use Spatie\Activitylog\Models\Activity;
 
 class CauserTimelineAction extends Action
 {
-
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->schema(fn(Schema $schema) => $schema
+        $this->schema(fn (Schema $schema) => $schema
             ->schema([
                 ViewField::make('activities')
                     ->label(__('filament-activity-log::activity.timeline'))
@@ -68,9 +67,9 @@ class CauserTimelineAction extends Action
         }
 
         $activities = $activities ?? collect();
+
         return $activities;
     }
-
 
     /**
      * Create a new timeline action instance.

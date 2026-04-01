@@ -186,6 +186,7 @@ class ActivityLogTable
                                 ->pluck('causer_type', 'causer_type');
 
                             $options = ActivityLogFormat::getTypeOptions($causerTypes);
+
                             // $options = ['admin' => 'Admin'] + $options;
                             return $options;
                         })->columnSpan(1),
@@ -222,7 +223,6 @@ class ActivityLogTable
             });
     }
 
-
     // ---------------------------- Actions --------------------------------
 
     protected static function exportHeaderAction()
@@ -232,7 +232,6 @@ class ActivityLogTable
             ->icon(Heroicon::ArrowDownTray)
             ->color('gray');
     }
-
 
     protected static function revertAction()
     {
@@ -337,6 +336,7 @@ class ActivityLogTable
                 }
             });
     }
+
     protected static function exportBulkAction()
     {
         return FilamentExportBulkAction::make()

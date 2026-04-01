@@ -13,7 +13,6 @@ use Spatie\Activitylog\Models\Activity;
 
 class SubjectTimelineAction extends Action
 {
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -68,9 +67,9 @@ class SubjectTimelineAction extends Action
         }
 
         $activities = $activities ?? collect();
+
         return $activities;
     }
-
 
     /**
      * Create a new timeline action instance.
