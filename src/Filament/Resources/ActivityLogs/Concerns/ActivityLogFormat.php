@@ -17,7 +17,6 @@ class ActivityLogFormat
      * Get the title for the model's activity.
      *
      * @param  Model  $model
-     * @return string
      */
     public static function getTitle(mixed $model): string
     {
@@ -37,9 +36,6 @@ class ActivityLogFormat
 
     /**
      * Get the URL for the model's activity.
-     *
-     * @param  Model  $model
-     * @return string|null
      */
     public static function getUrl(?Model $model): ?string
     {
@@ -66,7 +62,6 @@ class ActivityLogFormat
     /**
      * 获取 subject type options
      *
-     * @param Collection $types
      * @return array
      */
     public static function getTypeOptions(Collection $types)
@@ -81,7 +76,6 @@ class ActivityLogFormat
     /**
      * 获取 subject type options
      *
-     * @param string $type
      * @return string
      */
     public static function getTypeLabel(string $type)
@@ -94,9 +88,6 @@ class ActivityLogFormat
 
     /**
      * Get the custom URL for the model's activity.
-     *
-     * @param  Model  $model
-     * @return string|null
      */
     public static function customUrl(?Model $model): ?string
     {
@@ -113,9 +104,6 @@ class ActivityLogFormat
 
     /**
      * Resolve the base title for a model.
-     * 
-     * @param Model $model
-     * @return string
      */
     protected static function resolveTitle(Model $model): string
     {
@@ -138,9 +126,6 @@ class ActivityLogFormat
 
     /**
      * 模型 label
-     * 
-     * @param string $model
-     * @return string
      */
     protected static function resolveModelLabel(string $model): string
     {

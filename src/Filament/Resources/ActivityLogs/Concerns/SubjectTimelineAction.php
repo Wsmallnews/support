@@ -8,8 +8,8 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 
 class SubjectTimelineAction extends Action
 {
