@@ -28,13 +28,13 @@
         <div class="flex gap-4">
             <div class="flex flex-col items-center">
                 <div @class([
-                    'flex items-center justify-center w-8 h-8 rounded-full shadow-sm',
+                    'flex flex-row grow-0 shrink-0 items-center justify-center w-8 h-8 rounded-full shadow-sm',
                     $iconColorClass,
-                ])">
+                ])>
                     <x-filament::icon :icon="$icon" class="w-4 h-4" />
                 </div>
                 @if (!$loop->last)
-                    <div class="sn-gray-bg w-0.5 h-full mt-1"></div>
+                    <div class="sn-gray-bg w-0.5 h-full"></div>
                 @endif
             </div>
 
@@ -47,14 +47,27 @@
 
                         @if ($activity->subject)
                             <div class="sn-descript-text">
-                                {{ ActivityLogFormat::getTitle($activity->subject) }}
+                                {{ ActivityLogFormat::getTypeLabel($activity->subject_type) }}
                             </div>
+
+                            <x-filament::link :href="ActivityLogFormat::getUrl($activity->subject)">
+                                #{{ $activity->subject_id }}
+                            </x-filament::link>
                         @endif
                     </div>
 
                     <div class="sn-descript-text">
+                        {{ ActivityLogFormat::getTitle($activity->subject) }}
+                    </div>
+                    <div class="sn-descript-text">
                         {{ $activity->description }}
                     </div>
+
+                    @if (isset($activity->properties['user_agent'])) 
+                        <div class="sn-tip-text">
+                            {{ $activity->properties['user_agent'] ?? '' }}
+                        </div>
+                    @endif
 
                     <div class="mt-2 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500">
                         @if ($activity->causer)
@@ -72,6 +85,11 @@
                             <x-filament::icon :icon="Heroicon::Clock" class="w-4 h-4" />
                             {{ $activity->created_at->diffForHumans() }}
                         </div>
+                        
+                        <div class="sn-tip-text flex items-center gap-1">
+                            <x-filament::icon :icon="Heroicon::MapPin" class="w-4 h-4" />
+                            {{ $activity->properties['ip_address'] ?? '' }}
+                        </div>
                     </div>
                 </div>
 
@@ -81,7 +99,7 @@
                         $attributes = $activity->properties->get('attributes', []);
                     @endphp
 
-                    <div x-data="{ open: false }">
+                    <div x-data="{ open: false }" class="w-full flex flex-col gap-2">
                         <button @click="open = !open" type="button" class="flex justify-between items-center w-full">
                             <span class="sn-descript-text flex gap-2">
                                 <x-filament::icon :icon="Heroicon::ArrowsRightLeft" class="w-4 h-4" />
@@ -91,16 +109,17 @@
                                 x-bind:class="{ 'rotate-180': open }" />
                         </button>
 
-                        <div x-show="open" x-collapse class="flex md:flex-col gap-2">
-                            @if($activity->properties->has('old'))
-                                <div class="sn-danger-text flex flex-col gap-2 bg-danger-50 border-danger-200">
-                                    <div class="w-full">
-                                        {{ __('filament-activity-log::activity.infolist.tab.old') }}
-                                    </div>
-                                    <div class="w-full">
+                        <div class="w-full flex flex-col gap-2 @container" x-show="open" x-collapse>
+                            <div class="w-full flex flex-col @2xl:flex-row gap-4">
+                                @if($activity->properties->has('old'))
+                                    <div class="sn-rounded sn-danger-text w-full flex flex-col divide-y divide-danger-200 border bg-danger-50 border-danger-200">
+                                        <div class="w-full p-2">
+                                            {{ __('filament-activity-log::activity.infolist.tab.old') }}
+                                        </div>
+
                                         @if(is_array($activity->properties['old']))
                                             @foreach($activity->properties['old'] as $key => $value)
-                                                <div class="flex items-center justify-between">
+                                                <div class="w-full flex items-center justify-between p-2">
                                                     <dt class="">{{ str($key)->title() }}</dt>
                                                     <dd class="">
                                                         {{ is_array($value) ? json_encode($value) : $value }}
@@ -108,23 +127,22 @@
                                                 </div>
                                             @endforeach
                                         @else
-                                            <div class="">
+                                            <div class="w-full p-2">
                                                 {{ $activity->properties['old'] }}
                                             </div>
                                         @endif
                                     </div>
-                                </div>
-                            @endif
-
-                            @if($activity->properties->has('attributes'))
-                                <div class="sn-danger-text flex flex-col gap-2 bg-success-50 border-success-200">
-                                    <div class="w-full">
-                                        {{ __('filament-activity-log::activity.infolist.tab.new') }}
-                                    </div>
-                                    <div class="w-full">
+                                @endif
+    
+                                @if($activity->properties->has('attributes'))
+                                    <div class="sn-rounded sn-success-text w-full flex flex-col divide-y divide-success-200 border bg-success-50 border-success-200">
+                                        <div class="w-full p-2">
+                                            {{ __('filament-activity-log::activity.infolist.tab.new') }}
+                                        </div>
+                                        
                                         @if(is_array($activity->properties['attributes']))
                                             @foreach($activity->properties['attributes'] as $key => $value)
-                                                <div class="flex items-center justify-between">
+                                                <div class="w-full flex items-center justify-between p-2">
                                                     <dt class="">{{ str($key)->title() }}</dt>
                                                     <dd class="">
                                                         {{ is_array($value) ? json_encode($value) : $value }}
@@ -132,13 +150,13 @@
                                                 </div>
                                             @endforeach
                                         @else
-                                            <div class="">
+                                            <div class="w-full p-2">
                                                 {{ $activity->properties['attributes'] }}
                                             </div>
                                         @endif
                                     </div>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endif
@@ -155,7 +173,7 @@
             </x-slot>
 
             <x-slot name="description">
-                Get started by creating a new user.
+                暂无活动日志。
             </x-slot>
         </x-filament::empty-state>
     @endforelse

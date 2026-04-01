@@ -9,6 +9,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction as FilamentExportAction;
+use Filament\Actions\ExportBulkAction as FilamentExportBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -21,6 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
+use Wsmallnews\Support\Filament\Resources\ActivityLogs\Exports\ActivityLogExporter;
 use Wsmallnews\Support\Helpers\FilamentHelper;
 use Wsmallnews\Support\Models\Activity;
 
@@ -46,14 +48,11 @@ class ActivityLogTable
                 FilamentHelper::dateTimeRangeFilter('created_at', '发生'),
             ])
             ->headerActions([
-                // FilamentExportAction::make()
-                //     ->exporter(ActivityLogExporter::class)
-                //     ->icon('heroicon-m-arrow-down-tray')
-                //     ->color('gray'),
+                static::exportHeaderAction(),
             ])
             ->recordActions([
                 ActionGroup::make([
-                    SubjectTimelineAction::make(),
+                    SubjectTimelineAction::make()->color('info'),
                     ViewAction::make(),
                     static::revertAction(),
                     static::deleteAction(),
@@ -61,6 +60,7 @@ class ActivityLogTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    static::exportBulkAction(),
                     static::deleteBulkAction(),
                     static::revertBulkAction(),
                 ]),
@@ -87,7 +87,10 @@ class ActivityLogTable
         return Tables\Columns\TextColumn::make('subject_type')
             ->label('Subject Type')
             ->formatStateUsing(fn ($state, $record) => ActivityLogFormat::getTitle($record->subject))
-            ->description(fn ($record) => $record->subject_type)
+            // ->description(fn ($record) => ActivityLogFormat::getTypeLabel($record->subject_type))
+            ->description(function ($record) {
+                return ActivityLogFormat::getTypeLabel($record->subject_type);
+            })
             ->url(function ($record) {
                 return ActivityLogFormat::getUrl($record->subject);
             })
@@ -219,6 +222,18 @@ class ActivityLogTable
             });
     }
 
+
+    // ---------------------------- Actions --------------------------------
+
+    protected static function exportHeaderAction()
+    {
+        return FilamentExportAction::make()
+            ->exporter(ActivityLogExporter::class)
+            ->icon(Heroicon::ArrowDownTray)
+            ->color('gray');
+    }
+
+
     protected static function revertAction()
     {
         return Action::make('revert')
@@ -321,5 +336,12 @@ class ActivityLogTable
                         ->send();
                 }
             });
+    }
+    protected static function exportBulkAction()
+    {
+        return FilamentExportBulkAction::make()
+            ->exporter(ActivityLogExporter::class)
+            ->icon(Heroicon::ArrowDownTray)
+            ->color('gray');
     }
 }

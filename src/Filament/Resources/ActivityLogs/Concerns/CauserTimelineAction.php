@@ -11,14 +11,14 @@ use Illuminate\Support\Collection;
 use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\Activitylog\Models\Activity;
 
-class SubjectTimelineAction extends Action
+class CauserTimelineAction extends Action
 {
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->schema(fn (Schema $schema) => $schema
+        $this->schema(fn(Schema $schema) => $schema
             ->schema([
                 ViewField::make('activities')
                     ->label(__('filament-activity-log::activity.timeline'))
@@ -58,13 +58,13 @@ class SubjectTimelineAction extends Action
 
         // Get activities where the record is the subject
         if ($record instanceof Activity) {
-            $subject = $record->subject;
+            $causer = $record->causer;
             /** @phpstan-ignore-next-line */
-            $activities = $subject ? $subject->activities()->with($with)->latest()->limit(50)->get() : collect();
-        } elseif (method_exists($record, 'activities')) {
-            $activities = $record->activities()->with($with)->latest()->limit(50)->get();
+            $activities = $causer ? $causer->actions()->with($with)->latest()->limit(50)->get() : collect();
+        } elseif (method_exists($record, 'actions')) {
+            $activities = $record->actions()->with($with)->latest()->limit(50)->get();
         } else {
-            $activities = $record->morphMany(ActivitylogServiceProvider::determineActivityModel(), 'subject')->with($with)->latest()->limit(50)->get();
+            $activities = $record->morphMany(ActivitylogServiceProvider::determineActivityModel(), 'causer')->with($with)->latest()->limit(50)->get();
         }
 
         $activities = $activities ?? collect();
@@ -80,6 +80,6 @@ class SubjectTimelineAction extends Action
      */
     public static function make(?string $name = null): static
     {
-        return parent::make($name ?? 'subjectTimeline');
+        return parent::make($name ?? 'causerTimeline');
     }
 }
