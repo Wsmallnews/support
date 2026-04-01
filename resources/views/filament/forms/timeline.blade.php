@@ -7,7 +7,6 @@
     if (!$activities instanceof \Illuminate\Support\Collection) {
         $activities = collect($activities);
     }
-    $slim = $slim ?? false;
 @endphp
 
 <div class="sn-bg">
@@ -93,12 +92,11 @@
                     </div>
                 </div>
 
-                @if($activity->properties->has('attributes') || $activity->properties->has('old'))
-                    @php
-                        $old = $activity->properties->get('old', []);
-                        $attributes = $activity->properties->get('attributes', []);
-                    @endphp
-
+                @php
+                    $old = $activity->attribute_changes->get('old', []);
+                    $attributes = $activity->attribute_changes->get('attributes', []);
+                @endphp
+                @if($old || $attributes)
                     <div x-data="{ open: false }" class="w-full flex flex-col gap-2">
                         <button @click="open = !open" type="button" class="flex justify-between items-center w-full">
                             <span class="sn-descript-text flex gap-2">
@@ -111,14 +109,14 @@
 
                         <div class="w-full flex flex-col gap-2 @container" x-show="open" x-collapse>
                             <div class="w-full flex flex-col @2xl:flex-row gap-4">
-                                @if($activity->properties->has('old'))
+                                @if($old)
                                     <div class="sn-rounded sn-danger-text w-full flex flex-col divide-y divide-danger-200 border bg-danger-50 border-danger-200">
                                         <div class="w-full p-2">
                                             {{ __('filament-activity-log::activity.infolist.tab.old') }}
                                         </div>
 
-                                        @if(is_array($activity->properties['old']))
-                                            @foreach($activity->properties['old'] as $key => $value)
+                                        @if(is_array($old))
+                                            @foreach($old as $key => $value)
                                                 <div class="w-full flex items-center justify-between p-2">
                                                     <dt class="">{{ str($key)->title() }}</dt>
                                                     <dd class="">
@@ -128,20 +126,20 @@
                                             @endforeach
                                         @else
                                             <div class="w-full p-2">
-                                                {{ $activity->properties['old'] }}
+                                                {{ $old }}
                                             </div>
                                         @endif
                                     </div>
                                 @endif
     
-                                @if($activity->properties->has('attributes'))
+                                @if($attributes)
                                     <div class="sn-rounded sn-success-text w-full flex flex-col divide-y divide-success-200 border bg-success-50 border-success-200">
                                         <div class="w-full p-2">
                                             {{ __('filament-activity-log::activity.infolist.tab.new') }}
                                         </div>
                                         
-                                        @if(is_array($activity->properties['attributes']))
-                                            @foreach($activity->properties['attributes'] as $key => $value)
+                                        @if(is_array($attributes))
+                                            @foreach($attributes as $key => $value)
                                                 <div class="w-full flex items-center justify-between p-2">
                                                     <dt class="">{{ str($key)->title() }}</dt>
                                                     <dd class="">
@@ -151,7 +149,7 @@
                                             @endforeach
                                         @else
                                             <div class="w-full p-2">
-                                                {{ $activity->properties['attributes'] }}
+                                                {{ $attributes }}
                                             </div>
                                         @endif
                                     </div>

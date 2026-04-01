@@ -8,8 +8,8 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 
 class CauserTimelineAction extends Action
 {
@@ -55,15 +55,15 @@ class CauserTimelineAction extends Action
 
         $with = ['causer', 'subject'];
 
-        // Get activities where the record is the subject
+        // Get activitiesAsCauser where the record is the subject
         if ($record instanceof Activity) {
             $causer = $record->causer;
             /** @phpstan-ignore-next-line */
-            $activities = $causer ? $causer->actions()->with($with)->latest()->limit(50)->get() : collect();
-        } elseif (method_exists($record, 'actions')) {
-            $activities = $record->actions()->with($with)->latest()->limit(50)->get();
+            $activities = $causer ? $causer->activitiesAsCauser()->with($with)->latest()->limit(50)->get() : collect();
+        } elseif (method_exists($record, 'activitiesAsCauser')) {
+            $activities = $record->activitiesAsCauser()->with($with)->latest()->limit(50)->get();
         } else {
-            $activities = $record->morphMany(ActivitylogServiceProvider::determineActivityModel(), 'causer')->with($with)->latest()->limit(50)->get();
+            $activities = $record->morphMany(ActivitylogConfig::activityModel(), 'causer')->with($with)->latest()->limit(50)->get();
         }
 
         $activities = $activities ?? collect();

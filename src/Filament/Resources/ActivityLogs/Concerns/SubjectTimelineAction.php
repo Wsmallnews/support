@@ -8,7 +8,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Spatie\Activitylog\ActivitylogServiceProvider;
+use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Spatie\Activitylog\Models\Activity;
 
 class SubjectTimelineAction extends Action
@@ -55,15 +55,15 @@ class SubjectTimelineAction extends Action
 
         $with = ['causer', 'subject'];
 
-        // Get activities where the record is the subject
+        // Get activitiesAsSubject where the record is the subject
         if ($record instanceof Activity) {
             $subject = $record->subject;
             /** @phpstan-ignore-next-line */
-            $activities = $subject ? $subject->activities()->with($with)->latest()->limit(50)->get() : collect();
-        } elseif (method_exists($record, 'activities')) {
-            $activities = $record->activities()->with($with)->latest()->limit(50)->get();
+            $activities = $subject ? $subject->activitiesAsSubject()->with($with)->latest()->limit(50)->get() : collect();
+        } elseif (method_exists($record, 'activitiesAsSubject')) {
+            $activities = $record->activitiesAsSubject()->with($with)->latest()->limit(50)->get();
         } else {
-            $activities = $record->morphMany(ActivitylogServiceProvider::determineActivityModel(), 'subject')->with($with)->latest()->limit(50)->get();
+            $activities = $record->morphMany(ActivitylogConfig::activityModel(), 'subject')->with($with)->latest()->limit(50)->get();
         }
 
         $activities = $activities ?? collect();

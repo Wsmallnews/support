@@ -8,15 +8,13 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use UnitEnum;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Schemas\ActivityLogInfolist;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Tables\ActivityLogTable;
-use Wsmallnews\Support\Models\Activity;
 
 abstract class BaseResource extends Resource
 {
-    protected static ?string $model = Activity::class;
-
     protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static string | BackedEnum | null $activeNavigationIcon = Heroicon::DocumentText;
@@ -34,6 +32,14 @@ abstract class BaseResource extends Resource
     protected static ?string $pluralModelLabel = '日志';
 
     protected static ?int $navigationSort = 3;
+
+    /**
+     * @return class-string<TModel>
+     */
+    public static function getModel(): string
+    {
+        return ActivitylogConfig::activityModel();
+    }
 
     public static function table(Table $table): Table
     {

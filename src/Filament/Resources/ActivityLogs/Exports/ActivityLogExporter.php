@@ -6,7 +6,7 @@ use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 use Illuminate\Support\Number;
-use Spatie\Activitylog\ActivitylogServiceProvider;
+use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
 
@@ -17,7 +17,7 @@ class ActivityLogExporter extends Exporter
      */
     public static function getModel(): string
     {
-        return ActivitylogServiceProvider::determineActivityModel();
+        return ActivitylogConfig::activityModel();
     }
 
     public static function getColumns(): array

@@ -73,12 +73,12 @@ class ActivityLogInfolist
                             ->label(__('filament-activity-log::activity.infolist.tab.changes'))
                             ->icon(Heroicon::ArrowsRightLeft)
                             ->schema([
-                                KeyValueEntry::make('properties.attributes')
+                                KeyValueEntry::make('attribute_changes.attributes')
                                     ->label(__('filament-activity-log::activity.infolist.entry.attributes'))
                                     ->keyLabel(__('filament-activity-log::activity.infolist.entry.key'))
                                     ->valueLabel(__('filament-activity-log::activity.infolist.entry.value')),
 
-                                KeyValueEntry::make('properties.old')
+                                KeyValueEntry::make('attribute_changes.old')
                                     ->label(__('filament-activity-log::activity.infolist.entry.old'))
                                     ->keyLabel(__('filament-activity-log::activity.infolist.entry.key'))
                                     ->valueLabel(__('filament-activity-log::activity.infolist.entry.value')),
@@ -88,8 +88,8 @@ class ActivityLogInfolist
                             ->label(__('filament-activity-log::activity.infolist.tab.raw_data'))
                             ->icon(Heroicon::CodeBracket)
                             ->schema([
-                                CodeEntry::make('properties')
-                                    ->label(__('filament-activity-log::activity.infolist.entry.properties'))
+                                CodeEntry::make('attribute_changes')
+                                    ->label(__('filament-activity-log::activity.infolist.entry.attribute_changes'))
                                     ->formatStateUsing(fn ($state) => json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))
                                     ->columnSpanFull(),
                             ]),

@@ -11,7 +11,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction as FilamentExportAction;
 use Filament\Actions\ExportBulkAction as FilamentExportBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Schemas;
@@ -19,12 +18,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Exports\ActivityLogExporter;
 use Wsmallnews\Support\Helpers\FilamentHelper;
-use Wsmallnews\Support\Models\Activity;
 
 class ActivityLogTable
 {
@@ -87,10 +86,7 @@ class ActivityLogTable
         return Tables\Columns\TextColumn::make('subject_type')
             ->label('Subject Type')
             ->formatStateUsing(fn ($state, $record) => ActivityLogFormat::getTitle($record->subject))
-            // ->description(fn ($record) => ActivityLogFormat::getTypeLabel($record->subject_type))
-            ->description(function ($record) {
-                return ActivityLogFormat::getTypeLabel($record->subject_type);
-            })
+            ->description(fn ($record) => ActivityLogFormat::getTypeLabel($record->subject_type))
             ->url(function ($record) {
                 return ActivityLogFormat::getUrl($record->subject);
             })
@@ -180,7 +176,7 @@ class ActivityLogTable
                     Forms\Components\Select::make('causer_type')
                         ->placeholder('Causer Type')
                         ->options(function () {
-                            $causerTypes = Activity::query()
+                            $causerTypes = ActivitylogConfig::activityModel()::query()
                                 ->distinct()
                                 ->whereNotNull('causer_type')
                                 ->pluck('causer_type', 'causer_type');
@@ -214,7 +210,7 @@ class ActivityLogTable
         return Tables\Filters\SelectFilter::make('subject_type')
             ->label('Subject Type')
             ->options(function () {
-                $subjectTypes = Activity::query()
+                $subjectTypes = ActivitylogConfig::activityModel()::query()
                     ->distinct()
                     ->whereNotNull('subject_type')
                     ->pluck('subject_type', 'subject_type');
@@ -240,8 +236,8 @@ class ActivityLogTable
             ->icon(Heroicon::ArrowUturnLeft)
             ->color('warning')
             ->schema(function ($record) {
-                $old = $record->properties['old'] ?? [];
-                $attributes = $record->properties['attributes'] ?? [];
+                $old = $record->attribute_changes['old'] ?? [];
+                $attributes = $record->attribute_changes['attributes'] ?? [];
 
                 $fields = [];
                 foreach ($old as $key => $value) {
@@ -265,7 +261,7 @@ class ActivityLogTable
                 }
 
                 $revertData = [];
-                $old = $record->properties['old'] ?? [];
+                $old = $record->attribute_changes['old'] ?? [];
                 foreach ($data['revert_attributes'] ?? [] as $key => $shouldRevert) {
                     if ($shouldRevert && isset($old[$key])) {
                         $revertData[$key] = $old[$key];
@@ -283,7 +279,7 @@ class ActivityLogTable
             })
             ->visible(
                 fn ($record) => $record->event === 'updated' &&
-                $record->properties->has('old') &&
+                $record->attribute_changes->has('old') &&
                 $record->subject !== null
                 // &&
                 // (config('filament-activity-log.permissions.enabled') === false || Gate::allows('update', $record))
@@ -320,11 +316,11 @@ class ActivityLogTable
                 $revertedCount = 0;
 
                 foreach ($records as $record) {
-                    if ($record->event !== 'updated' || ! $record->properties->has('old') || ! $record->subject) {
+                    if ($record->event !== 'updated' || ! $record->attribute_changes->has('old') || ! $record->subject) {
                         continue;
                     }
 
-                    $record->subject->update($record->properties['old']);
+                    $record->subject->update($record->attribute_changes['old']);
                     $revertedCount++;
                 }
 

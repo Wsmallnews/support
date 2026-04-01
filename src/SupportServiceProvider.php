@@ -16,7 +16,7 @@ use Intervention\Image\Image;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use RalphJSmit\Livewire\Urls\Middleware\LivewireUrlsMiddleware;
-use Spatie\Activitylog\ActivitylogServiceProvider;
+use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -69,7 +69,7 @@ class SupportServiceProvider extends PackageServiceProvider
         Relation::enforceMorphMap([
             'sn_sms_log' => SupportUtils::getSmsLogModel(),
             'sn_content' => SupportUtils::getContentModel(),
-            'activity' => ActivitylogServiceProvider::determineActivityModel(),
+            'activity' => ActivitylogConfig::activityModel(),
         ]);
 
         // 多租户时注册自动创建设置监听器 (不需要迁移默认配置)
@@ -209,6 +209,8 @@ class SupportServiceProvider extends PackageServiceProvider
             // '2025_04_17_105524_add_scopeinfo_to_media_table',
             '2025_10_29_110527_create_sn_team_settings_table',
             '2025_11_01_213119_create_sn_contents_table',
+            '2026_04_01_223809_create_activity_log_table',
+            '2026_04_01_224322_add_teams_fields_to_activity_log_table',
         ];
     }
 }

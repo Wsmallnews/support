@@ -2,7 +2,7 @@
 
 namespace Wsmallnews\Support\Observers\ActivityLog;
 
-use Wsmallnews\Support\Models\Activity;
+use Spatie\Activitylog\Models\Activity;
 
 class ActivityObserver
 {
