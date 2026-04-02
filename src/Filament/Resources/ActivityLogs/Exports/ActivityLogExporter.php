@@ -5,7 +5,6 @@ namespace Wsmallnews\Support\Filament\Resources\ActivityLogs\Exports;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
-use Illuminate\Support\Number;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
@@ -40,10 +39,10 @@ class ActivityLogExporter extends Exporter
                 ->label(__('sn-support::activity.table.column.description')),
             ExportColumn::make('causer_type')
                 ->label(__('sn-support::activity.table.column.causer_type'))
-                ->formatStateUsing(fn($state, $record) => ActivityLogFormat::getTypeLabel($record->causer_type)),
+                ->formatStateUsing(fn ($state, $record) => ActivityLogFormat::getTypeLabel($record->causer_type)),
             ExportColumn::make('causer.name')
                 ->label(__('sn-support::activity.table.column.causer_name'))
-                ->formatStateUsing(fn($state, $record) => $record->causer?->name ?? ''),
+                ->formatStateUsing(fn ($state, $record) => $record->causer?->name ?? ''),
             ExportColumn::make('causer_id')
                 ->label(__('sn-support::activity.table.column.causer_id')),
             ExportColumn::make('properties.ip_address')
