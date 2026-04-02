@@ -83,11 +83,9 @@ class ActivityLogFormat
         return static::resolveModelLabel(static::getModelName($type));
     }
 
-
     /**
      * 根据多态 type 获取模型名
      *
-     * @param string $type
      * @return string
      */
     public static function getModelName(string $type)

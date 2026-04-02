@@ -172,10 +172,10 @@ class ActivityLogTable
             ->query(function (Builder $query): Builder {
                 $panel = Filament::getCurrentPanel();
                 $channel = 'panel-' . $panel->getId();
+
                 return $query->where('properties->channel', $channel);
             });
     }
-
 
     protected static function eventFilter()
     {
