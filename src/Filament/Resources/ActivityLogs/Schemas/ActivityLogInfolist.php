@@ -90,7 +90,7 @@ class ActivityLogInfolist
                             ->schema([
                                 CodeEntry::make('attribute_changes')
                                     ->label(__('filament-activity-log::activity.infolist.entry.attribute_changes'))
-                                    ->formatStateUsing(fn ($state) => json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))
+                                    ->jsonFlags(JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
                                     ->columnSpanFull(),
                             ]),
                     ])
