@@ -102,7 +102,7 @@ class ActivityLogTable
     {
         return Tables\Columns\TextColumn::make('causer.name')
             ->label(__('sn-support::activity.table.column.causer_info'))
-            ->formatStateUsing(fn($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->causer_id . '</span> ' . ($record->causer?->name ?? '')))
+            ->formatStateUsing(fn ($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->causer_id . '</span> ' . ($record->causer?->name ?? '')))
             ->description(fn ($record) => $record->causer?->email)
             ->url(function ($record) {
                 return ActivityLogFormat::getUrl($record->causer);
