@@ -11,6 +11,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction as FilamentExportAction;
 use Filament\Actions\ExportBulkAction as FilamentExportBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Schemas;
@@ -42,6 +43,7 @@ class ActivityLogTable
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
+                static::onlyPanelFilter(),
                 static::eventFilter(),
                 static::causerFilter(),
                 static::subjectTypeFilter(),
@@ -163,6 +165,18 @@ class ActivityLogTable
 
     // ---------------------------- Filters --------------------------------
 
+    protected static function onlyPanelFilter()
+    {
+        return Tables\Filters\Filter::make('only_panel')
+            ->label(__('sn-support::activity.table.filter.only_panel'))
+            ->query(function (Builder $query): Builder {
+                $panel = Filament::getCurrentPanel();
+                $channel = 'panel-' . $panel->getId();
+                return $query->where('properties->channel', $channel);
+            });
+    }
+
+
     protected static function eventFilter()
     {
         return Tables\Filters\SelectFilter::make('event')
@@ -177,7 +191,6 @@ class ActivityLogTable
             ->schema([
                 Schemas\Components\FusedGroup::make([
                     Forms\Components\Select::make('causer_type')
-                        ->placeholder('Causer Type')
                         ->options(function () {
                             $causerTypes = ActivitylogConfig::activityModel()::query()
                                 ->distinct()
@@ -186,11 +199,12 @@ class ActivityLogTable
 
                             $options = ActivityLogFormat::getTypeOptions($causerTypes);
 
-                            // $options = ['admin' => 'Admin'] + $options;
                             return $options;
-                        })->columnSpan(1),
+                        })
+                        ->selectablePlaceholder(false)      // 禁用空选项，默认选择第一个
+                        ->columnSpan(1),
                     Forms\Components\TextInput::make('causer_keyword')
-                        ->placeholder('Causer Keyword')
+                        ->placeholder(__('sn-support::activity.table.filter.causer_keyword.placeholder'))
                         ->columnSpan(2),
                 ])->columns(3),
             ])
@@ -199,10 +213,14 @@ class ActivityLogTable
                     ->when(
                         $data['causer_keyword'],
                         function (Builder $query, $causer_keyword) use ($data) {
+                            $panel = Filament::getCurrentPanel();
                             $causer_type = $data['causer_type'] ?? 'user';
 
                             return $query->where('causer_type', $causer_type)
-                                ->whereHas('causer', fn ($query) => $query->where('name', 'like', "%{$causer_keyword}%"));
+                                ->whereHas('causer', function ($query) use ($panel, $causer_keyword) {
+                                    $query->withoutGlobalScope($panel->getTenancyScopeName())       // 如果 panel 的auth model 是 user, 则需要去掉全局作用域 (不影响正常查询用户的日志)
+                                        ->where('name', 'like', "%{$causer_keyword}%");
+                                });
                         }
                     );
             });

@@ -21,9 +21,13 @@ return [
             'created_at'   => '发生时间',
         ],
         'filter' => [
+            'only_panel' => '仅显示当前面板的日志',
             'event' => '事件',
             'causer' => '操作人',
             'subject_type' => '对象类型',
+            'causer_keyword' => [
+                'placeholder' => '请输入操作人姓名或 ID',
+            ],
         ],
     ],
 

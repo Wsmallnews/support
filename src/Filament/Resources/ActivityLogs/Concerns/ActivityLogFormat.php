@@ -80,10 +80,22 @@ class ActivityLogFormat
      */
     public static function getTypeLabel(string $type)
     {
+        return static::resolveModelLabel(static::getModelName($type));
+    }
+
+
+    /**
+     * 根据多态 type 获取模型名
+     *
+     * @param string $type
+     * @return string
+     */
+    public static function getModelName(string $type)
+    {
         $model = Str::contains($type, '\\') ? $type : Relation::getMorphedModel($type);
         $model = filled($model) ? $model : $type;       // 防止误判
 
-        return static::resolveModelLabel($model);
+        return $model;
     }
 
     /**
