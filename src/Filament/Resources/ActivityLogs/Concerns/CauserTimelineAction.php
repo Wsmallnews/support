@@ -20,7 +20,7 @@ class CauserTimelineAction extends Action
         $this->schema(fn (Schema $schema) => $schema
             ->schema([
                 ViewField::make('activities')
-                    ->label(__('filament-activity-log::activity.timeline'))
+                    ->label(__('sn-support::activity.timeline'))
                     ->hiddenLabel()
                     /** @phpstan-ignore-next-line */
                     ->view('sn-support::filament.forms.timeline')
@@ -33,8 +33,8 @@ class CauserTimelineAction extends Action
                     }),
             ]));
 
-        $this->modalHeading(__('filament-activity-log::activity.action.timeline.label'));
-        $this->label(__('filament-activity-log::activity.action.timeline.label'));
+        $this->modalHeading(__('sn-support::activity.action.timeline.label'));
+        $this->label(__('sn-support::activity.action.timeline.label'));
         $this->color('gray');
         $this->icon(Heroicon::Clock);
         $this->modalSubmitAction(false);

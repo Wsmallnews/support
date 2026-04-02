@@ -23,7 +23,7 @@ class ActivityLogInfolist
                 Tabs::make('Activity Details')
                     ->tabs([
                         Tab::make('Overview')
-                            ->label(__('filament-activity-log::activity.infolist.tab.overview'))
+                            ->label(__('sn-support::activity.infolist.tab.overview'))
                             ->icon(Heroicon::InformationCircle)
                             ->schema([
                                 Grid::make(2)
@@ -31,65 +31,65 @@ class ActivityLogInfolist
                                         Group::make([
                                             TextEntry::make('event')
                                                 ->badge()
-                                                ->label(__('filament-activity-log::activity.infolist.entry.event'))
+                                                ->label(__('sn-support::activity.infolist.entry.event'))
                                                 ->formatStateUsing(fn ($state) => ucfirst($state))
                                                 ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
                                                 ->icon(fn ($state) => ActivityLogEvent::tryFrom($state)?->getIcon()),
 
                                             TextEntry::make('created_at')
-                                                ->label(__('filament-activity-log::activity.infolist.entry.created_at'))
+                                                ->label(__('sn-support::activity.infolist.entry.created_at'))
                                                 ->dateTime(),
                                         ]),
 
                                         Group::make([
                                             TextEntry::make('causer.name')
-                                                ->label(__('filament-activity-log::activity.infolist.entry.causer'))
+                                                ->label(__('sn-support::activity.infolist.entry.causer'))
                                                 ->getStateUsing(fn ($record) => $record->causer?->name ?? 'System')
                                                 ->url(function ($record) {
                                                     return ActivityLogFormat::getUrl($record->causer);
                                                 }),
 
                                             TextEntry::make('subject')
-                                                ->label(__('filament-activity-log::activity.infolist.entry.subject'))
+                                                ->label(__('sn-support::activity.infolist.entry.subject'))
                                                 ->getStateUsing(fn ($record) => ActivityLogFormat::getTitle($record->subject))
                                                 ->url(function ($record) {
                                                     return ActivityLogFormat::getUrl($record->subject);
                                                 }),
 
                                             TextEntry::make('properties.ip_address')
-                                                ->label(__('filament-activity-log::activity.infolist.entry.ip_address')),
+                                                ->label(__('sn-support::activity.infolist.entry.ip_address')),
 
                                             TextEntry::make('properties.user_agent')
-                                                ->label(__('filament-activity-log::activity.infolist.entry.browser')),
+                                                ->label(__('sn-support::activity.infolist.entry.browser')),
                                         ]),
                                     ]),
 
                                 TextEntry::make('description')
-                                    ->label(__('filament-activity-log::activity.infolist.entry.description'))
+                                    ->label(__('sn-support::activity.infolist.entry.description'))
                                     ->columnSpanFull(),
                             ]),
 
                         Tab::make('Changes')
-                            ->label(__('filament-activity-log::activity.infolist.tab.changes'))
+                            ->label(__('sn-support::activity.infolist.tab.changes'))
                             ->icon(Heroicon::ArrowsRightLeft)
                             ->schema([
                                 KeyValueEntry::make('attribute_changes.attributes')
-                                    ->label(__('filament-activity-log::activity.infolist.entry.attributes'))
-                                    ->keyLabel(__('filament-activity-log::activity.infolist.entry.key'))
-                                    ->valueLabel(__('filament-activity-log::activity.infolist.entry.value')),
+                                    ->label(__('sn-support::activity.infolist.entry.attributes'))
+                                    ->keyLabel(__('sn-support::activity.infolist.entry.key'))
+                                    ->valueLabel(__('sn-support::activity.infolist.entry.value')),
 
                                 KeyValueEntry::make('attribute_changes.old')
-                                    ->label(__('filament-activity-log::activity.infolist.entry.old'))
-                                    ->keyLabel(__('filament-activity-log::activity.infolist.entry.key'))
-                                    ->valueLabel(__('filament-activity-log::activity.infolist.entry.value')),
+                                    ->label(__('sn-support::activity.infolist.entry.old'))
+                                    ->keyLabel(__('sn-support::activity.infolist.entry.key'))
+                                    ->valueLabel(__('sn-support::activity.infolist.entry.value')),
                             ]),
 
                         Tab::make('Raw Data')
-                            ->label(__('filament-activity-log::activity.infolist.tab.raw_data'))
+                            ->label(__('sn-support::activity.infolist.tab.raw_data'))
                             ->icon(Heroicon::CodeBracket)
                             ->schema([
                                 CodeEntry::make('attribute_changes')
-                                    ->label(__('filament-activity-log::activity.infolist.entry.attribute_changes'))
+                                    ->label(__('sn-support::activity.infolist.entry.attribute_changes'))
                                     ->jsonFlags(JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
                                     ->columnSpanFull(),
                             ]),

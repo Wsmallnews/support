@@ -101,7 +101,7 @@
                         <button @click="open = !open" type="button" class="flex justify-between items-center w-full">
                             <span class="sn-descript-text flex gap-2">
                                 <x-filament::icon :icon="Heroicon::ArrowsRightLeft" class="w-4 h-4" />
-                                {{ __('filament-activity-log::activity.infolist.tab.changes') }}
+                                {{ __('sn-support::activity.infolist.tab.changes') }}
                             </span>
                             <x-filament::icon :icon="Heroicon::ChevronDown" class="w-4 h-4 rotate-0 transform transition-transform duration-300"
                                 x-bind:class="{ 'rotate-180': open }" />
@@ -112,7 +112,7 @@
                                 @if($old)
                                     <div class="sn-rounded sn-danger-text w-full flex flex-col divide-y divide-danger-200 border bg-danger-50 border-danger-200">
                                         <div class="w-full p-2">
-                                            {{ __('filament-activity-log::activity.infolist.tab.old') }}
+                                            {{ __('sn-support::activity.infolist.tab.old') }}
                                         </div>
 
                                         @if(is_array($old))
@@ -135,7 +135,7 @@
                                 @if($attributes)
                                     <div class="sn-rounded sn-success-text w-full flex flex-col divide-y divide-success-200 border bg-success-50 border-success-200">
                                         <div class="w-full p-2">
-                                            {{ __('filament-activity-log::activity.infolist.tab.new') }}
+                                            {{ __('sn-support::activity.infolist.tab.new') }}
                                         </div>
                                         
                                         @if(is_array($attributes))

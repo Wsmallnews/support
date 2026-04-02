@@ -18,6 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\HtmlString;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
@@ -71,7 +72,7 @@ class ActivityLogTable
     protected static function eventColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('event')
-            ->label('Event')
+            ->label(__('sn-support::activity.table.column.event'))
             ->badge()
             ->formatStateUsing(fn ($state) => ActivityLogEvent::tryFrom($state)?->getLabel() ?? ucfirst((string) $state))
             ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
@@ -84,8 +85,8 @@ class ActivityLogTable
     protected static function subjectTypeColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('subject_type')
-            ->label('Subject Type')
-            ->formatStateUsing(fn ($state, $record) => ActivityLogFormat::getTitle($record->subject))
+            ->label(__('sn-support::activity.table.column.subject_info'))
+            ->formatStateUsing(fn ($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->subject_id . '</span> ' . (ActivityLogFormat::getTitle($record->subject))))
             ->description(fn ($record) => ActivityLogFormat::getTypeLabel($record->subject_type))
             ->url(function ($record) {
                 return ActivityLogFormat::getUrl($record->subject);
@@ -98,7 +99,8 @@ class ActivityLogTable
     protected static function causerColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('causer.name')
-            ->label('Causer')
+            ->label(__('sn-support::activity.table.column.causer_info'))
+            ->formatStateUsing(fn($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->causer_id . '</span> ' . ($record->causer?->name ?? '')))
             ->description(fn ($record) => $record->causer?->email)
             ->url(function ($record) {
                 return ActivityLogFormat::getUrl($record->causer);
@@ -111,7 +113,7 @@ class ActivityLogTable
     protected static function ipAddressColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('properties.ip_address')
-            ->label('IP Address')
+            ->label(__('sn-support::activity.table.column.ip_address'))
             ->searchable()
             ->toggleable();
     }
@@ -119,7 +121,7 @@ class ActivityLogTable
     protected static function userAgentColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('properties.user_agent')
-            ->label('Browser')
+            ->label(__('sn-support::activity.table.column.browser'))
             ->limit(50)
             ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
                 $state = $column->getState();
@@ -136,7 +138,7 @@ class ActivityLogTable
     protected static function descriptionColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('description')
-            ->label('Description')
+            ->label(__('sn-support::activity.table.column.description'))
             ->limit(50)
             ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
                 $state = $column->getState();
@@ -153,7 +155,7 @@ class ActivityLogTable
     protected static function createdAtColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('created_at')
-            ->label('Created At')
+            ->label(__('sn-support::activity.table.column.created_at'))
             ->searchable()
             ->sortable()
             ->toggleable();
@@ -164,13 +166,14 @@ class ActivityLogTable
     protected static function eventFilter()
     {
         return Tables\Filters\SelectFilter::make('event')
-            ->label('Event')
+            ->label(__('sn-support::activity.table.filter.event'))
             ->options(ActivityLogEvent::class);
     }
 
     protected static function causerFilter()
     {
         return Tables\Filters\Filter::make('causer')
+            ->label(__('sn-support::activity.table.filter.causer'))
             ->schema([
                 Schemas\Components\FusedGroup::make([
                     Forms\Components\Select::make('causer_type')
@@ -208,7 +211,7 @@ class ActivityLogTable
     protected static function subjectTypeFilter()
     {
         return Tables\Filters\SelectFilter::make('subject_type')
-            ->label('Subject Type')
+            ->label(__('sn-support::activity.table.filter.subject_type'))
             ->options(function () {
                 $subjectTypes = ActivitylogConfig::activityModel()::query()
                     ->distinct()
@@ -232,7 +235,7 @@ class ActivityLogTable
     protected static function revertAction()
     {
         return Action::make('revert')
-            ->label(__('filament-activity-log::activity.action.revert.label'))
+            ->label(__('sn-support::activity.action.revert.label'))
             ->icon(Heroicon::ArrowUturnLeft)
             ->color('warning')
             ->schema(function ($record) {
@@ -244,7 +247,7 @@ class ActivityLogTable
                     $currentValue = data_get($attributes, $key);
                     $fields[] = Forms\Components\Checkbox::make("revert_attributes.{$key}")
                         ->label($key)
-                        ->helperText(__('filament-activity-log::activity.action.revert.helper_text', [
+                        ->helperText(__('sn-support::activity.action.revert.helper_text', [
                             'old' => $value,
                             'new' => $currentValue,
                         ]));
@@ -255,7 +258,7 @@ class ActivityLogTable
             ->action(function ($record, array $data) {
                 $subject = $record->subject;
                 if (! $subject) {
-                    Notification::make()->danger()->title(__('filament-activity-log::activity.action.revert.subject_not_found'))->send();
+                    Notification::make()->danger()->title(__('sn-support::activity.action.revert.subject_not_found'))->send();
 
                     return;
                 }
@@ -269,13 +272,13 @@ class ActivityLogTable
                 }
 
                 if (empty($revertData)) {
-                    Notification::make()->warning()->title(__('filament-activity-log::activity.action.revert.nothing_selected'))->send();
+                    Notification::make()->warning()->title(__('sn-support::activity.action.revert.nothing_selected'))->send();
 
                     return;
                 }
 
                 $subject->update($revertData);
-                Notification::make()->success()->title(__('filament-activity-log::activity.action.revert.success'))->send();
+                Notification::make()->success()->title(__('sn-support::activity.action.revert.success'))->send();
             })
             ->visible(
                 fn ($record) => $record->event === 'updated' &&
@@ -290,28 +293,28 @@ class ActivityLogTable
     {
         return DeleteAction::make()
             ->requiresConfirmation()
-            ->modalHeading(__('filament-activity-log::activity.action.delete.heading'))
-            ->modalDescription(__('filament-activity-log::activity.action.delete.confirmation'))
-            ->modalSubmitActionLabel(__('filament-activity-log::activity.action.delete.button'));
+            ->modalHeading(__('sn-support::activity.action.delete.heading'))
+            ->modalDescription(__('sn-support::activity.action.delete.confirmation'))
+            ->modalSubmitActionLabel(__('sn-support::activity.action.delete.button'));
         // ->visible(fn ($record) => Gate::allows('delete', $record))
     }
 
     protected static function deleteBulkAction()
     {
         return DeleteBulkAction::make()
-            ->modalDescription(__('filament-activity-log::activity.action.bulk.delete.confirmation'));
+            ->modalDescription(__('sn-support::activity.action.bulk.delete.confirmation'));
         // ->visible(config('filament-activity-log.table.bulk_actions.delete', true))
     }
 
     protected static function revertBulkAction()
     {
         return BulkAction::make('revert_selected')
-            ->label(__('filament-activity-log::activity.action.bulk.revert.label'))
+            ->label(__('sn-support::activity.action.bulk.revert.label'))
             ->icon(Heroicon::ArrowUturnLeft)
             ->color('warning')
             ->requiresConfirmation()
-            ->modalHeading(__('filament-activity-log::activity.action.bulk.revert.label'))
-            ->modalDescription(__('filament-activity-log::activity.action.bulk.revert.confirmation'))
+            ->modalHeading(__('sn-support::activity.action.bulk.revert.label'))
+            ->modalDescription(__('sn-support::activity.action.bulk.revert.confirmation'))
             ->action(function ($records) {
                 $revertedCount = 0;
 
@@ -327,7 +330,7 @@ class ActivityLogTable
                 if ($revertedCount > 0) {
                     Notification::make()
                         ->success()
-                        ->title(__('filament-activity-log::activity.action.bulk.revert.success', ['count' => $revertedCount]))
+                        ->title(__('sn-support::activity.action.bulk.revert.success', ['count' => $revertedCount]))
                         ->send();
                 }
             });
