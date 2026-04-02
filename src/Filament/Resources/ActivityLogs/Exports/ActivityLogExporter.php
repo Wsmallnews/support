@@ -58,7 +58,7 @@ class ActivityLogExporter extends Exporter
 
     public function getFileName(Export $export): string
     {
-        return "activity-log-" . date('YmdHis') . "-{$export->getKey()}";
+        return 'activity-log-' . date('YmdHis') . "-{$export->getKey()}";
     }
 
     public static function getCompletedNotificationBody(Export $export): string
