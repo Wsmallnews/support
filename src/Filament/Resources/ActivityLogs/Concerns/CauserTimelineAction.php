@@ -14,7 +14,6 @@ use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 
 class CauserTimelineAction extends Action
 {
-
     protected ?Closure $modifyQueryUsing = null;
 
     protected function setUp(): void
@@ -46,12 +45,8 @@ class CauserTimelineAction extends Action
         $this->slideOver();
     }
 
-
     /**
      * 自定义查询条件
-     *
-     * @param Closure $modifyQueryUsing
-     * @return static
      */
     public function modifyQueryUsing(Closure $modifyQueryUsing): static
     {
@@ -62,9 +57,6 @@ class CauserTimelineAction extends Action
 
     /**
      * 查询活动记录
-     *
-     * @param Model|null $record
-     * @return Collection
      */
     protected function getActivities(?Model $record): Collection
     {
@@ -73,7 +65,7 @@ class CauserTimelineAction extends Action
         }
 
         // Get activitiesAsCauser where the record is the subject
-        if ($record instanceof Activity ) {
+        if ($record instanceof Activity) {
             $causer = $record->causer;
             $query = $causer?->activitiesAsCauser();
         } elseif (method_exists($record, 'activitiesAsCauser')) {
@@ -99,9 +91,6 @@ class CauserTimelineAction extends Action
 
     /**
      * Create a new timeline action instance.
-     *
-     * @param  string|null  $name
-     * @return static
      */
     public static function make(?string $name = null): static
     {

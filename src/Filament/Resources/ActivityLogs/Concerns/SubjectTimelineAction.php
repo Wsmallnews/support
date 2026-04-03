@@ -9,12 +9,8 @@ use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 
 class SubjectTimelineAction extends CauserTimelineAction
 {
-
     /**
      * 查询活动记录
-     * 
-     * @param Model|null $record
-     * @return Collection
      */
     protected function getActivities(?Model $record): Collection
     {
@@ -49,9 +45,6 @@ class SubjectTimelineAction extends CauserTimelineAction
 
     /**
      * Create a new timeline action instance.
-     *
-     * @param  string|null  $name
-     * @return static
      */
     public static function make(?string $name = null): static
     {
