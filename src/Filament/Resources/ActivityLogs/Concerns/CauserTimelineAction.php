@@ -2,6 +2,7 @@
 
 namespace Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns;
 
+use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Schema;
@@ -13,6 +14,9 @@ use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 
 class CauserTimelineAction extends Action
 {
+
+    protected ?Closure $modifyQueryUsing = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -42,10 +46,25 @@ class CauserTimelineAction extends Action
         $this->slideOver();
     }
 
+
     /**
-     * Retrieve activities for the given record.
+     * 自定义查询条件
      *
-     * Fetches activities where the record is the subject or the causer.
+     * @param Closure $modifyQueryUsing
+     * @return static
+     */
+    public function modifyQueryUsing(Closure $modifyQueryUsing): static
+    {
+        $this->modifyQueryUsing = $modifyQueryUsing;
+
+        return $this;
+    }
+
+    /**
+     * 查询活动记录
+     *
+     * @param Model|null $record
+     * @return Collection
      */
     protected function getActivities(?Model $record): Collection
     {
@@ -53,20 +72,27 @@ class CauserTimelineAction extends Action
             return collect();
         }
 
-        $with = ['causer', 'subject'];
-
         // Get activitiesAsCauser where the record is the subject
-        if ($record instanceof Activity) {
+        if ($record instanceof Activity ) {
             $causer = $record->causer;
-            /** @phpstan-ignore-next-line */
-            $activities = $causer ? $causer->activitiesAsCauser()->with($with)->latest()->limit(50)->get() : collect();
+            $query = $causer?->activitiesAsCauser();
         } elseif (method_exists($record, 'activitiesAsCauser')) {
-            $activities = $record->activitiesAsCauser()->with($with)->latest()->limit(50)->get();
+            $query = $record->activitiesAsCauser();
         } else {
-            $activities = $record->morphMany(ActivitylogConfig::activityModel(), 'causer')->with($with)->latest()->limit(50)->get();
+            $query = $record->morphMany(ActivitylogConfig::activityModel(), 'causer');
         }
 
-        $activities = $activities ?? collect();
+        if (blank($query)) {
+            return collect();
+        }
+
+        if ($this->modifyQueryUsing) {
+            $query = $this->evaluate($this->modifyQueryUsing, [
+                'query' => $query,
+            ]) ?? $query;
+        }
+
+        $activities = $query->with(['causer', 'subject'])->latest()->limit(50)->get();
 
         return $activities;
     }
@@ -74,8 +100,8 @@ class CauserTimelineAction extends Action
     /**
      * Create a new timeline action instance.
      *
-     * @param  string|null  $name  The action name (defaults to 'timeline')
-     * @return static The action instance
+     * @param  string|null  $name
+     * @return static
      */
     public static function make(?string $name = null): static
     {

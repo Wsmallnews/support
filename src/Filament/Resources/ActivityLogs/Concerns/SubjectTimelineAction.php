@@ -2,50 +2,19 @@
 
 namespace Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns;
 
-use Filament\Actions\Action;
-use Filament\Forms\Components\ViewField;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 
-class SubjectTimelineAction extends Action
+class SubjectTimelineAction extends CauserTimelineAction
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->schema(fn (Schema $schema) => $schema
-            ->schema([
-                ViewField::make('activities')
-                    ->label(__('sn-support::activity.timeline'))
-                    ->hiddenLabel()
-                    /** @phpstan-ignore-next-line */
-                    ->view('sn-support::filament.forms.timeline')
-                    ->dehydrated(false)
-                    ->afterStateHydrated(function ($component) {
-                        /** @var Model|null $record */
-                        $record = $component->getRecord();
-
-                        $component->state($this->getActivities($record));
-                    }),
-            ]));
-
-        $this->modalHeading(__('sn-support::activity.action.timeline.label'));
-        $this->label(__('sn-support::activity.action.timeline.label'));
-        $this->color('gray');
-        $this->icon(Heroicon::Clock);
-        $this->modalSubmitAction(false);
-        $this->modalCancelAction(false);
-        $this->slideOver();
-    }
 
     /**
-     * Retrieve activities for the given record.
-     *
-     * Fetches activities where the record is the subject or the causer.
+     * 查询活动记录
+     * 
+     * @param Model|null $record
+     * @return Collection
      */
     protected function getActivities(?Model $record): Collection
     {
@@ -53,20 +22,27 @@ class SubjectTimelineAction extends Action
             return collect();
         }
 
-        $with = ['causer', 'subject'];
-
         // Get activitiesAsSubject where the record is the subject
         if ($record instanceof Activity) {
             $subject = $record->subject;
-            /** @phpstan-ignore-next-line */
-            $activities = $subject ? $subject->activitiesAsSubject()->with($with)->latest()->limit(50)->get() : collect();
+            $query = $subject?->activitiesAsSubject();
         } elseif (method_exists($record, 'activitiesAsSubject')) {
-            $activities = $record->activitiesAsSubject()->with($with)->latest()->limit(50)->get();
+            $query = $record->activitiesAsSubject();
         } else {
-            $activities = $record->morphMany(ActivitylogConfig::activityModel(), 'subject')->with($with)->latest()->limit(50)->get();
+            $query = $record->morphMany(ActivitylogConfig::activityModel(), 'subject');
         }
 
-        $activities = $activities ?? collect();
+        if (blank($query)) {
+            return collect();
+        }
+
+        if ($this->modifyQueryUsing) {
+            $query = $this->evaluate($this->modifyQueryUsing, [
+                'query' => $query,
+            ]) ?? $query;
+        }
+
+        $activities = $query->with(['causer', 'subject'])->latest()->limit(50)->get();
 
         return $activities;
     }
@@ -74,8 +50,8 @@ class SubjectTimelineAction extends Action
     /**
      * Create a new timeline action instance.
      *
-     * @param  string|null  $name  The action name (defaults to 'timeline')
-     * @return static The action instance
+     * @param  string|null  $name
+     * @return static
      */
     public static function make(?string $name = null): static
     {
