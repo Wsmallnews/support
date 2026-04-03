@@ -217,9 +217,15 @@ class ActivityLogTable
                             $causer_type = $data['causer_type'] ?? 'user';
 
                             return $query->where('causer_type', $causer_type)
-                                ->whereHas('causer', function ($query) use ($panel, $causer_keyword) {
-                                    $query->withoutGlobalScope($panel->getTenancyScopeName())       // 如果 panel 的auth model 是 user, 则需要去掉全局作用域 (不影响正常查询用户的日志)
-                                        ->where('name', 'like', "%{$causer_keyword}%");
+                                ->where(function ($query) use ($panel, $causer_keyword) {
+                                    $query->where('causer_id', $causer_keyword)
+                                        ->orWhereHas('causer', function ($query) use ($panel, $causer_keyword) {
+                                            $query->withoutGlobalScope($panel->getTenancyScopeName())       // 如果 panel 的auth model 是 user, 则需要去掉全局作用域 (不影响正常查询用户的日志)
+                                                ->where(function ($query) use ($causer_keyword) {
+                                                    $query->where('name', 'like', "%{$causer_keyword}%")
+                                                        ->orWhere('email', 'like', "%{$causer_keyword}%");
+                                                });
+                                        });
                                 });
                         }
                     );
