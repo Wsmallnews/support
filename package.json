@@ -2,9 +2,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev:styles": "postcss resources/css/index.css -o resources/dist/support.css --watch",
         "dev:scripts": "node bin/build.js --dev",
-        "build:styles": "cross-env NODE_ENV=production postcss resources/css/index.css -o resources/dist/support.css",
         "build:scripts": "node bin/build.js",
         "dev": "npm-run-all --parallel dev:*",
         "build": "npm-run-all build:*"
@@ -22,5 +20,8 @@
         "postcss-cli": "^11.0.1",
         "swiper": "^12.0.3",
         "tailwindcss": "^4.1.17"
+    },
+    "dependencies": {
+        "glightbox": "^3.3.1"
     }
 }
