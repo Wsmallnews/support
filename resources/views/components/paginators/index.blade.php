@@ -27,10 +27,10 @@
             </div>
 
             @if ($pageInfo['load_status'] == 'loading')
-                <div class="flex justify-center items-center gap-2" wire:loading.flex>
+                <div class="flex justify-center items-center gap-2" wire:loading.flex wire:target="nextPage({{ $pageName }})">
                     <x-filament::loading-indicator class="size-4 inline-block" /> 正在加载更多
                 </div>
-                <div wire:loading.remove>
+                <div wire:loading.remove wire:target="nextPage({{ $pageName }})">
                     <span class="cursor-pointer" wire:click="nextPage('{{ $pageName }}')">展开更多</span>
                 </div>
             @elseif ($pageInfo['load_status'] == 'empty')
