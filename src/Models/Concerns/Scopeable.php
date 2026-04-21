@@ -11,7 +11,6 @@ use Illuminate\Support\Arr;
  */
 trait Scopeable
 {
-
     /**
      * Get the scopeable array from current record
      *
@@ -38,7 +37,6 @@ trait Scopeable
         return $this->scope_id;
     }
 
-
     /**
      * Scope query by scope type.
      */
@@ -64,9 +62,6 @@ trait Scopeable
     {
         return $query->scopeType($scope_type)->scopeId($scope_id);
     }
-
-
-
 
     /**
      * Initialize scope attributes when creating a new model instance.
