@@ -11,12 +11,12 @@ trait HasAuth
      */
     public ?Model $user = null;         // 当前认证用户
 
-    public function getUser(): ?Model
+    public function getAuthUser(): ?Model
     {
         return $this->user;
     }
 
-    public function hasUser(): bool
+    public function hasAuthUser(): bool
     {
         return $this->user !== null;
     }
