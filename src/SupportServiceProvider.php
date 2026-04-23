@@ -7,8 +7,11 @@ use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
@@ -21,6 +24,7 @@ use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\LaravelSettings\Events\SavingSettings;
+use Wsmallnews\Support\Exceptions\SupportException;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
@@ -79,6 +83,66 @@ class SupportServiceProvider extends PackageServiceProvider
                 SavingSettingsAutoCreate::class,
             );
         }
+
+        Builder::macro('incrementJson', function ($jsonPath, $amount = 1, array $extra = []) {
+            /** @var \Illuminate\Database\Eloquent\Builder $this */
+
+            $fields = explode('->', $jsonPath);
+
+            $field = $fields[0] ?? null;
+            $subField = $fields[1] ?? null;
+            if (blank($field) || blank($subField)) {
+                throw new SupportException("json path format error: {$jsonPath}, for example, `counter->like_num`");
+            }
+
+            if (isset($extra['withupdate']) && $extra['withupdate']) {
+                
+                return $this->update([
+                    $field => DB::raw("JSON_SET(
+                        COALESCE({$field}, '{}'), '$.{$subField}', CAST(COALESCE({$field}->>'$.{$subField}', 0) AS SIGNED) + {$amount}
+                    )")
+                ]);
+            } else {
+                Model::withoutTimestamps(fn() =>
+                    $this->update([
+                        $field => DB::raw("JSON_SET(
+                            COALESCE({$field}, '{}'), '$.{$subField}', CAST(COALESCE({$field}->>'$.{$subField}', 0) AS SIGNED) + {$amount}
+                        )")
+                    ])
+                );
+            }
+        });
+        Builder::macro('decrementJson', function ($jsonPath, $amount = 1, array $extra = []) {
+            /** @var \Illuminate\Database\Eloquent\Builder $this */
+            
+            $fields = explode('->', $jsonPath);
+
+            $field = $fields[0] ?? null;
+            $subField = $fields[1] ?? null;
+            if (blank($field) || blank($subField)) {
+                throw new SupportException("json path format error: {$jsonPath}, for example, `counter->like_num`");
+            }
+
+            if (isset($extra['withupdate']) && $extra['withupdate']) {
+                return $this->update([
+                    $field => DB::raw("JSON_SET(
+                        COALESCE({$field}, '{}'), '$.{$subField}', GREATEST(
+                            (CAST(COALESCE({$field}->>'$.{$subField}', 0) AS SIGNED) - {$amount})
+                        , 0)
+                    )")
+                ]);
+            } else {
+                Model::withoutTimestamps(fn() => 
+                    $this->update([
+                        $field => DB::raw("JSON_SET(
+                            COALESCE({$field}, '{}'), '$.{$subField}', GREATEST(
+                                (CAST(COALESCE({$field}->>'$.{$subField}', 0) AS SIGNED) - {$amount})
+                            , 0)
+                        )")
+                    ])
+                );
+            }
+        });
 
         // Asset Registration
         FilamentAsset::register(
