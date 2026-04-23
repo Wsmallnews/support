@@ -85,8 +85,7 @@ class SupportServiceProvider extends PackageServiceProvider
         }
 
         Builder::macro('incrementJson', function ($jsonPath, $amount = 1, array $extra = []) {
-            /** @var \Illuminate\Database\Eloquent\Builder $this */
-
+            /** @var Builder $this */
             $fields = explode('->', $jsonPath);
 
             $field = $fields[0] ?? null;
@@ -96,25 +95,24 @@ class SupportServiceProvider extends PackageServiceProvider
             }
 
             if (isset($extra['withupdate']) && $extra['withupdate']) {
-                
+
                 return $this->update([
                     $field => DB::raw("JSON_SET(
                         COALESCE({$field}, '{}'), '$.{$subField}', CAST(COALESCE({$field}->>'$.{$subField}', 0) AS SIGNED) + {$amount}
-                    )")
+                    )"),
                 ]);
             } else {
-                Model::withoutTimestamps(fn() =>
-                    $this->update([
+                Model::withoutTimestamps(
+                    fn () => $this->update([
                         $field => DB::raw("JSON_SET(
                             COALESCE({$field}, '{}'), '$.{$subField}', CAST(COALESCE({$field}->>'$.{$subField}', 0) AS SIGNED) + {$amount}
-                        )")
+                        )"),
                     ])
                 );
             }
         });
         Builder::macro('decrementJson', function ($jsonPath, $amount = 1, array $extra = []) {
-            /** @var \Illuminate\Database\Eloquent\Builder $this */
-            
+            /** @var Builder $this */
             $fields = explode('->', $jsonPath);
 
             $field = $fields[0] ?? null;
@@ -129,16 +127,16 @@ class SupportServiceProvider extends PackageServiceProvider
                         COALESCE({$field}, '{}'), '$.{$subField}', GREATEST(
                             (CAST(COALESCE({$field}->>'$.{$subField}', 0) AS SIGNED) - {$amount})
                         , 0)
-                    )")
+                    )"),
                 ]);
             } else {
-                Model::withoutTimestamps(fn() => 
-                    $this->update([
+                Model::withoutTimestamps(
+                    fn () => $this->update([
                         $field => DB::raw("JSON_SET(
                             COALESCE({$field}, '{}'), '$.{$subField}', GREATEST(
                                 (CAST(COALESCE({$field}->>'$.{$subField}', 0) AS SIGNED) - {$amount})
                             , 0)
-                        )")
+                        )"),
                     ])
                 );
             }

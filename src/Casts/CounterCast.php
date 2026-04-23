@@ -2,9 +2,8 @@
 
 namespace Wsmallnews\Support\Casts;
 
-use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
-use Illuminate\Database\Eloquent\Model;
 use ArrayAccess;
+use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 
 class CounterCast implements CastsAttributes
 {
@@ -13,7 +12,8 @@ class CounterCast implements CastsAttributes
         $data = $value ? json_decode($value, true) : [];
 
         // 包装为支持默认值
-        return new class($data) implements ArrayAccess {
+        return new class($data) implements ArrayAccess
+        {
             public function __construct(private array $data) {}
 
             // 实现 ArrayAccess
@@ -21,22 +21,22 @@ class CounterCast implements CastsAttributes
             {
                 return array_key_exists($offset, $this->data);
             }
-            
+
             public function offsetGet($offset): mixed
             {
                 return $this->data[$offset] ?? 0;
             }
-            
+
             public function offsetSet($offset, $value): void
             {
                 $this->data[$offset] = $value;
             }
-            
+
             public function offsetUnset($offset): void
             {
                 unset($this->data[$offset]);
             }
-            
+
             public function __set($key, $value)
             {
                 $this->offsetSet($key, $value);
