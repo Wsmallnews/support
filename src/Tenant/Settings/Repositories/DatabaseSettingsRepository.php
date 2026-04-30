@@ -53,14 +53,14 @@ class DatabaseSettingsRepository implements SettingsRepository
         return $this->decode($setting['payload']);
     }
 
-    public function createProperty(string $group, string $name, $payload): void
+    public function createProperty(string $group, string $name, $payload, bool $locked = false): void
     {
         $this->getBuilder()->create([
             'team_id' => $this->getTeamId(),
             'group' => $group,
             'name' => $name,
             'payload' => $this->encode($payload),
-            'locked' => false,
+            'locked' => $locked,
         ]);
     }
 
@@ -137,7 +137,7 @@ class DatabaseSettingsRepository implements SettingsRepository
      */
     protected function encode($value)
     {
-        $encoder = config('settings.encoder') ?? fn ($value) => json_encode($value);
+        $encoder = config('settings.encoder') ?? fn($value) => json_encode($value);
 
         return $encoder($value);
     }
@@ -147,7 +147,7 @@ class DatabaseSettingsRepository implements SettingsRepository
      */
     protected function decode(string $payload, bool $associative = false)
     {
-        $decoder = config('settings.decoder') ?? fn ($payload, $associative) => json_decode($payload, $associative);
+        $decoder = config('settings.decoder') ?? fn($payload, $associative) => json_decode($payload, $associative);
 
         return $decoder($payload, $associative);
     }

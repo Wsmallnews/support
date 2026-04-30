@@ -23,7 +23,9 @@ class BuilderMacros
 
             $field = $fields[0] ?? null;
             $subField = $fields[1] ?? null;
-            static::validateJsonPath($field, $subField, $jsonPath);
+            if (blank($field) || blank($subField)) {
+                throw new SupportException("json path format error: {$jsonPath}, for example, `counter->like_num`");
+            }
 
             if (isset($extra['withupdate']) && $extra['withupdate']) {
                 return $this->update([
@@ -51,7 +53,9 @@ class BuilderMacros
 
             $field = $fields[0] ?? null;
             $subField = $fields[1] ?? null;
-            static::validateJsonPath($field, $subField, $jsonPath);
+            if (blank($field) || blank($subField)) {
+                throw new SupportException("json path format error: {$jsonPath}, for example, `counter->like_num`");
+            }
 
             if (isset($extra['withupdate']) && $extra['withupdate']) {
                 return $this->update([
@@ -73,12 +77,5 @@ class BuilderMacros
                 );
             }
         });
-    }
-
-    protected static function validateJsonPath(?string $field, ?string $subField, string $jsonPath): void
-    {
-        if (blank($field) || blank($subField)) {
-            throw new SupportException("json path format error: {$jsonPath}, for example, `counter->like_num`");
-        }
     }
 }
