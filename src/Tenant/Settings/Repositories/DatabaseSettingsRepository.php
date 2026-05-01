@@ -137,7 +137,7 @@ class DatabaseSettingsRepository implements SettingsRepository
      */
     protected function encode($value)
     {
-        $encoder = config('settings.encoder') ?? fn($value) => json_encode($value);
+        $encoder = config('settings.encoder') ?? fn ($value) => json_encode($value);
 
         return $encoder($value);
     }
@@ -147,7 +147,7 @@ class DatabaseSettingsRepository implements SettingsRepository
      */
     protected function decode(string $payload, bool $associative = false)
     {
-        $decoder = config('settings.decoder') ?? fn($payload, $associative) => json_decode($payload, $associative);
+        $decoder = config('settings.decoder') ?? fn ($payload, $associative) => json_decode($payload, $associative);
 
         return $decoder($payload, $associative);
     }
