@@ -6,7 +6,5 @@ use Wsmallnews\Support\Enums\EditorType;
 
 trait HasEditorType
 {
-
     public EditorType $editorType = EditorType::Textarea;
-
 }
