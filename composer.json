@@ -31,6 +31,7 @@
         "postare/blade-mdi": "^1.1",
         "ralphjsmit/livewire-urls": "^1.0",
         "spatie/laravel-activitylog": "^5.0",
+        "spatie/laravel-markdown": "^2.8",
         "spatie/laravel-package-tools": "^1.15.0"
     },
     "require-dev": {

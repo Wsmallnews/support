@@ -240,3 +240,323 @@
 }
 
 /** ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ 自定义 class ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ **/
+
+
+/* Markdown 内容样式 */
+.sn-markdown-content {
+    @apply text-gray-700 dark:text-gray-300 text-base leading-relaxed;
+    word-wrap: break-word;
+}
+
+/* ========== 标题样式 ========== */
+.sn-markdown-content h1 {
+    @apply text-3xl font-extrabold text-gray-900 dark:text-gray-100 mt-10 mb-5 pb-2;
+    border-bottom: 1px solid #e5e7eb;
+}
+.dark .sn-markdown-content h1 {
+    border-bottom-color: #374151;
+}
+
+.sn-markdown-content h2 {
+    @apply text-2xl font-bold text-gray-900 dark:text-gray-100 mt-8 mb-4 pb-1.5;
+    border-bottom: 1px solid #e5e7eb;
+}
+.dark .sn-markdown-content h2 {
+    border-bottom-color: #374151;
+}
+
+.sn-markdown-content h3 {
+    @apply text-xl font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-3;
+}
+
+.sn-markdown-content h4 {
+    @apply text-lg font-semibold text-gray-800 dark:text-gray-200 mt-5 mb-2;
+}
+
+.sn-markdown-content h5 {
+    @apply text-base font-semibold text-gray-700 dark:text-gray-300 mt-4 mb-2;
+}
+
+.sn-markdown-content h6 {
+    @apply text-sm font-semibold text-gray-600 dark:text-gray-400 mt-4 mb-2 uppercase tracking-wide;
+}
+
+/* ========== 段落 ========== */
+.sn-markdown-content p {
+    @apply mb-5 leading-7;
+}
+
+/* ========== 链接 ========== */
+.sn-markdown-content a {
+    @apply text-primary-600 dark:text-primary-400 underline decoration-primary-300 dark:decoration-primary-700 underline-offset-2;
+    @apply hover:text-primary-700 dark:hover:text-primary-300 hover:decoration-primary-500 dark:hover:decoration-primary-500;
+    @apply transition-colors duration-150;
+}
+
+/* ========== 列表 ========== */
+.sn-markdown-content ul,
+.sn-markdown-content ol {
+    @apply mb-5 pl-6;
+}
+
+.sn-markdown-content ul {
+    @apply list-disc;
+}
+
+.sn-markdown-content ol {
+    @apply list-decimal;
+}
+
+.sn-markdown-content li {
+    @apply mb-1.5 leading-7;
+}
+
+.sn-markdown-content li > ul,
+.sn-markdown-content li > ol {
+    @apply mt-1.5 mb-0;
+}
+
+.sn-markdown-content ul ul {
+    list-style-type: circle;
+}
+
+.sn-markdown-content ul ul ul {
+    list-style-type: square;
+}
+
+/* 任务列表 */
+.sn-markdown-content input[type="checkbox"] {
+    @apply mr-2 h-4 w-4 rounded border-gray-300 dark:border-gray-600;
+    @apply text-primary-600 dark:text-primary-500;
+    @apply focus:ring-primary-500 dark:focus:ring-primary-600;
+}
+
+/* ========== 引用块 ========== */
+.sn-markdown-content blockquote {
+    @apply border-l-4 border-primary-400 dark:border-primary-600 pl-5 py-1 my-5;
+    @apply text-gray-600 dark:text-gray-400 italic;
+    @apply bg-gray-50 dark:bg-gray-800/50 rounded-r-lg;
+}
+
+.sn-markdown-content blockquote p:last-child {
+    @apply mb-0;
+}
+
+/* ========== 行内代码 ========== */
+.sn-markdown-content code {
+    @apply bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono;
+    @apply text-pink-600 dark:text-pink-400;
+    @apply border border-gray-200 dark:border-gray-700;
+    font-size: 0.875em;
+    word-break: break-word;
+}
+
+.sn-markdown-content a code {
+    @apply text-primary-600 dark:text-primary-400;
+}
+
+/* ========== 代码块容器 (非 Shiki 的普通 pre) ========== */
+.sn-markdown-content pre {
+    @apply rounded-xl overflow-x-auto my-6;
+    background-color: #f3f3f3;
+    border: 1px solid #e5e5e5;
+}
+.dark .sn-markdown-content pre {
+    background-color: #1e1e1e;
+    border-color: #3c3c3c;
+}
+
+.sn-markdown-content pre code {
+    @apply bg-transparent p-0 text-sm font-mono;
+    color: #1e1e1e;
+    border: none;
+    line-height: 1;
+}
+.dark .sn-markdown-content pre code {
+    color: #d4d4d4;
+}
+
+/* ========== Shiki 代码高亮 ========== */
+.sn-markdown-content .shiki {
+    @apply rounded-xl overflow-x-auto my-6;
+    background-color: #f3f3f3 !important;
+    border: 1px solid #e5e5e5;
+    counter-reset: line;
+}
+.dark .sn-markdown-content .shiki {
+    background-color: #1e1e1e !important;
+    border-color: #3c3c3c;
+}
+
+.sn-markdown-content .shiki code {
+    @apply bg-transparent p-0 text-sm font-mono;
+    color: #1e1e1e;
+    border: none;
+    display: block;
+    padding: 1rem 1rem 1rem 3.25rem;
+    line-height: 1;
+}
+.dark .sn-markdown-content .shiki code {
+    color: #d4d4d4;
+}
+
+/* Shiki 双主题暗黑模式切换 */
+html.dark .sn-markdown-content .shiki,
+html.dark .sn-markdown-content .shiki span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/* 行号 */
+.sn-markdown-content .shiki .line {
+    display: block;
+    position: relative;
+    padding-left: 0;
+}
+
+.sn-markdown-content .shiki .line::before {
+    counter-increment: line;
+    content: counter(line);
+    position: absolute;
+    left: -2.25rem;
+    width: 1.75rem;
+    text-align: right;
+    color: #999999;
+    font-size: 0.8em;
+    line-height: 1;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.dark .sn-markdown-content .shiki .line::before {
+    color: #858585;
+}
+
+/* ========== 分隔线 ========== */
+.sn-markdown-content hr {
+    @apply border-0 border-t border-gray-200 dark:border-gray-700 my-8;
+}
+
+/* ========== 表格 ========== */
+.sn-markdown-content table {
+    @apply w-full border-collapse my-6 text-sm;
+    @apply rounded-lg overflow-hidden;
+    border: 1px solid #e5e7eb;
+}
+.dark .sn-markdown-content table {
+    border-color: #374151;
+}
+
+.sn-markdown-content thead {
+    @apply bg-gray-50 dark:bg-gray-800;
+}
+
+.sn-markdown-content th {
+    @apply px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200;
+    @apply border-b-2 border-gray-200 dark:border-gray-700;
+    font-size: 0.875rem;
+}
+
+.sn-markdown-content td {
+    @apply px-4 py-2.5 border-b border-gray-100 dark:border-gray-800;
+    @apply text-gray-600 dark:text-gray-400;
+}
+
+.sn-markdown-content tbody tr:hover {
+    @apply bg-gray-50 dark:bg-gray-800/50;
+}
+
+.sn-markdown-content tbody tr:last-child td {
+    @apply border-b-0;
+}
+
+/* ========== 图片 ========== */
+.sn-markdown-content img {
+    @apply max-w-full h-auto rounded-lg my-6;
+}
+
+/* ========== 强调 ========== */
+.sn-markdown-content strong {
+    @apply font-bold text-gray-900 dark:text-gray-100;
+}
+
+/* ========== 删除线 ========== */
+.sn-markdown-content del {
+    @apply text-gray-400 dark:text-gray-500;
+}
+
+/* ========== 脚注 ========== */
+.sn-markdown-content sup a {
+    @apply text-xs no-underline text-primary-500 dark:text-primary-400;
+}
+
+/* ========== 详情折叠 ========== */
+.sn-markdown-content details {
+    @apply my-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4;
+}
+
+.sn-markdown-content summary {
+    @apply cursor-pointer font-semibold text-gray-800 dark:text-gray-200;
+}
+
+/* ========== 键盘按键 ========== */
+.sn-markdown-content kbd {
+    @apply inline-block px-1.5 py-0.5 text-xs font-mono font-semibold;
+    @apply text-gray-700 dark:text-gray-300;
+    @apply bg-gray-100 dark:bg-gray-800;
+    @apply border border-gray-300 dark:border-gray-600;
+    @apply rounded shadow-sm;
+}
+
+/* ========== 代码块语言标签 (通过 CSS 模拟) ========== */
+.sn-markdown-content pre[data-language] {
+    position: relative;
+    padding-top: 2.25rem;
+}
+
+.sn-markdown-content pre[data-language]::before {
+    content: attr(data-language);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.35rem 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #666666;
+    background-color: #e8e8e8;
+    border-bottom: 1px solid #d4d4d4;
+    border-radius: 0.75rem 0.75rem 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.dark .sn-markdown-content pre[data-language]::before {
+    background-color: #2d2d2d;
+    border-bottom-color: #3c3c3c;
+    color: #999999;
+}
+
+/* ========== 内容展开/收起 ========== */
+
+.sn-collapse-container .sn-collapse-content {
+    @apply relative overflow-hidden transition-all duration-300 ease-in-out;
+}
+
+.sn-collapse-container .sn-collapse-content .sn-collapse-fade {
+    @apply absolute bottom-0 left-0 right-0 h-20 pointer-events-none;
+    @apply bg-gradient-to-b from-transparent to-white dark:to-gray-900;
+}
+
+.sn-collapse-container .sn-collapse-content.sn-expanded .sn-collapse-fade {
+    @apply opacity-0;
+}
+
+.sn-collapse-container .sn-collapse-toggle {
+    @apply flex items-center justify-center gap-1.5 cursor-pointer select-none;
+    @apply text-sm text-gray-500 dark:text-gray-400;
+    @apply hover:text-primary-500 dark:hover:text-primary-400;
+    @apply transition-all duration-300 ease-in-out;
+    @apply px-4 py-2;
+}
