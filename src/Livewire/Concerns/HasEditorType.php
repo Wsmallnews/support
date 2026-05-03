@@ -6,7 +6,6 @@ use Wsmallnews\Support\Enums\EditorType;
 
 trait HasEditorType
 {
-
     public EditorType $editorType = EditorType::Textarea;
 
 
@@ -17,5 +16,4 @@ trait HasEditorType
     {
         return in_array($this->editorType, [EditorType::RichEditor, EditorType::MarkdownEditor]);
     }
-
 }
