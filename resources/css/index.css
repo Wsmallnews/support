@@ -253,147 +253,117 @@
 
 /** ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ 自定义 class ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ **/
 
-/* Markdown 内容样式 */
-.sn-markdown-content {
+/* sn prose 内容样式 */
+.sn-prose {
     @apply p-px text-base leading-relaxed break-words text-gray-700 dark:text-gray-300;
 }
 
-/* ========== 标题样式 ========== */
-.sn-markdown-content h1 {
-    @apply mt-10 mb-5 border-b-1 border-gray-200 pb-2 text-3xl font-extrabold text-gray-900 dark:border-gray-700 dark:text-gray-100;
-}
-
-.sn-markdown-content h2 {
-    @apply mt-8 mb-4 border-b-1 border-gray-200 pb-1.5 text-2xl font-bold text-gray-900 dark:border-gray-700 dark:text-gray-100;
-}
-
-.sn-markdown-content h3 {
-    @apply mt-6 mb-3 text-xl font-semibold text-gray-800 dark:text-gray-200;
-}
-
-.sn-markdown-content h4 {
-    @apply mt-5 mb-2 text-lg font-semibold text-gray-800 dark:text-gray-200;
-}
-
-.sn-markdown-content h5 {
-    @apply mt-4 mb-2 text-base font-semibold text-gray-700 dark:text-gray-300;
-}
-
-.sn-markdown-content h6 {
-    @apply mt-4 mb-2 text-sm font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400;
-}
-
-/* ========== 段落 ========== */
-.sn-markdown-content p {
-    @apply mb-5 leading-7;
-}
-
 /* ========== 链接 ========== */
-.sn-markdown-content a {
+.sn-prose a {
     @apply text-primary-600 dark:text-primary-400 decoration-primary-300 dark:decoration-primary-700 underline underline-offset-2;
     @apply hover:text-primary-700 dark:hover:text-primary-300 hover:decoration-primary-500 dark:hover:decoration-primary-500;
     @apply transition-colors duration-150;
 }
 
 /* ========== 列表 ========== */
-.sn-markdown-content ul,
-.sn-markdown-content ol {
+.sn-prose ul,
+.sn-prose ol {
     @apply mb-5 pl-6;
 }
 
-.sn-markdown-content ul {
+.sn-prose ul {
     @apply list-disc;
 }
 
-.sn-markdown-content ol {
+.sn-prose ol {
     @apply list-decimal;
 }
 
-.sn-markdown-content li {
+.sn-prose li {
     @apply mb-1.5 leading-7;
 }
 
-.sn-markdown-content li > ul,
-.sn-markdown-content li > ol {
+.sn-prose li > ul,
+.sn-prose li > ol {
     @apply mt-1.5 mb-0;
 }
 
-.sn-markdown-content ul ul {
+.sn-prose ul ul {
     @apply list-[circle];
 }
 
-.sn-markdown-content ul ul ul {
+.sn-prose ul ul ul {
     @apply list-[square];
 }
 
 /* 任务列表 */
-.sn-markdown-content input[type="checkbox"] {
+.sn-prose input[type="checkbox"] {
     @apply mr-2 h-4 w-4 rounded border-gray-300 dark:border-gray-600;
     @apply text-primary-600 dark:text-primary-500;
     @apply focus:ring-primary-500 dark:focus:ring-primary-600;
 }
 
 /* ========== 引用块 ========== */
-.sn-markdown-content blockquote {
+.sn-prose blockquote {
     @apply border-primary-400 dark:border-primary-600 my-5 border-l-4 py-1 pl-5;
     @apply text-gray-600 italic dark:text-gray-400;
-    @apply rounded-r-lg bg-gray-50 dark:bg-gray-800/50;
+    @apply rounded-r-md bg-gray-50 dark:bg-gray-800/50;
 }
 
-.sn-markdown-content blockquote p:last-child {
+.sn-prose blockquote p:last-child {
     @apply mb-0;
 }
 
 /* ========== 行内代码 ========== */
-.sn-markdown-content code {
+.sn-prose code {
     @apply rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm dark:bg-gray-800;
     @apply text-pink-600 dark:text-pink-400;
     @apply border border-gray-200 break-words dark:border-gray-700;
 }
 
-.sn-markdown-content a code {
+.sn-prose a code {
     @apply text-primary-600 dark:text-primary-400;
 }
 
 /* ========== 代码块容器 (非 Shiki 的普通 pre) ========== */
-.sn-markdown-content pre {
+.sn-prose pre {
     @apply bg-white dark:bg-gray-900;
     @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
-    @apply my-6 overflow-x-auto rounded-md;
+    @apply my-6 overflow-x-auto rounded-md p-0;
     counter-reset: line;
 }
 
-.sn-markdown-content pre code {
+.sn-prose pre code {
     @apply block border-0 bg-transparent font-mono text-sm;
-    @apply py-4 pr-4 pl-13 leading-none text-gray-700 dark:text-gray-300;
+    @apply p-4 leading-none text-gray-700 dark:text-gray-300;
 }
 /* 行号 */
-.sn-markdown-content pre .line {
+.sn-prose pre .line {
     @apply relative block min-h-3.5 pl-0;
 }
 
-.sn-markdown-content pre .line::before {
+.sn-prose pre .line::before {
     @apply absolute -left-9 w-7 text-right text-sm leading-none text-gray-400 select-none dark:text-gray-600;
     counter-increment: line;
     content: counter(line);
 }
 
 /* ========== Shiki 代码高亮 ========== */
-.sn-markdown-content .shiki {
+.sn-prose .shiki {
     @apply bg-white dark:bg-gray-900;
     @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
     @apply my-6 overflow-x-auto rounded-md;
     counter-reset: line;
 }
 
-.sn-markdown-content .shiki code {
+.sn-prose .shiki code {
     @apply block border-0 bg-transparent font-mono text-sm;
     @apply py-4 pr-4 pl-13 leading-none text-gray-700 dark:text-gray-300;
 }
 
 /* Shiki 双主题暗黑模式切换 */
-html.dark .sn-markdown-content .shiki,
-html.dark .sn-markdown-content .shiki span {
+html.dark .sn-prose .shiki,
+html.dark .sn-prose .shiki span {
     color: var(--shiki-dark) !important;
     background-color: var(--shiki-dark-bg) !important;
     font-style: var(--shiki-dark-font-style) !important;
@@ -402,97 +372,97 @@ html.dark .sn-markdown-content .shiki span {
 }
 
 /* 行号 */
-.sn-markdown-content .shiki .line {
+.sn-prose .shiki .line {
     @apply relative block min-h-3.5 pl-0;
 }
 
-.sn-markdown-content .shiki .line::before {
+.sn-prose .shiki .line::before {
     @apply absolute -left-9 w-7 text-right text-sm leading-none text-gray-400 select-none dark:text-gray-600;
     counter-increment: line;
     content: counter(line);
 }
 
 /* ========== 分隔线 ========== */
-.sn-markdown-content hr {
+.sn-prose hr {
     @apply my-8 border-0 border-t border-gray-200 dark:border-gray-700;
 }
 
 /* ========== 表格 ========== */
-.sn-markdown-content table {
+.sn-prose table {
     @apply my-6 w-full border-separate border-spacing-0 rounded-md border border-gray-200 text-sm dark:border-gray-700;
 }
 
-.sn-markdown-content thead {
+.sn-prose thead {
     @apply bg-gray-100 dark:bg-gray-800;
 }
 
-.sn-markdown-content th {
+.sn-prose th {
     @apply px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200;
     @apply border-r border-b border-gray-200 dark:border-gray-700;
 }
 
-.sn-markdown-content td {
+.sn-prose td {
     @apply px-4 py-2.5 text-gray-600 dark:text-gray-400;
     @apply border-r border-b border-gray-200 dark:border-gray-700;
 }
 
-.sn-markdown-content th:last-child,
-.sn-markdown-content td:last-child {
+.sn-prose th:last-child,
+.sn-prose td:last-child {
     @apply border-r-0;
 }
 
-.sn-markdown-content tr:last-child td {
+.sn-prose tr:last-child td {
     @apply border-b-0;
 }
 
-.sn-markdown-content tbody tr {
+.sn-prose tbody tr {
     @apply transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/60;
 }
 
-.sn-markdown-content thead tr:first-child th:first-child {
+.sn-prose thead tr:first-child th:first-child {
     @apply rounded-tl-md;
 }
-.sn-markdown-content thead tr:first-child th:last-child {
+.sn-prose thead tr:first-child th:last-child {
     @apply rounded-tr-md;
 }
-.sn-markdown-content tbody tr:last-child td:first-child {
+.sn-prose tbody tr:last-child td:first-child {
     @apply rounded-bl-md;
 }
-.sn-markdown-content tbody tr:last-child td:last-child {
+.sn-prose tbody tr:last-child td:last-child {
     @apply rounded-br-md;
 }
 
 /* ========== 图片 ========== */
-.sn-markdown-content img {
-    @apply my-6 h-auto max-w-full rounded-lg;
+.sn-prose img {
+    @apply my-6 h-auto max-w-full rounded-md;
 }
 
 /* ========== 强调 ========== */
-.sn-markdown-content strong {
+.sn-prose strong {
     @apply font-bold text-gray-900 dark:text-gray-100;
 }
 
 /* ========== 删除线 ========== */
-.sn-markdown-content del {
+.sn-prose del {
     @apply text-gray-400 dark:text-gray-500;
 }
 
 /* ========== 脚注 ========== */
-.sn-markdown-content sup a {
+.sn-prose sup a {
     @apply text-primary-500 dark:text-primary-400 text-xs no-underline;
 }
 
 /* ========== 详情折叠 ========== */
-.sn-markdown-content details {
-    @apply my-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700;
+.sn-prose details {
+    @apply my-4 rounded-md border border-gray-200 p-4 dark:border-gray-700;
 }
 
-.sn-markdown-content summary {
+.sn-prose summary {
     @apply cursor-pointer font-semibold text-gray-800 dark:text-gray-200;
 }
 
 /* ========== 键盘按键 ========== */
-.sn-markdown-content kbd {
+.sn-prose kbd {
     @apply inline-block px-1.5 py-0.5 font-mono text-xs font-semibold;
     @apply text-gray-700 dark:text-gray-300;
     @apply bg-gray-100 dark:bg-gray-800;
@@ -501,16 +471,29 @@ html.dark .sn-markdown-content .shiki span {
 }
 
 /* ========== 代码块语言标签 (通过 CSS 模拟) ========== */
-.sn-markdown-content pre[data-language] {
+.sn-prose pre[data-language] {
     @apply relative pt-9;
 }
 
-.sn-markdown-content pre[data-language]::before {
+.sn-prose pre[data-language]::before {
     @apply rounded-br-md bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300;
     @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
     @apply absolute top-0 left-0 px-3 py-1 text-xs font-bold;
     @apply tracking-widest uppercase;
     content: attr(data-language);
+}
+
+.sn-prose sub,
+.sn-prose sup {
+    @apply text-xs;
+}
+
+.sn-prose sup {
+    @apply -top-2;
+}
+
+.sn-prose sub {
+    @apply -bottom-1;
 }
 
 /* ========== 内容展开/收起 ========== */

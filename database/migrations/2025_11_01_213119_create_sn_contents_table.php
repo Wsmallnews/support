@@ -15,6 +15,7 @@ return new class extends Migration
             $table->unsignedBigInteger('team_id')->nullable()->comment('团队ID');
             $table->morphs('contentable');
             $table->longtext('content')->nullable()->comment('内容');
+            $table->string('content_type', 20)->default('textarea')->comment('内容类型: textarea, richtext, markdown');
             $table->timestamps();
             $table->index('team_id');
         });

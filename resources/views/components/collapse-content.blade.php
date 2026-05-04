@@ -1,6 +1,6 @@
 @props([
     'content' => null,                    // 内容
-    'contentType' => 'markdown',          // 内容类型，  markdown or richtext
+    'contentType' => 'textarea',          // 内容类型，  textarea, markdown or richtext
     'maxHeight' => 350                    // 默认内容高度
 ])
 
@@ -29,13 +29,10 @@
         :style="collapsed ? 'max-height: {{ $maxHeight }}px' : 'max-height: none'"
     >
         <div x-ref="content">
-            @if ($contentType == 'markdown')
-                <x-markdown class="sn-markdown-content">
-                    {!! $content !!}
-                </x-markdown>
-            @else
-                {!! $content !!}
-            @endif
+            <x-sn-support::content
+                :content-type="$contentType"
+                :content="$content"
+            />
         </div>
         <div
             class="sn-collapse-fade"

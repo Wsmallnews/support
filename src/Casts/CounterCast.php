@@ -4,6 +4,10 @@ namespace Wsmallnews\Support\Casts;
 
 use ArrayAccess;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
+use JsonSerializable;
+use Livewire\Wireable;
 
 class CounterCast implements CastsAttributes
 {
@@ -12,7 +16,7 @@ class CounterCast implements CastsAttributes
         $data = $value ? json_decode($value, true) : [];
 
         // 包装为支持默认值
-        return new class($data) implements ArrayAccess
+        return new class($data) implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Wireable
         {
             public function __construct(private array $data) {}
 
@@ -50,6 +54,45 @@ class CounterCast implements CastsAttributes
             public function __isset($key)
             {
                 return $this->offsetExists($key);
+            }
+
+            public function toLivewire()
+            {
+                return $this->data;
+            }
+
+            public static function fromLivewire($value)
+            {
+                return new static((array)$value);
+            }
+
+            /**
+             * 实现 arrayable 接口
+             */
+            public function toArray()
+            {
+                return $this->data;
+            }
+
+            /**
+             * 实现 Jsonable 接口
+             *
+             * @param  int  $options
+             * @return string
+             */
+            public function toJson($options = 0)
+            {
+                return json_encode($this->jsonSerialize(), $options);
+            }
+
+            /**
+             * 实现 JsonSerializable 接口的 jsonSerialize 方法, 定义了对象在 JSON 序列化时的数据
+             *
+             * @return mixed
+             */
+            public function jsonSerialize(): mixed
+            {
+                return $this->data;
             }
         };
     }
