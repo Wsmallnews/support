@@ -16,7 +16,7 @@ class CounterCast implements CastsAttributes
         $data = $value ? json_decode($value, true) : [];
 
         // 包装为支持默认值
-        return new class($data) implements ArrayAccess, Arrayable, Jsonable, JsonSerializable, Wireable
+        return new class($data) implements Arrayable, ArrayAccess, Jsonable, JsonSerializable, Wireable
         {
             public function __construct(private array $data) {}
 
@@ -63,7 +63,7 @@ class CounterCast implements CastsAttributes
 
             public static function fromLivewire($value)
             {
-                return new static((array)$value);
+                return new self((array) $value);
             }
 
             /**
@@ -87,8 +87,6 @@ class CounterCast implements CastsAttributes
 
             /**
              * 实现 JsonSerializable 接口的 jsonSerialize 方法, 定义了对象在 JSON 序列化时的数据
-             *
-             * @return mixed
              */
             public function jsonSerialize(): mixed
             {
