@@ -1,9 +1,8 @@
-@source '../views/**/*';
+@source "../views/**/*";
 
 /* CodeWithDennis\SimpleAlert */
-@source '../../../../vendor/codewithdennis/filament-simple-alert/resources/**/*.blade.php';
-@source inline('animate-{spin,pulse,bounce}');
-
+@source "../../../../vendor/codewithdennis/filament-simple-alert/resources/**/*.blade.php";
+@source inline("animate-{spin,pulse,bounce}");
 
 /** ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ 自定义 class ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ **/
 
@@ -21,7 +20,8 @@
         @apply transition-colors duration-300 ease-in-out;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply bg-primary-600 dark:bg-primary-700;
     }
 }
@@ -52,16 +52,18 @@
         @apply transition-colors duration-300 ease-in-out;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply bg-gray-100 dark:bg-gray-800;
     }
 }
 
 /* 区块轮廓，四边都有 */
 .sn-contour {
-    @apply shadow-sm shadow-gray-800/20 dark:shadow-gray-800/80 ring-1 ring-gray-200/80 dark:ring-gray-800/60;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
 
-    &.sn-hover {    /** 当前 hover */
+    &.sn-hover {
+        /** 当前 hover */
         @apply hover:shadow-lg hover:ring-gray-200 dark:hover:ring-gray-700/80;
         @apply transition-shadow duration-300 ease-in-out;
     }
@@ -69,10 +71,11 @@
 
 /* 区块轮廓，这里用的是 border ring 不支持设置单条边 需要外面指定那条边存在 */
 .sn-contour-only {
-    @apply shadow-sm shadow-gray-800/20 dark:shadow-gray-800/80 border-gray-200/80 dark:border-gray-800/60;
+    @apply border-gray-200/80 shadow-sm shadow-gray-800/20 dark:border-gray-800/60 dark:shadow-gray-800/80;
 
-    &.sn-hover {    /** 当前 hover */
-        @apply hover:shadow-lg hover:border-gray-200 dark:hover:border-gray-700/80;
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:border-gray-200 hover:shadow-lg dark:hover:border-gray-700/80;
         @apply transition-all duration-300 ease-in-out;
     }
 }
@@ -91,10 +94,9 @@
     @apply divide-y divide-gray-200 dark:divide-gray-700;
 }
 
-
 /** sn 文字 **/
 .sn-h1-text {
-    @apply text-gray-900 dark:text-gray-100 text-2xl md:text-3xl lg:text-4xl font-bold;
+    @apply text-2xl font-bold text-gray-900 md:text-3xl lg:text-4xl dark:text-gray-100;
 
     &.sn-hover {
         /** 当前 hover 支持 group */
@@ -103,12 +105,13 @@
         @apply transition-colors duration-300 ease-in-out;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply text-primary-500 dark:text-primary-600;
     }
 }
 .sn-h2-text {
-    @apply text-gray-800 dark:text-gray-200 text-xl md:text-2xl lg:text-3xl font-semibold;
+    @apply text-xl font-semibold text-gray-800 md:text-2xl lg:text-3xl dark:text-gray-200;
 
     &.sn-hover {
         /** 当前 hover 支持 group */
@@ -117,12 +120,13 @@
         @apply transition-colors duration-300 ease-in-out;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply text-primary-500 dark:text-primary-600;
     }
 }
 .sn-h3-text {
-    @apply text-gray-700 dark:text-gray-300 text-lg md:text-xl font-semibold;
+    @apply text-lg font-semibold text-gray-700 md:text-xl dark:text-gray-300;
 
     &.sn-hover {
         /** 当前 hover 支持 group */
@@ -131,12 +135,13 @@
         @apply transition-colors duration-300 ease-in-out;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply text-primary-500 dark:text-primary-600;
     }
 }
 .sn-h4-text {
-    @apply text-gray-700 dark:text-gray-300 text-lg font-semibold;
+    @apply text-lg font-semibold text-gray-700 dark:text-gray-300;
 
     &.sn-hover {
         /** 当前 hover 支持 group */
@@ -145,12 +150,13 @@
         @apply transition-colors duration-300 ease-in-out;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply text-primary-500 dark:text-primary-600;
     }
 }
 .sn-content-text {
-    @apply text-gray-600 dark:text-gray-300 text-base leading-relaxed;
+    @apply text-base leading-relaxed text-gray-600 dark:text-gray-300;
 
     &.sn-hover {
         /** 当前 hover 支持 group */
@@ -159,12 +165,13 @@
         @apply transition-colors duration-300 ease-in-out;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply text-primary-500 dark:text-primary-600 font-semibold;
     }
 }
 .sn-descript-text {
-    @apply text-gray-500 dark:text-gray-400 text-sm;
+    @apply text-sm text-gray-500 dark:text-gray-400;
 
     &.sn-hover {
         /** 当前 hover 支持 group */
@@ -173,12 +180,13 @@
         @apply transition-colors duration-300 ease-in-out;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply text-primary-500 dark:text-primary-600;
     }
 }
 .sn-tip-text {
-    @apply text-gray-500 dark:text-gray-400 text-xs;
+    @apply text-xs text-gray-500 dark:text-gray-400;
 
     &.sn-hover {
         /** 当前 hover 支持 group */
@@ -187,7 +195,8 @@
         @apply transition-colors duration-300 ease-in-out;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply text-primary-500 dark:text-primary-600;
     }
 }
@@ -211,74 +220,67 @@
 }
 /** sn 文字 **/
 
-
-
 /* 区块样式 */
 .sn-container {
     @apply bg-white dark:bg-gray-900;
-    @apply shadow-sm shadow-gray-800/20 dark:shadow-gray-800/80 ring-1 ring-gray-200/80 dark:ring-gray-800/60;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
     @apply rounded-md transition-all duration-300 ease-in-out;
 
-    &.sn-hover {    /** 当前 hover */
+    &.sn-hover {
+        /** 当前 hover */
         @apply hover:shadow-lg hover:ring-gray-200 dark:hover:ring-gray-700/80;
     }
 
-    &.sn-link {      /** 当前 link, 如果当前 容器就是 link ,则增加 hover 背景(posts 列表) */
+    &.sn-link {
+        /** 当前 link, 如果当前 容器就是 link ,则增加 hover 背景(posts 列表) */
         @apply hover:bg-primary-100/50 dark:hover:bg-primary-900/30;
     }
 
-    .sn-link {      /** 内部link，容器内部 链接 样式 (index-posts 列表) */
+    .sn-link {
+        /** 内部link，容器内部 链接 样式 (index-posts 列表) */
         @apply hover:bg-primary-100/50 dark:hover:bg-primary-900/30;
     }
 
-    &.sn-active {    /** 当前 active */
+    &.sn-active {
+        /** 当前 active */
         @apply bg-primary-100 dark:bg-primary-900;
     }
-    .sn-active {    /** 内部 active */
+    .sn-active {
+        /** 内部 active */
         @apply bg-primary-100 dark:bg-primary-900;
     }
 }
 
 /** ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ 自定义 class ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ **/
 
-
 /* Markdown 内容样式 */
 .sn-markdown-content {
-    @apply text-gray-700 dark:text-gray-300 text-base leading-relaxed;
-    word-wrap: break-word;
+    @apply p-px text-base leading-relaxed break-words text-gray-700 dark:text-gray-300;
 }
 
 /* ========== 标题样式 ========== */
 .sn-markdown-content h1 {
-    @apply text-3xl font-extrabold text-gray-900 dark:text-gray-100 mt-10 mb-5 pb-2;
-    border-bottom: 1px solid #e5e7eb;
-}
-.dark .sn-markdown-content h1 {
-    border-bottom-color: #374151;
+    @apply mt-10 mb-5 border-b-1 border-gray-200 pb-2 text-3xl font-extrabold text-gray-900 dark:border-gray-700 dark:text-gray-100;
 }
 
 .sn-markdown-content h2 {
-    @apply text-2xl font-bold text-gray-900 dark:text-gray-100 mt-8 mb-4 pb-1.5;
-    border-bottom: 1px solid #e5e7eb;
-}
-.dark .sn-markdown-content h2 {
-    border-bottom-color: #374151;
+    @apply mt-8 mb-4 border-b-1 border-gray-200 pb-1.5 text-2xl font-bold text-gray-900 dark:border-gray-700 dark:text-gray-100;
 }
 
 .sn-markdown-content h3 {
-    @apply text-xl font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-3;
+    @apply mt-6 mb-3 text-xl font-semibold text-gray-800 dark:text-gray-200;
 }
 
 .sn-markdown-content h4 {
-    @apply text-lg font-semibold text-gray-800 dark:text-gray-200 mt-5 mb-2;
+    @apply mt-5 mb-2 text-lg font-semibold text-gray-800 dark:text-gray-200;
 }
 
 .sn-markdown-content h5 {
-    @apply text-base font-semibold text-gray-700 dark:text-gray-300 mt-4 mb-2;
+    @apply mt-4 mb-2 text-base font-semibold text-gray-700 dark:text-gray-300;
 }
 
 .sn-markdown-content h6 {
-    @apply text-sm font-semibold text-gray-600 dark:text-gray-400 mt-4 mb-2 uppercase tracking-wide;
+    @apply mt-4 mb-2 text-sm font-semibold tracking-wide text-gray-600 uppercase dark:text-gray-400;
 }
 
 /* ========== 段落 ========== */
@@ -288,7 +290,7 @@
 
 /* ========== 链接 ========== */
 .sn-markdown-content a {
-    @apply text-primary-600 dark:text-primary-400 underline decoration-primary-300 dark:decoration-primary-700 underline-offset-2;
+    @apply text-primary-600 dark:text-primary-400 decoration-primary-300 dark:decoration-primary-700 underline underline-offset-2;
     @apply hover:text-primary-700 dark:hover:text-primary-300 hover:decoration-primary-500 dark:hover:decoration-primary-500;
     @apply transition-colors duration-150;
 }
@@ -317,11 +319,11 @@
 }
 
 .sn-markdown-content ul ul {
-    list-style-type: circle;
+    @apply list-[circle];
 }
 
 .sn-markdown-content ul ul ul {
-    list-style-type: square;
+    @apply list-[square];
 }
 
 /* 任务列表 */
@@ -333,9 +335,9 @@
 
 /* ========== 引用块 ========== */
 .sn-markdown-content blockquote {
-    @apply border-l-4 border-primary-400 dark:border-primary-600 pl-5 py-1 my-5;
-    @apply text-gray-600 dark:text-gray-400 italic;
-    @apply bg-gray-50 dark:bg-gray-800/50 rounded-r-lg;
+    @apply border-primary-400 dark:border-primary-600 my-5 border-l-4 py-1 pl-5;
+    @apply text-gray-600 italic dark:text-gray-400;
+    @apply rounded-r-lg bg-gray-50 dark:bg-gray-800/50;
 }
 
 .sn-markdown-content blockquote p:last-child {
@@ -344,11 +346,9 @@
 
 /* ========== 行内代码 ========== */
 .sn-markdown-content code {
-    @apply bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono;
+    @apply rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm dark:bg-gray-800;
     @apply text-pink-600 dark:text-pink-400;
-    @apply border border-gray-200 dark:border-gray-700;
-    font-size: 0.875em;
-    word-break: break-word;
+    @apply border border-gray-200 break-words dark:border-gray-700;
 }
 
 .sn-markdown-content a code {
@@ -357,47 +357,38 @@
 
 /* ========== 代码块容器 (非 Shiki 的普通 pre) ========== */
 .sn-markdown-content pre {
-    @apply rounded-xl overflow-x-auto my-6;
-    background-color: #f3f3f3;
-    border: 1px solid #e5e5e5;
-}
-.dark .sn-markdown-content pre {
-    background-color: #1e1e1e;
-    border-color: #3c3c3c;
+    @apply bg-white dark:bg-gray-900;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply my-6 overflow-x-auto rounded-md;
+    counter-reset: line;
 }
 
 .sn-markdown-content pre code {
-    @apply bg-transparent p-0 text-sm font-mono;
-    color: #1e1e1e;
-    border: none;
-    line-height: 1;
+    @apply block border-0 bg-transparent font-mono text-sm;
+    @apply py-4 pr-4 pl-13 leading-none text-gray-700 dark:text-gray-300;
 }
-.dark .sn-markdown-content pre code {
-    color: #d4d4d4;
+/* 行号 */
+.sn-markdown-content pre .line {
+    @apply relative block min-h-3.5 pl-0;
+}
+
+.sn-markdown-content pre .line::before {
+    @apply absolute -left-9 w-7 text-right text-sm leading-none text-gray-400 select-none dark:text-gray-600;
+    counter-increment: line;
+    content: counter(line);
 }
 
 /* ========== Shiki 代码高亮 ========== */
 .sn-markdown-content .shiki {
-    @apply rounded-xl overflow-x-auto my-6;
-    background-color: #f3f3f3 !important;
-    border: 1px solid #e5e5e5;
+    @apply bg-white dark:bg-gray-900;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply my-6 overflow-x-auto rounded-md;
     counter-reset: line;
-}
-.dark .sn-markdown-content .shiki {
-    background-color: #1e1e1e !important;
-    border-color: #3c3c3c;
 }
 
 .sn-markdown-content .shiki code {
-    @apply bg-transparent p-0 text-sm font-mono;
-    color: #1e1e1e;
-    border: none;
-    display: block;
-    padding: 1rem 1rem 1rem 3.25rem;
-    line-height: 1;
-}
-.dark .sn-markdown-content .shiki code {
-    color: #d4d4d4;
+    @apply block border-0 bg-transparent font-mono text-sm;
+    @apply py-4 pr-4 pl-13 leading-none text-gray-700 dark:text-gray-300;
 }
 
 /* Shiki 双主题暗黑模式切换 */
@@ -412,69 +403,68 @@ html.dark .sn-markdown-content .shiki span {
 
 /* 行号 */
 .sn-markdown-content .shiki .line {
-    display: block;
-    position: relative;
-    padding-left: 0;
+    @apply relative block min-h-3.5 pl-0;
 }
 
 .sn-markdown-content .shiki .line::before {
+    @apply absolute -left-9 w-7 text-right text-sm leading-none text-gray-400 select-none dark:text-gray-600;
     counter-increment: line;
     content: counter(line);
-    position: absolute;
-    left: -2.25rem;
-    width: 1.75rem;
-    text-align: right;
-    color: #999999;
-    font-size: 0.8em;
-    line-height: 1;
-    user-select: none;
-    -webkit-user-select: none;
-}
-.dark .sn-markdown-content .shiki .line::before {
-    color: #858585;
 }
 
 /* ========== 分隔线 ========== */
 .sn-markdown-content hr {
-    @apply border-0 border-t border-gray-200 dark:border-gray-700 my-8;
+    @apply my-8 border-0 border-t border-gray-200 dark:border-gray-700;
 }
 
 /* ========== 表格 ========== */
 .sn-markdown-content table {
-    @apply w-full border-collapse my-6 text-sm;
-    @apply rounded-lg overflow-hidden;
-    border: 1px solid #e5e7eb;
-}
-.dark .sn-markdown-content table {
-    border-color: #374151;
+    @apply my-6 w-full border-separate border-spacing-0 rounded-md border border-gray-200 text-sm dark:border-gray-700;
 }
 
 .sn-markdown-content thead {
-    @apply bg-gray-50 dark:bg-gray-800;
+    @apply bg-gray-100 dark:bg-gray-800;
 }
 
 .sn-markdown-content th {
-    @apply px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200;
-    @apply border-b-2 border-gray-200 dark:border-gray-700;
-    font-size: 0.875rem;
+    @apply px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200;
+    @apply border-r border-b border-gray-200 dark:border-gray-700;
 }
 
 .sn-markdown-content td {
-    @apply px-4 py-2.5 border-b border-gray-100 dark:border-gray-800;
-    @apply text-gray-600 dark:text-gray-400;
+    @apply px-4 py-2.5 text-gray-600 dark:text-gray-400;
+    @apply border-r border-b border-gray-200 dark:border-gray-700;
 }
 
-.sn-markdown-content tbody tr:hover {
-    @apply bg-gray-50 dark:bg-gray-800/50;
+.sn-markdown-content th:last-child,
+.sn-markdown-content td:last-child {
+    @apply border-r-0;
 }
 
-.sn-markdown-content tbody tr:last-child td {
+.sn-markdown-content tr:last-child td {
     @apply border-b-0;
+}
+
+.sn-markdown-content tbody tr {
+    @apply transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/60;
+}
+
+.sn-markdown-content thead tr:first-child th:first-child {
+    @apply rounded-tl-md;
+}
+.sn-markdown-content thead tr:first-child th:last-child {
+    @apply rounded-tr-md;
+}
+.sn-markdown-content tbody tr:last-child td:first-child {
+    @apply rounded-bl-md;
+}
+.sn-markdown-content tbody tr:last-child td:last-child {
+    @apply rounded-br-md;
 }
 
 /* ========== 图片 ========== */
 .sn-markdown-content img {
-    @apply max-w-full h-auto rounded-lg my-6;
+    @apply my-6 h-auto max-w-full rounded-lg;
 }
 
 /* ========== 强调 ========== */
@@ -489,12 +479,12 @@ html.dark .sn-markdown-content .shiki span {
 
 /* ========== 脚注 ========== */
 .sn-markdown-content sup a {
-    @apply text-xs no-underline text-primary-500 dark:text-primary-400;
+    @apply text-primary-500 dark:text-primary-400 text-xs no-underline;
 }
 
 /* ========== 详情折叠 ========== */
 .sn-markdown-content details {
-    @apply my-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4;
+    @apply my-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700;
 }
 
 .sn-markdown-content summary {
@@ -503,7 +493,7 @@ html.dark .sn-markdown-content .shiki span {
 
 /* ========== 键盘按键 ========== */
 .sn-markdown-content kbd {
-    @apply inline-block px-1.5 py-0.5 text-xs font-mono font-semibold;
+    @apply inline-block px-1.5 py-0.5 font-mono text-xs font-semibold;
     @apply text-gray-700 dark:text-gray-300;
     @apply bg-gray-100 dark:bg-gray-800;
     @apply border border-gray-300 dark:border-gray-600;
@@ -512,30 +502,15 @@ html.dark .sn-markdown-content .shiki span {
 
 /* ========== 代码块语言标签 (通过 CSS 模拟) ========== */
 .sn-markdown-content pre[data-language] {
-    position: relative;
-    padding-top: 2.25rem;
+    @apply relative pt-9;
 }
 
 .sn-markdown-content pre[data-language]::before {
+    @apply rounded-br-md bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply absolute top-0 left-0 px-3 py-1 text-xs font-bold;
+    @apply tracking-widest uppercase;
     content: attr(data-language);
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 0.35rem 1rem;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #666666;
-    background-color: #e8e8e8;
-    border-bottom: 1px solid #d4d4d4;
-    border-radius: 0.75rem 0.75rem 0 0;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-.dark .sn-markdown-content pre[data-language]::before {
-    background-color: #2d2d2d;
-    border-bottom-color: #3c3c3c;
-    color: #999999;
 }
 
 /* ========== 内容展开/收起 ========== */
@@ -545,7 +520,7 @@ html.dark .sn-markdown-content .shiki span {
 }
 
 .sn-collapse-container .sn-collapse-content .sn-collapse-fade {
-    @apply absolute bottom-0 left-0 right-0 h-20 pointer-events-none;
+    @apply pointer-events-none absolute right-0 bottom-0 left-0 h-20;
     @apply bg-gradient-to-b from-transparent to-white dark:to-gray-900;
 }
 
@@ -554,7 +529,7 @@ html.dark .sn-markdown-content .shiki span {
 }
 
 .sn-collapse-container .sn-collapse-toggle {
-    @apply flex items-center justify-center gap-1.5 cursor-pointer select-none;
+    @apply flex cursor-pointer items-center justify-center gap-1.5 select-none;
     @apply text-sm text-gray-500 dark:text-gray-400;
     @apply hover:text-primary-500 dark:hover:text-primary-400;
     @apply transition-all duration-300 ease-in-out;

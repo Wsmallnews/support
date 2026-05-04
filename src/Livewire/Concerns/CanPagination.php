@@ -2,7 +2,7 @@
 
 namespace Wsmallnews\Support\Livewire\Concerns;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Livewire\WithPagination;
