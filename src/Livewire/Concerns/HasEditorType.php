@@ -8,7 +8,6 @@ trait HasEditorType
 {
     public EditorType $editorType = EditorType::Textarea;
 
-
     /**
      * 是否是 格式化编辑器
      */
