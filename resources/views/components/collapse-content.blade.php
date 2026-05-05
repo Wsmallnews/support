@@ -1,6 +1,10 @@
+@php
+    use Wsmallnews\Support\Enums\ContentType;
+@endphp
+
 @props([
     'content' => null,                    // 内容
-    'contentType' => 'textarea',          // 内容类型，  textarea, markdown or richtext
+    'contentType' => ContentType::Textarea,          // 内容类型，  textarea, markdown or richtext
     'maxHeight' => 350                    // 默认内容高度
 ])
 

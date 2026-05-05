@@ -4,13 +4,16 @@ namespace Wsmallnews\Support\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Wsmallnews\Support\Enums\ContentType;
 use Wsmallnews\Support\Support\Utils;
 
 class Content extends SupportModel
 {
     protected $table = 'sn_contents';
 
-    protected $casts = [];
+    protected $casts = [
+        'content_type' => ContentType::class,
+    ];
 
     /**
      * Boot the model and apply default scope attributes.

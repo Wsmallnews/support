@@ -1,14 +1,18 @@
+@php
+    use Wsmallnews\Support\Enums\ContentType;
+@endphp
+
 @props([
     'content' => null,                    // 内容
-    'contentType' => 'textarea',          // 内容类型，  textarea, markdown or richtext
+    'contentType' => ContentType::Textarea,          // 内容类型，  textarea, markdown or richtext
 ])
 
 <div class="sn-content-container">
-    @if ($contentType == 'markdown')
+    @if ($contentType == ContentType::Markdown)
         <x-markdown class="fi-prose sn-prose">
             {!! $content !!}
         </x-markdown>
-    @elseif ($contentType == 'richtext')
+    @elseif ($contentType == ContentType::Richtext)
         <div class="fi-prose sn-prose">
             {!! $content !!}
         </div>

@@ -315,10 +315,12 @@
 }
 
 /* ========== 行内代码 ========== */
-.sn-prose code {
-    @apply rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm dark:bg-gray-800;
-    @apply text-pink-600 dark:text-pink-400;
-    @apply border border-gray-200 break-words dark:border-gray-700;
+.sn-prose > code {
+    @apply bg-white dark:bg-gray-900;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply my-6 overflow-x-auto rounded-md p-4 leading-none text-gray-700 dark:text-gray-300;
+    @apply block border-0 bg-transparent font-mono text-sm break-words;
+    counter-reset: line;
 }
 
 .sn-prose a code {
@@ -327,7 +329,7 @@
 
 /* ========== 代码块容器 (非 Shiki 的普通 pre) ========== */
 .sn-prose pre {
-    @apply bg-white dark:bg-gray-900;
+    @apply bg-gray-50 dark:bg-gray-800;
     @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
     @apply my-6 overflow-x-auto rounded-md p-0;
     counter-reset: line;
@@ -350,7 +352,7 @@
 
 /* ========== Shiki 代码高亮 ========== */
 .sn-prose .shiki {
-    @apply bg-white dark:bg-gray-900;
+    @apply bg-gray-50 dark:bg-gray-800;
     @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
     @apply my-6 overflow-x-auto rounded-md;
     counter-reset: line;
