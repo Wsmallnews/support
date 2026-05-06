@@ -82,7 +82,6 @@ class ActivityLogTable
             ->toggleable();
     }
 
-
     protected static function eventColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('event')
