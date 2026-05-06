@@ -33,6 +33,7 @@ class ActivityLogTable
     {
         return $table
             ->columns([
+                static::IDColumn(),
                 static::eventColumn(),
                 static::subjectTypeColumn(),
                 static::causerColumn(),
@@ -70,6 +71,17 @@ class ActivityLogTable
     }
 
     // ---------------------------- Columns --------------------------------
+
+    protected static function IDColumn(): Tables\Columns\TextColumn
+    {
+        return Tables\Columns\TextColumn::make('id')
+            ->label('ID')
+            ->searchable()
+            ->sortable()
+            ->alignCenter()
+            ->toggleable();
+    }
+
 
     protected static function eventColumn(): Tables\Columns\TextColumn
     {

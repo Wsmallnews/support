@@ -17,6 +17,12 @@ class TagsTable
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->searchable()
+                    ->sortable()
+                    ->alignCenter()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('name')
                     ->label('名称')
                     ->searchable(),
