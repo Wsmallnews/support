@@ -215,7 +215,7 @@ class FormComponents
     }
 
     protected static function applyUploadConfig(
-        Forms\Components\FileUpload|Forms\Components\SpatieMediaLibraryFileUpload $component,
+        Forms\Components\FileUpload | Forms\Components\SpatieMediaLibraryFileUpload $component,
         array $config
     ): void {
         if (! empty($config['disk'])) {
@@ -282,7 +282,7 @@ class FormComponents
     }
 
     protected static function applyEditorConfig(
-        Forms\Components\MarkdownEditor|Forms\Components\RichEditor $component,
+        Forms\Components\MarkdownEditor | Forms\Components\RichEditor $component,
         array $config
     ): void {
         if (isset($config['toolbar_buttons'])) {
