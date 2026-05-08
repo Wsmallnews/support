@@ -10,9 +10,8 @@ class FormComponents
     /**
      * 创建一个 Spatie Media Library 图片上传组件
      *
-     * @param string $name 字段名称
-     * @param string $collection 媒体集合名称
-     * @return Forms\Components\SpatieMediaLibraryFileUpload
+     * @param  string  $name  字段名称
+     * @param  string  $collection  媒体集合名称
      */
     public static function mediaImageUpload(string $name, string $collection): Forms\Components\SpatieMediaLibraryFileUpload
     {
@@ -26,9 +25,8 @@ class FormComponents
     /**
      * 创建一个 Spatie Media Library 文件上传组件
      *
-     * @param string $name 字段名称
-     * @param string $collection 媒体集合名称
-     * @return Forms\Components\SpatieMediaLibraryFileUpload
+     * @param  string  $name  字段名称
+     * @param  string  $collection  媒体集合名称
      */
     public static function mediaFileUpload(string $name, string $collection): Forms\Components\SpatieMediaLibraryFileUpload
     {
@@ -41,8 +39,7 @@ class FormComponents
     /**
      * 创建一个本地图片上传组件
      *
-     * @param string $name 字段名称
-     * @return Forms\Components\FileUpload
+     * @param  string  $name  字段名称
      */
     public static function localImageUpload(string $name): Forms\Components\FileUpload
     {
@@ -55,8 +52,7 @@ class FormComponents
     /**
      * 创建一个本地文件上传组件
      *
-     * @param string $name 字段名称
-     * @return Forms\Components\FileUpload
+     * @param  string  $name  字段名称
      */
     public static function localFileUpload(string $name): Forms\Components\FileUpload
     {
@@ -68,8 +64,7 @@ class FormComponents
     /**
      * 创建一个 Markdown 编辑器组件
      *
-     * @param string $name 字段名称
-     * @return Forms\Components\MarkdownEditor
+     * @param  string  $name  字段名称
      */
     public static function markdownEditor(string $name): Forms\Components\MarkdownEditor
     {
@@ -81,8 +76,7 @@ class FormComponents
     /**
      * 创建一个富文本编辑器组件
      *
-     * @param string $name 字段名称
-     * @return Forms\Components\RichEditor
+     * @param  string  $name  字段名称
      */
     public static function richEditor(string $name): Forms\Components\RichEditor
     {
@@ -93,9 +87,6 @@ class FormComponents
 
     /**
      * 为上传组件应用配置
-     *
-     * @param Forms\Components\FileUpload|Forms\Components\SpatieMediaLibraryFileUpload $component
-     * @return Forms\Components\FileUpload|Forms\Components\SpatieMediaLibraryFileUpload
      */
     protected static function applyUploadConfig(
         Forms\Components\FileUpload | Forms\Components\SpatieMediaLibraryFileUpload $component
@@ -142,9 +133,6 @@ class FormComponents
 
     /**
      * 为编辑器组件应用配置
-     *
-     * @param Forms\Components\MarkdownEditor|Forms\Components\RichEditor $component
-     * @return Forms\Components\MarkdownEditor|Forms\Components\RichEditor
      */
     protected static function applyEditorConfig(
         Forms\Components\MarkdownEditor | Forms\Components\RichEditor $component
