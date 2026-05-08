@@ -15,7 +15,8 @@ class FormComponents
         );
 
         $component = Forms\Components\SpatieMediaLibraryFileUpload::make($name)
-            ->collection($collection);
+            ->collection($collection)
+            ->image();
 
         static::applyUploadConfig($component, $config);
 
@@ -37,7 +38,7 @@ class FormComponents
         return $component;
     }
 
-    public static function localImageUpload(string $name, string $directory, array $options = []): Forms\Components\FileUpload
+    public static function localImageUpload(string $name, array $options = []): Forms\Components\FileUpload
     {
         $config = static::mergeOptions(
             static::getConfig('local_image'),
@@ -45,22 +46,21 @@ class FormComponents
         );
 
         $component = Forms\Components\FileUpload::make($name)
-            ->directory($directory);
+            ->image();
 
         static::applyUploadConfig($component, $config);
 
         return $component;
     }
 
-    public static function localFileUpload(string $name, string $directory, array $options = []): Forms\Components\FileUpload
+    public static function localFileUpload(string $name, array $options = []): Forms\Components\FileUpload
     {
         $config = static::mergeOptions(
             static::getConfig('local_file'),
             $options
         );
 
-        $component = Forms\Components\FileUpload::make($name)
-            ->directory($directory);
+        $component = Forms\Components\FileUpload::make($name);
 
         static::applyUploadConfig($component, $config);
 
@@ -218,23 +218,19 @@ class FormComponents
         Forms\Components\FileUpload|Forms\Components\SpatieMediaLibraryFileUpload $component,
         array $config
     ): void {
-        if (! empty($config['disk'])) {
-            $component->disk($config['disk']);
-        } elseif ($component instanceof Forms\Components\SpatieMediaLibraryFileUpload) {
-            $component->disk(SupportUtils::getFilesystemDisk());
-        }
+        // if (! empty($config['disk'])) {
+        //     $component->disk($config['disk']);
+        // } elseif ($component instanceof Forms\Components\SpatieMediaLibraryFileUpload) {
+        //     $component->disk(SupportUtils::getFilesystemDisk());
+        // }
 
         if (isset($config['visibility'])) {
             $component->visibility($config['visibility']);
         }
 
-        if (! empty($config['image'])) {
-            $component->image();
-        }
-
-        if (! empty($config['multiple'])) {
-            $component->multiple();
-        }
+        // if (! empty($config['multiple'])) {
+        //     $component->multiple();
+        // }
 
         if (! empty($config['downloadable'])) {
             $component->downloadable();
@@ -252,32 +248,24 @@ class FormComponents
             $component->appendFiles();
         }
 
-        if (isset($config['max_files'])) {
-            $component->maxFiles($config['max_files']);
-        }
+        // if (isset($config['max_files'])) {
+        //     $component->maxFiles($config['max_files']);
+        // }
 
-        if (isset($config['min_files'])) {
-            $component->minFiles($config['min_files']);
-        }
+        // if (isset($config['min_files'])) {
+        //     $component->minFiles($config['min_files']);
+        // }
 
-        if (isset($config['max_size'])) {
-            $component->maxSize($config['max_size']);
-        }
+        // if (isset($config['max_size'])) {
+        //     $component->maxSize($config['max_size']);
+        // }
 
-        if (isset($config['accepted_file_types'])) {
-            $component->acceptedFileTypes($config['accepted_file_types']);
-        }
+        // if (isset($config['accepted_file_types'])) {
+        //     $component->acceptedFileTypes($config['accepted_file_types']);
+        // }
 
         if (isset($config['image_preview_height'])) {
             $component->imagePreviewHeight($config['image_preview_height']);
-        }
-
-        if (isset($config['uploading_message'])) {
-            $component->uploadingMessage($config['uploading_message']);
-        }
-
-        if (isset($config['custom_properties']) && $component instanceof Forms\Components\SpatieMediaLibraryFileUpload) {
-            $component->customProperties($config['custom_properties']);
         }
     }
 
@@ -287,10 +275,6 @@ class FormComponents
     ): void {
         if (isset($config['toolbar_buttons'])) {
             $component->toolbarButtons($config['toolbar_buttons']);
-        }
-
-        if (isset($config['file_attachments_directory'])) {
-            $component->fileAttachmentsDirectory($config['file_attachments_directory']);
         }
 
         if (isset($config['file_attachments_disk'])) {

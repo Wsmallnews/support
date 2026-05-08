@@ -87,12 +87,10 @@ return [
                     'custom_properties' => null,
                 ],
                 'image' => [
-                    'image' => true,
                     'multiple' => false,
                     'uploading_message' => '图片上传中...',
                 ],
                 'file' => [
-                    'image' => false,
                     'multiple' => false,
                     'reorderable' => false,
                     'accepted_file_types' => ['application/*', 'text/*'],
