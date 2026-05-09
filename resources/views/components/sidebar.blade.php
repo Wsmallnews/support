@@ -23,13 +23,16 @@
 
         <li
             class="flex flex-col"
-            role="menuitem"
+            role="none"
         >
             <a @class([
-                    'flex w-full h-10 justify-between items-center px-4 gap-2 group',
                     'sn-link sn-descript-text sn-hover',
+                    'flex w-full min-h-11 py-2 justify-between items-center px-4 gap-2 group',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500',
                     'sn-active' => $isActive,
                 ])
+                role="menuitem"
+                @if ($isActive) aria-current="page" @endif
                 {{ $url ? generate_href_html($url, ($menu['target'] ?? false), $menu['spaMode'] ?? $spaMode) : 'href=javascript:;' }}
             >
                 <div class="flex items-center gap-1">

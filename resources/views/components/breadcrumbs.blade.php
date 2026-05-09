@@ -8,10 +8,10 @@
     'breadcrumbs' => [],
 ])
 
-<nav {{ $attributes->class(['fi-breadcrumbs']) }}>
+<nav {{ $attributes->class(['fi-breadcrumbs'])->merge(['aria-label' => __('面包屑导航')]) }}>
     <ol class="fi-breadcrumbs-list">
         @foreach ($breadcrumbs as $breadcrumb)
-            <li class="fi-breadcrumbs-item">
+            <li class="fi-breadcrumbs-item" @if ($loop->last) aria-current="page" @endif>
                 @if (! $loop->first)
                     {{
                         generate_icon_html(\Filament\Support\Icons\Heroicon::ChevronRight, alias: \Filament\Support\View\SupportIconAlias::BREADCRUMBS_SEPARATOR, attributes: (new ComponentAttributeBag)->class([

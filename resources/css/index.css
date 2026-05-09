@@ -4,6 +4,28 @@
 @source "../../../../vendor/codewithdennis/filament-simple-alert/resources/**/*.blade.php";
 @source inline("animate-{spin,pulse,bounce}");
 
+/* 尊重用户的减少动画偏好 (UI/UX Pro Max - reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .sn-motion-scale {
+        transform: none !important;
+    }
+}
+
+/* 图片 hover 缩放 - 自动尊重 reduced-motion */
+.sn-motion-scale {
+    @apply transition-transform duration-500 ease-in-out;
+    @apply group-hover:scale-110;
+}
+
 /** ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ 自定义 class ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ **/
 
 /* 区块背景色，支持暗黑 */
@@ -249,6 +271,30 @@
         /** 内部 active */
         @apply bg-primary-100 dark:bg-primary-900;
     }
+}
+
+/* "查看更多" 等次级链接统一样式 */
+.sn-link-more {
+    @apply inline-flex items-center gap-1 text-sm font-medium;
+    @apply text-primary-600 dark:text-primary-400;
+    @apply hover:text-primary-700 dark:hover:text-primary-300;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 rounded-sm;
+    @apply transition-colors duration-200 ease-in-out;
+}
+
+/* 占位图（无图时显示） - 同时支持暗黑 */
+.sn-image-placeholder {
+    @apply w-full h-full flex items-center justify-center;
+    @apply bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600;
+}
+
+/* 区块标题 - 居中 + 下划线点缀 (用于首页 section title) */
+.sn-section-title {
+    @apply relative inline-block;
+}
+.sn-section-title::after {
+    content: '';
+    @apply absolute left-0 -bottom-2 w-full h-1 rounded-full bg-primary-500 dark:bg-primary-600;
 }
 
 /** ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ 自定义 class ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ **/

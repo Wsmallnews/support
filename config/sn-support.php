@@ -38,9 +38,7 @@ return [
     | Filament Form Components
     |--------------------------------------------------------------------------
     |
-    | 统一管理 Filament 表单组件的默认配置，采用层级继承结构。
-    | 配置合并顺序：upload.common → upload.{local|media}.common → upload.{local|media}.{image|file}
-    | 编辑器合并顺序：editor.common → editor.{markdown|rich}
+    | 统一管理 Filament 表单组件的默认配置
     |
     */
     'form_components' => [
