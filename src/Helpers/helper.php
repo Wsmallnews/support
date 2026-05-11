@@ -161,7 +161,7 @@ if (! function_exists('files_url')) {
 
         $diskUrl = config('filesystems.disks.' . $disk . '.url');
         $files = Arr::map($files, function ($file) use ($diskUrl) {
-            return $diskUrl . '/' . $file;
+            return str($file)->startsWith(['http://', 'https://', 'data:image/']) ? $file : $diskUrl . '/' . $file;
         });
 
         return Arr::accessible($originalFiles) ? $files : Arr::first($files);

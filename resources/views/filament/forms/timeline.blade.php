@@ -72,7 +72,7 @@
                         @if ($activity->causer)
                             <span class="flex items-center gap-1">
                                 @if ($activity->causer->getFilamentAvatarUrl())
-                                    <img src="{{ files_url($activity->causer->getFilamentAvatarUrl()) }}" alt="{{ $activity->causer->getFilamentName() }}" class="w-4 h-4 rounded-full" />
+                                    <img src="{{ $activity->causer->getFilamentAvatarUrl() }}" alt="{{ $activity->causer->getFilamentName() }}" class="w-4 h-4 rounded-full" />
                                 @else
                                     <x-filament::icon :icon="Heroicon::User" class="w-4 h-4" />
                                 @endif
