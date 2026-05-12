@@ -22,9 +22,9 @@ class Base extends Component
      * - 如果没有异常，提交事务
      *
      * @param  Closure  $callback  需要在事务中执行的匿名函数
-     * @return mixed  回调函数的返回值
+     * @return mixed 回调函数的返回值
      *
-     * @throws Throwable  当事务执行失败时抛出异常并自动回滚
+     * @throws Throwable 当事务执行失败时抛出异常并自动回滚
      */
     public function transaction(Closure $callback): mixed
     {
