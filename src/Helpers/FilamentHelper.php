@@ -42,11 +42,11 @@ class FilamentHelper
                 return $query
                     ->when(
                         $data[$field_name . '_from'],
-                        fn(Builder $query, $date): Builder => $query->whereDate($field_name, '>=', $date),
+                        fn (Builder $query, $date): Builder => $query->whereDate($field_name, '>=', $date),
                     )
                     ->when(
                         $data[$field_name . '_until'],
-                        fn(Builder $query, $date): Builder => $query->whereDate($field_name, '<=', $date),
+                        fn (Builder $query, $date): Builder => $query->whereDate($field_name, '<=', $date),
                     );
             });
     }
