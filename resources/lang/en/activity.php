@@ -74,8 +74,8 @@ return [
             'label' => 'Activity Timeline',
         ],
         'export' => [
-            'completed_body' => 'Your activity log export has completed and :count rows exported.',
-            'failed_body' => ' :fail_count rows failed to export',
+            'completed_body' => 'Your activity log export has completed and :count :unit exported.',
+            'failed_body' => ' :fail_count :fail_unit failed to export',
         ],
         'revert' => [
             'label' => 'Revert',

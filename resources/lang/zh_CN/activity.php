@@ -74,9 +74,7 @@ return [
             'label' => '操作时间线',
         ],
         'export' => [
-            // 'completed_body' => 'Your activity log export has completed and ' . Number::format($export->successful_rows) . ' ' . str(' row ')->plural($export->successful_rows) . ' exported . ';',
             'completed_body' => '您的活动日志导出已完成，共导出了 :count 行数据。',
-            // 'failed_body' => ' ' . Number::format($failedRowsCount) . ' ' . str('row')->plural($failedRowsCount) . ' failed to export.';
             'failed_body' => ' 共 :fail_count 行数据导出失败',
         ],
         'revert' => [
