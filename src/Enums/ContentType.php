@@ -23,9 +23,9 @@ enum ContentType: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): string | Htmlable | null
     {
         return match ($this) {
-            self::Textarea => '纯文本',
-            self::Richtext => '富文本',
-            self::Markdown => 'Markdown',
+            self::Textarea => __('sn-support::support.content_type.textarea'),
+            self::Richtext => __('sn-support::support.content_type.richtext'),
+            self::Markdown => __('sn-support::support.content_type.markdown'),
         };
     }
 

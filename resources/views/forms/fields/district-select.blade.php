@@ -74,15 +74,15 @@
 
             <x-sn-support::tabs label="Content tabs" :contained="true" class="bg-white px-4">
                 <x-sn-support::tabs.item tag="a" @click="switchTab('province')" alpine-active="currentTab == 'province'">
-                    省
+                    {{ __('sn-support::support.province') }}
                 </x-sn-support::tabs.item>
 
                 <x-sn-support::tabs.item tag="a" @click="switchTab('city')" alpine-active="currentTab == 'city'">
-                    市
+                    {{ __('sn-support::support.city') }}
                 </x-sn-support::tabs.item>
 
                 <x-sn-support::tabs.item tag="a" @click="switchTab('district')" alpine-active="currentTab == 'district'">
-                    区/县
+                    {{ __('sn-support::support.district') }}
                 </x-sn-support::tabs.item>
             </x-sn-support::tabs>
 

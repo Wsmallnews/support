@@ -50,7 +50,7 @@
         class="sn-collapse-toggle"
         @click="toggle()"
     >
-        <span x-text="collapsed ? '展开全部' : '收起'"></span>
+        <span x-text="collapsed ? '{{ __('sn-support::support.expand_all') }}' : '{{ __('sn-support::support.collapse') }}'"></span>
         <x-filament::icon x-show="collapsed" icon="heroicon-m-chevron-down" class="size-4 font-semibold" />
         <x-filament::icon x-show="!collapsed" icon="heroicon-m-chevron-up" class="size-4 font-semibold" />
     </div>

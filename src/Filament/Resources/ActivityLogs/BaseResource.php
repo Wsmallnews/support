@@ -20,17 +20,9 @@ abstract class BaseResource extends Resource
 
     protected static string | BackedEnum | null $activeNavigationIcon = Heroicon::DocumentText;
 
-    protected static ?string $navigationLabel = '日志管理';
-
-    protected static string | UnitEnum | null $navigationGroup = '系统管理';
-
     protected static ?string $slug = 'activity-logs';
 
     protected static ?string $recordTitleAttribute = 'log_name';
-
-    protected static ?string $modelLabel = '日志';
-
-    protected static ?string $pluralModelLabel = '日志';
 
     protected static ?int $navigationSort = 3;
 
@@ -40,6 +32,26 @@ abstract class BaseResource extends Resource
     public static function getModel(): string
     {
         return ActivitylogConfig::activityModel();
+    }
+
+    public static function getModelLabel(): string
+    {
+        return static::$modelLabel ?? __('sn-support::activity.activity_log_resource.model_label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return static::$pluralModelLabel ?? __('sn-support::activity.activity_log_resource.plural_model_label');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return static::$navigationLabel ?? __('sn-support::activity.activity_log_resource.navigation_label');
+    }
+
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return static::$navigationGroup ?? __('sn-support::activity.activity_log_resource.navigation_group');
     }
 
     public static function table(Table $table): Table
@@ -58,7 +70,7 @@ abstract class BaseResource extends Resource
 
         // resource 只查询 默认 log_name 的日志
         return parent::getEloquentQuery()->with([
-            'causer' => fn ($query) => $query->withoutGlobalScope($panel->getTenancyScopeName()),       // 查询的有普通用户日志，不能限制只关联管理员（移除全局作用域）
+            'causer' => fn($query) => $query->withoutGlobalScope($panel->getTenancyScopeName()),       // 查询的有普通用户日志，不能限制只关联管理员（移除全局作用域）
             'subject',
         ])->where('log_name', config('activitylog.default_log_name'));
     }

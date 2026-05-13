@@ -8,7 +8,7 @@
     'breadcrumbs' => [],
 ])
 
-<nav {{ $attributes->class(['fi-breadcrumbs'])->merge(['aria-label' => __('面包屑导航')]) }}>
+<nav {{ $attributes->class(['fi-breadcrumbs'])->merge(['aria-label' => __('sn-support::support.breadcrumb_nav')]) }}>
     <ol class="fi-breadcrumbs-list">
         @foreach ($breadcrumbs as $breadcrumb)
             <li class="fi-breadcrumbs-item" @if ($loop->last) aria-current="page" @endif>

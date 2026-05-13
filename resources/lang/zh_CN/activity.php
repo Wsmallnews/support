@@ -3,9 +3,22 @@
 return [
     'timeline' => '时间线',
 
+    'event' => [
+        'created' => '创建',
+        'updated' => '更新',
+        'deleted' => '删除',
+        'restored' => '恢复',
+    ],
+
+    'activity_log_resource' => [
+        'model_label' => '日志',
+        'plural_model_label' => '日志',
+        'navigation_group' => '系统管理',
+        'navigation_label' => '日志管理',
+    ],
+
     'table' => [
         'column' => [
-            'id' => 'ID',
             'event' => '事件',
             'subject_type' => '对象类型',
             'subject_title' => '对象标题',
@@ -19,6 +32,7 @@ return [
             'ip_address' => 'IP 地址',
             'browser' => '浏览器',
             'created_at' => '发生时间',
+            'created_filter_label' => '发生',
         ],
         'filter' => [
             'only_panel' => '仅显示当前面板的日志',
@@ -88,4 +102,7 @@ return [
             ],
         ],
     ],
+
+    'no_activity' => '暂无活动日志',
+    'no_activity_desc' => '暂无活动日志。',
 ];

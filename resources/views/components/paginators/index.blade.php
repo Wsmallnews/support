@@ -9,15 +9,15 @@
     @if ($pageType == 'scroll')
         @if ($pageInfo['load_status'] == 'loading')
             <div class="sn-descript-text flex justify-center items-center gap-2" x-intersect="$wire.nextPage('{{ $pageName }}')">
-                <x-filament::loading-indicator class="size-5" /> 正在加载更多
+                <x-filament::loading-indicator class="size-5" /> {{ __('sn-support::support.loading_more') }}
             </div>
         @elseif ($pageInfo['load_status'] == 'empty')
             <div class="sn-descript-text flex justify-center items-center" >
-                暂没有更多数据
+                {{ __('sn-support::support.no_more_data') }}
             </div>
         @elseif ($pageInfo['load_status'] == 'nomore')
             <div class="sn-descript-text flex justify-center items-center" >
-                已经到底啦
+                {{ __('sn-support::support.reached_bottom') }}
             </div>
         @endif
     @elseif ($pageType == 'manual')
@@ -28,19 +28,19 @@
 
             @if ($pageInfo['load_status'] == 'loading')
                 <div class="flex justify-center items-center gap-2" wire:loading.flex wire:target="nextPage({{ $pageName }})">
-                    <x-filament::loading-indicator class="size-4 inline-block" /> 正在加载更多
+                    <x-filament::loading-indicator class="size-4 inline-block" /> {{ __('sn-support::support.loading_more') }}
                 </div>
                 <div wire:loading.remove wire:target="nextPage({{ $pageName }})">
-                    <span class="cursor-pointer" wire:click="nextPage('{{ $pageName }}')">展开更多</span>
+                    <span class="cursor-pointer" wire:click="nextPage('{{ $pageName }}')">{{ __('sn-support::support.load_more') }}</span>
                 </div>
             @elseif ($pageInfo['load_status'] == 'empty')
-                <span>暂没有更多数据</span>
+                <span>{{ __('sn-support::support.no_more_data') }}</span>
             @elseif ($pageInfo['load_status'] == 'nomore')
-                <span>已经到底啦</span>
+                <span>{{ __('sn-support::support.reached_bottom') }}</span>
             @endif
 
             @if ($pageInfo['load_status'] != 'empty')
-                <span class="cursor-pointer" @click="$dispatch('hidden')">收起</span>
+                <span class="cursor-pointer" @click="$dispatch('hidden')">{{ __('sn-support::support.collapse') }}</span>
             @endif
         </div>
     @elseif ($pageType == 'paginator')

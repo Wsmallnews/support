@@ -23,26 +23,26 @@ class ActivityLogExporter extends Exporter
     {
         return [
             ExportColumn::make('id')
-                ->label(__('sn-support::activity.table.column.id')),
+                ->label('ID'),
             ExportColumn::make('event')
                 ->label(__('sn-support::activity.table.column.event'))
-                ->formatStateUsing(fn ($state) => ActivityLogEvent::tryFrom($state)?->getLabel() ?? ucfirst((string) $state)),
+                ->formatStateUsing(fn($state) => ActivityLogEvent::tryFrom($state)?->getLabel() ?? ucfirst((string) $state)),
             ExportColumn::make('subject_type')
                 ->label(__('sn-support::activity.table.column.subject_type'))
-                ->formatStateUsing(fn ($state, $record) => ActivityLogFormat::getTypeLabel($record->subject_type)),
+                ->formatStateUsing(fn($state, $record) => ActivityLogFormat::getTypeLabel($record->subject_type)),
             ExportColumn::make('subject_title')
                 ->label(__('sn-support::activity.table.column.subject_title'))
-                ->formatStateUsing(fn ($state, $record) => ActivityLogFormat::getTitle($record->subject)),
+                ->formatStateUsing(fn($state, $record) => ActivityLogFormat::getTitle($record->subject)),
             ExportColumn::make('subject_id')
                 ->label(__('sn-support::activity.table.column.subject_id')),
             ExportColumn::make('description')
                 ->label(__('sn-support::activity.table.column.description')),
             ExportColumn::make('causer_type')
                 ->label(__('sn-support::activity.table.column.causer_type'))
-                ->formatStateUsing(fn ($state, $record) => ActivityLogFormat::getTypeLabel($record->causer_type)),
+                ->formatStateUsing(fn($state, $record) => ActivityLogFormat::getTypeLabel($record->causer_type)),
             ExportColumn::make('causer.name')
                 ->label(__('sn-support::activity.table.column.causer_name'))
-                ->formatStateUsing(fn ($state, $record) => $record->causer?->name ?? ''),
+                ->formatStateUsing(fn($state, $record) => $record->causer?->name ?? ''),
             ExportColumn::make('causer_id')
                 ->label(__('sn-support::activity.table.column.causer_id')),
             ExportColumn::make('properties.ip_address')

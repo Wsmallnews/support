@@ -167,11 +167,11 @@
             icon-color="gray"
         >
             <x-slot name="heading">
-                暂无活动日志
+                {{ __('sn-support::activity.no_activity') }}
             </x-slot>
 
             <x-slot name="description">
-                暂无活动日志。
+                {{ __('sn-support::activity.no_activity_desc') }}
             </x-slot>
         </x-filament::empty-state>
     @endforelse

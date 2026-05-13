@@ -27,7 +27,12 @@ class CodeMessage extends EasySmsMessage
 
     protected $maxTimes = 3;
 
-    protected $contentTemplate = '您的短信验证码为：{code}, {minutes}分钟有效，请勿告诉他人';
+    protected $contentTemplate;
+
+    public function __construct()
+    {
+        $this->contentTemplate = __('sn-support::support.sms.content_template');
+    }
 
     /**
      * 初始化
@@ -149,7 +154,7 @@ class CodeMessage extends EasySmsMessage
 
         if (! $smsLog) {
             if ($exception) {
-                throw new SupportException('验证码不正确');
+                throw new SupportException(__('sn-support::support.sms.code_incorrect'));
             }
 
             return false;
@@ -158,7 +163,7 @@ class CodeMessage extends EasySmsMessage
         if ($smsLog->created_at < Carbon::now()->subSeconds($this->expire) || $smsLog->times >= $this->maxTimes) {
             $smsLog->delete();
             if ($exception) {
-                throw new SupportException('验证码不正确');
+                throw new SupportException(__('sn-support::support.sms.code_incorrect'));
             }
 
             return false;
@@ -168,7 +173,7 @@ class CodeMessage extends EasySmsMessage
             $smsLog->times = $smsLog->times + 1;
             $smsLog->save();
             if ($exception) {
-                throw new SupportException('验证码不正确');
+                throw new SupportException(__('sn-support::support.sms.code_incorrect'));
             }
 
             return false;

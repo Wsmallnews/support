@@ -18,8 +18,8 @@ class FilamentHelper
     public static function createUpdateRangeFilter(): array
     {
         return [
-            static::dateTimeRangeFilter('created_at', '创建'),
-            static::dateTimeRangeFilter('updated_at', '更新'),
+            static::dateTimeRangeFilter('created_at', __('sn-support::support.date_filter.created')),
+            static::dateTimeRangeFilter('updated_at', __('sn-support::support.date_filter.updated')),
         ];
     }
 
@@ -34,19 +34,19 @@ class FilamentHelper
         return Tables\Filters\Filter::make($field_name)
             ->schema([
                 Schemas\Components\Group::make()->schema([
-                    Forms\Components\DatePicker::make($field_name . '_from')->label(($label ?? '') . '开始时间')->columnSpan(1),
-                    Forms\Components\DatePicker::make($field_name . '_until')->label(($label ?? '') . '结束时间')->columnSpan(1),
+                    Forms\Components\DatePicker::make($field_name . '_from')->label(($label ?? '') . __('sn-support::support.date_filter.from'))->columnSpan(1),
+                    Forms\Components\DatePicker::make($field_name . '_until')->label(($label ?? '') . __('sn-support::support.date_filter.until'))->columnSpan(1),
                 ])->columns(2),
             ])
             ->query(function (Builder $query, array $data) use ($field_name): Builder {
                 return $query
                     ->when(
                         $data[$field_name . '_from'],
-                        fn (Builder $query, $date): Builder => $query->whereDate($field_name, '>=', $date),
+                        fn(Builder $query, $date): Builder => $query->whereDate($field_name, '>=', $date),
                     )
                     ->when(
                         $data[$field_name . '_until'],
-                        fn (Builder $query, $date): Builder => $query->whereDate($field_name, '<=', $date),
+                        fn(Builder $query, $date): Builder => $query->whereDate($field_name, '<=', $date),
                     );
             });
     }

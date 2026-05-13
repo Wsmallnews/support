@@ -28,10 +28,10 @@ enum ActivityLogEvent: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): string | Htmlable | null
     {
         return match ($this) {
-            self::Created => '创建',
-            self::Updated => '更新',
-            self::Deleted => '删除',
-            self::Restored => '恢复',
+            self::Created => __('sn-support::activity.event.created'),
+            self::Updated => __('sn-support::activity.event.updated'),
+            self::Deleted => __('sn-support::activity.event.deleted'),
+            self::Restored => __('sn-support::activity.event.restored'),
         };
     }
 

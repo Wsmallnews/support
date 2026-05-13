@@ -50,7 +50,7 @@ trait Smsable
             exception_log($e, 'smsEasysmsError');
 
             // 抛出异常
-            throw new SupportException('短信发送失败');
+            throw new SupportException(__('sn-support::support.sms.send_failed'));
         }
 
         return $result;
