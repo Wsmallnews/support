@@ -6,7 +6,6 @@ trait HasProperties
 {
     public ?array $properties = [];
 
-
     public function getProperties(): array
     {
         return $this->properties;
