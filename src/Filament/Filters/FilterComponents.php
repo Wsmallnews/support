@@ -1,16 +1,13 @@
 <?php
 
-namespace Wsmallnews\Support\Helpers;
+namespace Wsmallnews\Support\Filament\Filters;
 
 use Filament\Forms;
 use Filament\Schemas;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 
-/**
- * Helper functions for Filament operations.
- */
-class FilamentHelper
+class FilterComponents
 {
     /**
      * 创建时间，更新时间 筛选

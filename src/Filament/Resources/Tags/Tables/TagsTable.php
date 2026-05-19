@@ -9,7 +9,7 @@ use Filament\Actions\EditAction;
 use Filament\Support\Enums\Width;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Wsmallnews\Support\Helpers\FilamentHelper;
+use Wsmallnews\Support\Filament\Filters\FilterComponents;
 
 class TagsTable
 {
@@ -52,7 +52,7 @@ class TagsTable
             ->searchPlaceholder('搜索名称、Slug等...')
             ->filtersFormWidth(Width::Medium)
             ->filters([
-                ...FilamentHelper::createUpdateRangeFilter(),
+                ...FilterComponents::createUpdateRangeFilter(),
             ])
             ->recordActions([
                 EditAction::make(),
