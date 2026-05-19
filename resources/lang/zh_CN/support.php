@@ -27,4 +27,8 @@ return [
         'code_incorrect' => '验证码不正确',
         'send_failed' => '短信发送失败',
     ],
+
+    'action' => [
+        'delete_failed' => '删除失败',
+    ],
 ];

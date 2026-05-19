@@ -27,4 +27,8 @@ return [
         'code_incorrect' => 'Verification code is incorrect',
         'send_failed' => 'Failed to send SMS',
     ],
+
+    'action' => [
+        'delete_failed' => 'Failed to delete',
+    ],
 ];

@@ -1,9 +1,5 @@
 @source "../views/**/*";
 
-/* CodeWithDennis\SimpleAlert */
-@source "../../../../vendor/codewithdennis/filament-simple-alert/resources/**/*.blade.php";
-@source inline("animate-{spin,pulse,bounce}");
-
 /* 尊重用户的减少动画偏好 (UI/UX Pro Max - reduced-motion) */
 @media (prefers-reduced-motion: reduce) {
     *,
@@ -293,7 +289,7 @@
     @apply relative inline-block;
 }
 .sn-section-title::after {
-    content: '';
+    content: "";
     @apply absolute left-0 -bottom-2 w-full h-1 rounded-full bg-primary-500 dark:bg-primary-600;
 }
 
