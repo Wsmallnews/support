@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Intervention\Image\Image;
-use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use RalphJSmit\Livewire\Urls\Middleware\LivewireUrlsMiddleware;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
