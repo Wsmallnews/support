@@ -25,7 +25,6 @@ use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
-use Wsmallnews\Support\Testing\TestsSupport;
 
 class SupportServiceProvider extends PackageServiceProvider
 {
@@ -110,9 +109,6 @@ class SupportServiceProvider extends PackageServiceProvider
             // 记录路由历史
             LivewireUrlsMiddleware::class,
         ]);
-
-        // Testing
-        Testable::mixin(new TestsSupport);
 
         // 暂时先放开
         Number::macro('symbol', function (string $in = 'USD', ?string $locale = null) {
