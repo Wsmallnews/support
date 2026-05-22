@@ -2,7 +2,6 @@
 
 namespace Wsmallnews\Support\Commands;
 
-use Illuminate\Support\Facades\Artisan;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Wsmallnews\Support\Concerns\Install\ThirdPartyPublishes;
