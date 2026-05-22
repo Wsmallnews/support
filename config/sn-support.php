@@ -38,72 +38,72 @@ return [
     | Filament Form Components
     |--------------------------------------------------------------------------
     |
-    | 统一管理 Filament 表单组件的默认配置
+    | Unified management of default configurations for Filament form components
     |
     */
     'form_components' => [
         /**
-         * 上传组件默认配置
+         * Upload component default configuration
          */
         'upload' => [
             /**
-             * 可见性
+             * Visibility
              */
             'visibility' => 'public',
             /**
-             * 可下载
+             * Downloadable
              */
             'downloadable' => true,
             /**
-             * 可打开
+             * Openable
              */
             'openable' => true,
             /**
-             * 可排序 (多文件上传有效)
+             * Reorderable (valid for multi-file upload)
              */
             'reorderable' => true,
             /**
-             * 追加文件模式 (多文件上传有效)
+             * Append files mode (valid for multi-file upload)
              */
             'append_files' => true,
             /**
-             * 最大文件数 (多文件上传有效)
+             * Maximum number of files (valid for multi-file upload)
              */
             'max_files' => 10,
             /**
-             * 最大文件大小 默认 120MB
+             * Maximum file size, default 120MB
              */
             'max_size' => 122880,
             /**
-             * 图片预览高度, 默认 200px
+             * Image preview height, default 200px
              */
             'image_preview_height' => '200',
         ],
 
         'editor' => [
             /**
-             * 内容字符最大长度，默认 null 不限制
+             * Maximum content length, default null (unlimited)
              */
             'max_length' => null,
             /**
-             * 文件上传配置
+             * File upload configuration
              */
             'file_attachment' => [
                 /**
-                 * 可见性 (仅 richtext 有效)
+                 * Visibility (richtext only)
                  */
                 'visibility' => 'public',
                 /**
-                 * 最大文件大小 默认 120MB
+                 * Maximum file size, default 120MB
                  */
                 'max_size' => 122880,
             ],
             /**
-             * markdown 编辑器配置
+             * Markdown editor configuration
              */
             'markdown' => [
                 /**
-                 * 工具栏按钮
+                 * Toolbar buttons
                  */
                 'toolbar_buttons' => [
                     ['bold', 'italic', 'strike', 'link'],
@@ -114,40 +114,53 @@ return [
                 ],
             ],
             /**
-             * 富文本编辑器配置
+             * Rich text editor configuration
              */
             'richtext' => [
                 /**
-                 * 工具栏按钮
+                 * Toolbar buttons
                  */
                 'toolbar_buttons' => [
                     ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link', 'textColor'],
                     ['h2', 'h3'],
                     ['alignStart', 'alignCenter', 'alignEnd'],
                     ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
-                    ['table', 'attachFiles'], // The `customBlocks` and `mergeTags` tools are also added here if those features are used.
+                    ['table', 'attachFiles'],
                     ['undo', 'redo'],
                 ],
                 /**
-                 * 浮动工具栏按钮
+                 * Floating toolbar buttons
                  */
                 'floating_toolbars' => [
                     'paragraph' => [
-                        'bold', 'italic', 'underline', 'strike', 'subscript', 'superscript',
+                        'bold',
+                        'italic',
+                        'underline',
+                        'strike',
+                        'subscript',
+                        'superscript',
                     ],
                     'heading' => [
-                        'h1', 'h2', 'h3',
+                        'h1',
+                        'h2',
+                        'h3',
                     ],
                     'table' => [
-                        'tableAddColumnBefore', 'tableAddColumnAfter', 'tableDeleteColumn',
-                        'tableAddRowBefore', 'tableAddRowAfter', 'tableDeleteRow',
-                        'tableMergeCells', 'tableSplitCell',
-                        'tableToggleHeaderRow', 'tableToggleHeaderCell',
+                        'tableAddColumnBefore',
+                        'tableAddColumnAfter',
+                        'tableDeleteColumn',
+                        'tableAddRowBefore',
+                        'tableAddRowAfter',
+                        'tableDeleteRow',
+                        'tableMergeCells',
+                        'tableSplitCell',
+                        'tableToggleHeaderRow',
+                        'tableToggleHeaderCell',
                         'tableDelete',
                     ],
                 ],
                 /**
-                 * 文本颜色列表, 工具栏中包含 textColor 时生效
+                 * Text color list, effective when textColor is included in toolbar
                  */
                 'text_colors' => null,
             ],

@@ -7,6 +7,7 @@ use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
+use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Event;
@@ -21,6 +22,7 @@ use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\LaravelSettings\Events\SavingSettings;
+use Wsmallnews\Support\Concerns\Install\ThirdPartyPublishes;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
@@ -28,6 +30,8 @@ use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
 
 class SupportServiceProvider extends PackageServiceProvider
 {
+    use ThirdPartyPublishes;
+
     public static string $name = 'sn-support';
 
     public static string $viewNamespace = 'sn-support';
@@ -35,30 +39,34 @@ class SupportServiceProvider extends PackageServiceProvider
     public function configurePackage(Package $package): void
     {
         $package->name(static::$name)
+            ->hasCommands($this->getCommands())
+            ->hasConfigFile()
+            ->hasMigrations($this->getMigrations())
+            ->hasTranslations()
+            ->hasViews(static::$viewNamespace)
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
+                    ->startWith(function (InstallCommand $command) {
+                        $thirdPartyPublishes = [
+                            // spatie/laravel-medialibrary
+                            ['provider' => 'Spatie\MediaLibrary\MediaLibraryServiceProvider', 'tag' => 'medialibrary-config', 'label' => 'media-library config'],
+                            ['provider' => 'Spatie\MediaLibrary\MediaLibraryServiceProvider', 'tag' => 'medialibrary-migrations', 'label' => 'media-library migrations'],
+                            // spatie/laravel-settings
+                            ['provider' => 'Spatie\LaravelSettings\LaravelSettingsServiceProvider', 'tag' => 'config', 'label' => 'settings config'],
+                            ['provider' => 'Spatie\LaravelSettings\LaravelSettingsServiceProvider', 'tag' => 'migrations', 'label' => 'settings migrations'],
+                            // spatie/laravel-activitylog
+                            ['provider' => 'Spatie\Activitylog\ActivitylogServiceProvider', 'tag' => 'activitylog-config', 'label' => 'activitylog config'],
+                            ['provider' => 'Spatie\Activitylog\ActivitylogServiceProvider', 'tag' => 'activitylog-migrations', 'label' => 'activitylog migrations'],
+                        ];
+
+                        // 先发布第三方依赖的 配置 和 数据迁移
+                        $this->publishThirdParty($command, $thirdPartyPublishes);
+                    })
                     ->publishConfigFile()
+                    ->publishMigrations()
+                    ->askToRunMigrations()
                     ->askToStarRepoOnGitHub('wsmallnews/support');
             });
-
-        $configFileName = $package->shortName();
-
-        if (file_exists($package->basePath("/../config/{$configFileName}.php"))) {
-            $package->hasConfigFile();
-        }
-
-        if (file_exists($package->basePath('/../database/migrations'))) {
-            $package->hasMigrations($this->getMigrations());
-            $package->runsMigrations();
-        }
-
-        if (file_exists($package->basePath('/../resources/lang'))) {
-            $package->hasTranslations();
-        }
-
-        if (file_exists($package->basePath('/../resources/views'))) {
-            $package->hasViews(static::$viewNamespace);
-        }
     }
 
     public function packageRegistered(): void {}
@@ -93,6 +101,9 @@ class SupportServiceProvider extends PackageServiceProvider
             $this->getScriptData(),
             $this->getAssetPackageName()
         );
+
+        // Icon Registration
+        FilamentIcon::register($this->getIcons());
 
         // Handle Stubs
         if (app()->runningInConsole()) {
@@ -194,9 +205,9 @@ class SupportServiceProvider extends PackageServiceProvider
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<class-string>
      */
-    protected function getScriptData(): array
+    protected function getCommands(): array
     {
         return [];
     }
@@ -204,15 +215,38 @@ class SupportServiceProvider extends PackageServiceProvider
     /**
      * @return array<string>
      */
+    protected function getIcons(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string>
+     */
+    protected function getRoutes(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getScriptData(): array
+    {
+        return [];
+    }
+
+
+    /**
+     * @return array<string>
+     */
     protected function getMigrations(): array
     {
         return [
-            // '2025_01_20_113658_create_sn_sms_logs_table',
-            // '2025_04_17_105524_add_scopeinfo_to_media_table',
-            '2025_10_29_110527_create_sn_team_settings_table',
-            '2025_11_01_213119_create_sn_contents_table',
-            '2026_04_01_223809_create_activity_log_table',
-            '2026_04_01_224322_add_teams_fields_to_activity_log_table',
+            // 'create_sn_sms_logs_table',
+            'create_sn_team_settings_table',
+            'create_sn_contents_table',
+            'add_teams_fields_to_activity_log_table',
         ];
     }
 }
