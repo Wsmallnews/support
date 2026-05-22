@@ -17,11 +17,10 @@ use Intervention\Image\Image;
 use Livewire\Livewire;
 use RalphJSmit\Livewire\Urls\Middleware\LivewireUrlsMiddleware;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
-use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\LaravelSettings\Events\SavingSettings;
-use Wsmallnews\Support\Concerns\Install\ThirdPartyPublishes;
+use Wsmallnews\Support\Commands\SupportInstallCommand;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
@@ -29,8 +28,6 @@ use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
 
 class SupportServiceProvider extends PackageServiceProvider
 {
-    use ThirdPartyPublishes;
-
     public static string $name = 'sn-support';
 
     public static string $viewNamespace = 'sn-support';
@@ -42,30 +39,7 @@ class SupportServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasMigrations($this->getMigrations())
             ->hasTranslations()
-            ->hasViews(static::$viewNamespace)
-            ->hasInstallCommand(function (InstallCommand $command) {
-                $command
-                    ->startWith(function (InstallCommand $command) {
-                        $thirdPartyPublishes = [
-                            // spatie/laravel-medialibrary
-                            ['provider' => 'Spatie\MediaLibrary\MediaLibraryServiceProvider', 'tag' => 'medialibrary-config', 'label' => 'media-library config'],
-                            ['provider' => 'Spatie\MediaLibrary\MediaLibraryServiceProvider', 'tag' => 'medialibrary-migrations', 'label' => 'media-library migrations'],
-                            // spatie/laravel-settings
-                            ['provider' => 'Spatie\LaravelSettings\LaravelSettingsServiceProvider', 'tag' => 'config', 'label' => 'settings config'],
-                            ['provider' => 'Spatie\LaravelSettings\LaravelSettingsServiceProvider', 'tag' => 'migrations', 'label' => 'settings migrations'],
-                            // spatie/laravel-activitylog
-                            ['provider' => 'Spatie\Activitylog\ActivitylogServiceProvider', 'tag' => 'activitylog-config', 'label' => 'activitylog config'],
-                            ['provider' => 'Spatie\Activitylog\ActivitylogServiceProvider', 'tag' => 'activitylog-migrations', 'label' => 'activitylog migrations'],
-                        ];
-
-                        // 先发布第三方依赖的 配置 和 数据迁移
-                        $this->publishThirdParty($command, $thirdPartyPublishes);
-                    })
-                    ->publishConfigFile()
-                    ->publishMigrations()
-                    ->askToRunMigrations()
-                    ->askToStarRepoOnGitHub('wsmallnews/support');
-            });
+            ->hasViews(static::$viewNamespace);
     }
 
     public function packageRegistered(): void {}
@@ -208,7 +182,9 @@ class SupportServiceProvider extends PackageServiceProvider
      */
     protected function getCommands(): array
     {
-        return [];
+        return [
+            SupportInstallCommand::class,
+        ];
     }
 
     /**
