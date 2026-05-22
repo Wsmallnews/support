@@ -235,7 +235,6 @@ class SupportServiceProvider extends PackageServiceProvider
         return [];
     }
 
-
     /**
      * @return array<string>
      */
