@@ -2,9 +2,6 @@
 
 namespace Wsmallnews\Support\Concerns;
 
-use Wsmallnews\User\Enums\Gender;
-use Wsmallnews\User\Enums\Status;
-
 trait UserIdentifiable
 {
     public function getSnId(): int
