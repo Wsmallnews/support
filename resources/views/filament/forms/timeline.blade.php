@@ -71,11 +71,15 @@
                     <div class="mt-2 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500">
                         @if ($activity->causer)
                             <span class="flex items-center gap-1">
-                                @if ($activity->causer->getFilamentAvatarUrl())
-                                    <img src="{{ $activity->causer->getFilamentAvatarUrl() }}" alt="{{ $activity->causer->getFilamentName() }}" class="w-4 h-4 rounded-full" />
-                                @else
-                                    <x-filament::icon :icon="Heroicon::User" class="w-4 h-4" />
-                                @endif
+                                <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                    @if ($activity->causer->getFilamentAvatarUrl())
+                                        <img class="w-full h-full" src="{{ $activity->causer->getFilamentAvatarUrl() }}" alt="{{ $activity->causer->getFilamentName() }}" />
+                                    @else
+                                        <div class="sn-image-placeholder sn-motion-scale">
+                                            <x-filament::icon :icon="Heroicon::User" class="w-full h-full" aria-hidden="true" />
+                                        </div>
+                                    @endif
+                                </div>
                                 {{ $activity->causer->getFilamentName() }}
                             </span>
                         @endif

@@ -25,7 +25,7 @@ use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Exports\ActivityLogExporter;
-use Wsmallnews\Support\Helpers\FilamentHelper;
+use Wsmallnews\Support\Filament\Filters\FilterComponents;
 
 class ActivityLogTable
 {
@@ -48,7 +48,7 @@ class ActivityLogTable
                 static::eventFilter(),
                 static::causerFilter(),
                 static::subjectTypeFilter(),
-                FilamentHelper::dateTimeRangeFilter('created_at', __('sn-support::activity.table.column.created_filter_label')),
+                FilterComponents::dateTimeRangeFilter('created_at', __('sn-support::activity.table.column.created_filter_label')),
             ])
             ->headerActions([
                 static::exportHeaderAction(),
@@ -87,9 +87,9 @@ class ActivityLogTable
         return Tables\Columns\TextColumn::make('event')
             ->label(__('sn-support::activity.table.column.event'))
             ->badge()
-            ->formatStateUsing(fn ($state) => ActivityLogEvent::tryFrom($state)?->getLabel() ?? ucfirst((string) $state))
-            ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
-            ->icon(fn ($state) => ActivityLogEvent::tryFrom($state)?->getIcon())
+            ->formatStateUsing(fn($state) => ActivityLogEvent::tryFrom($state)?->getLabel() ?? ucfirst((string) $state))
+            ->color(fn($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
+            ->icon(fn($state) => ActivityLogEvent::tryFrom($state)?->getIcon())
             ->searchable()
             ->sortable()
             ->toggleable();
@@ -99,8 +99,8 @@ class ActivityLogTable
     {
         return Tables\Columns\TextColumn::make('subject_type')
             ->label(__('sn-support::activity.table.column.subject_info'))
-            ->formatStateUsing(fn ($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->subject_id . '</span> ' . (ActivityLogFormat::getTitle($record->subject))))
-            ->description(fn ($record) => ActivityLogFormat::getTypeLabel($record->subject_type))
+            ->formatStateUsing(fn($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->subject_id . '</span> ' . (ActivityLogFormat::getTitle($record->subject))))
+            ->description(fn($record) => ActivityLogFormat::getTypeLabel($record->subject_type))
             ->url(function ($record) {
                 return ActivityLogFormat::getUrl($record->subject);
             })
@@ -113,8 +113,8 @@ class ActivityLogTable
     {
         return Tables\Columns\TextColumn::make('causer.name')
             ->label(__('sn-support::activity.table.column.causer_info'))
-            ->formatStateUsing(fn ($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->causer_id . '</span> ' . ($record->causer?->name ?? '')))
-            ->description(fn ($record) => $record->causer?->email)
+            ->formatStateUsing(fn($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->causer_id . '</span> ' . ($record->causer?->name ?? '')))
+            ->description(fn($record) => $record->causer?->email)
             ->url(function ($record) {
                 return ActivityLogFormat::getUrl($record->causer);
             })
@@ -316,7 +316,7 @@ class ActivityLogTable
                 Notification::make()->success()->title(__('sn-support::activity.action.revert.success'))->send();
             })
             ->visible(
-                fn ($record) => $record->event === 'updated' &&
+                fn($record) => $record->event === 'updated' &&
                     $record->attribute_changes->has('old') &&
                     $record->subject !== null
                 // &&
