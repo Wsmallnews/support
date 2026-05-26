@@ -144,7 +144,7 @@
     }
 }
 .sn-h3-text {
-    @apply text-lg font-semibold text-gray-700 md:text-xl dark:text-gray-300;
+    @apply text-base font-semibold text-gray-700 md:text-lg dark:text-gray-300;
 
     &.sn-hover {
         /** 当前 hover 支持 group */
@@ -159,7 +159,7 @@
     }
 }
 .sn-h4-text {
-    @apply text-lg font-semibold text-gray-700 dark:text-gray-300;
+    @apply text-base font-semibold text-gray-700 dark:text-gray-300;
 
     &.sn-hover {
         /** 当前 hover 支持 group */
@@ -291,6 +291,289 @@
 .sn-section-title::after {
     content: "";
     @apply absolute left-0 -bottom-2 w-full h-1 rounded-full bg-primary-500 dark:bg-primary-600;
+}
+
+/* ========== 徽章/标签 ========== */
+
+/* 基础 */
+.sn-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+    @apply transition-colors duration-200 ease-in-out;
+}
+
+/* 实色变体 */
+.sn-badge-primary {
+    @apply bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400;
+}
+.sn-badge-danger {
+    @apply bg-danger-100 text-danger-700 dark:bg-danger-900/40 dark:text-danger-400;
+}
+.sn-badge-success {
+    @apply bg-success-100 text-success-700 dark:bg-success-900/40 dark:text-success-400;
+}
+.sn-badge-info {
+    @apply bg-info-100 text-info-700 dark:bg-info-900/40 dark:text-info-400;
+}
+.sn-badge-warning {
+    @apply bg-warning-100 text-warning-700 dark:bg-warning-900/40 dark:text-warning-400;
+}
+.sn-badge-gray {
+    @apply bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300;
+}
+
+/* outline 变体 */
+.sn-badge-outline {
+    @apply bg-transparent ring-1;
+}
+.sn-badge-outline-primary {
+    @apply ring-primary-300 text-primary-600 dark:ring-primary-700 dark:text-primary-400;
+}
+.sn-badge-outline-danger {
+    @apply ring-danger-300 text-danger-600 dark:ring-danger-700 dark:text-danger-400;
+}
+.sn-badge-outline-success {
+    @apply ring-success-300 text-success-600 dark:ring-success-700 dark:text-success-400;
+}
+.sn-badge-outline-info {
+    @apply ring-info-300 text-info-600 dark:ring-info-700 dark:text-info-400;
+}
+.sn-badge-outline-warning {
+    @apply ring-warning-300 text-warning-600 dark:ring-warning-700 dark:text-warning-400;
+}
+.sn-badge-outline-gray {
+    @apply ring-gray-300 text-gray-600 dark:ring-gray-600 dark:text-gray-400;
+}
+
+/* 尺寸 */
+.sn-badge-sm {
+    @apply px-1.5 py-0 text-[0.625rem];
+}
+.sn-badge-lg {
+    @apply px-3 py-1 text-sm;
+}
+
+/* ========== 按钮 ========== */
+
+/* 基础 */
+.sn-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md font-medium;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900;
+    @apply transition-all duration-200 ease-in-out;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* 尺寸 */
+.sn-btn-sm {
+    @apply px-3 py-1.5 text-xs;
+}
+.sn-btn-md {
+    @apply px-4 py-2 text-sm;
+}
+.sn-btn-lg {
+    @apply px-6 py-3 text-base;
+}
+
+/* 实色变体 */
+.sn-btn-primary {
+    @apply bg-primary-500 text-white shadow-sm;
+    @apply hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-500;
+}
+.sn-btn-secondary {
+    @apply bg-gray-100 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-200;
+    @apply hover:bg-gray-200 dark:hover:bg-gray-700;
+}
+.sn-btn-danger {
+    @apply bg-danger-500 text-white shadow-sm;
+    @apply hover:bg-danger-600 dark:bg-danger-600 dark:hover:bg-danger-500;
+}
+.sn-btn-success {
+    @apply bg-success-500 text-white shadow-sm;
+    @apply hover:bg-success-600 dark:bg-success-600 dark:hover:bg-success-500;
+}
+
+/* outline 变体 */
+.sn-btn-outline {
+    @apply ring-1 ring-gray-300 dark:ring-gray-600;
+    @apply bg-transparent text-gray-700 dark:text-gray-200;
+    @apply hover:bg-gray-50 dark:hover:bg-gray-800;
+}
+.sn-btn-outline-primary {
+    @apply ring-1 ring-primary-300 dark:ring-primary-700;
+    @apply bg-transparent text-primary-600 dark:text-primary-400;
+    @apply hover:bg-primary-50 dark:hover:bg-primary-900/30;
+}
+.sn-btn-outline-danger {
+    @apply ring-1 ring-danger-300 dark:ring-danger-700;
+    @apply bg-transparent text-danger-600 dark:text-danger-400;
+    @apply hover:bg-danger-50 dark:hover:bg-danger-900/30;
+}
+
+/* ghost 变体 */
+.sn-btn-ghost {
+    @apply bg-transparent text-gray-600 dark:text-gray-300;
+    @apply hover:bg-gray-100 dark:hover:bg-gray-800;
+}
+.sn-btn-ghost-primary {
+    @apply bg-transparent text-primary-600 dark:text-primary-400;
+    @apply hover:bg-primary-50 dark:hover:bg-primary-900/30;
+}
+.sn-btn-ghost-danger {
+    @apply bg-transparent text-danger-600 dark:text-danger-400;
+    @apply hover:bg-danger-50 dark:hover:bg-danger-900/30;
+}
+
+/* 图标按钮 */
+.sn-btn-icon {
+    @apply p-2;
+}
+.sn-btn-icon.sn-btn-sm {
+    @apply p-1.5;
+}
+.sn-btn-icon.sn-btn-lg {
+    @apply p-3;
+}
+
+/* ========== 空状态 ========== */
+
+.sn-empty {
+    @apply flex flex-col items-center justify-center px-4 py-12 text-center;
+}
+.sn-empty-icon {
+    @apply mb-4 text-gray-300 dark:text-gray-600;
+}
+.sn-empty-title {
+    @apply text-base font-semibold text-gray-700 dark:text-gray-300;
+}
+.sn-empty-description {
+    @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
+}
+
+/* ========== 骨架屏 ========== */
+
+.sn-skeleton {
+    @apply animate-pulse rounded bg-gray-200 dark:bg-gray-700;
+}
+.sn-skeleton-text {
+    @apply h-4 w-full rounded;
+}
+.sn-skeleton-text:not(:last-child) {
+    @apply mb-2;
+}
+.sn-skeleton-circle {
+    @apply animate-pulse rounded-full bg-gray-200 dark:bg-gray-700;
+}
+.sn-skeleton-rect {
+    @apply animate-pulse rounded-md bg-gray-200 dark:bg-gray-700;
+}
+
+/* ========== 头像 ========== */
+
+.sn-avatar {
+    @apply inline-flex size-10 items-center justify-center overflow-hidden rounded-full;
+    @apply bg-gray-200 text-sm font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400;
+}
+.sn-avatar-sm {
+    @apply size-8 text-xs;
+}
+.sn-avatar-lg {
+    @apply size-12 text-base;
+}
+.sn-avatar-xl {
+    @apply size-16 text-lg;
+}
+
+/* 头像组 */
+.sn-avatar-group {
+    @apply flex -space-x-2;
+}
+.sn-avatar-group .sn-avatar {
+    @apply ring-2 ring-white dark:ring-gray-900;
+}
+
+/* ========== 焦点环 ========== */
+
+.sn-focus-ring {
+    @apply rounded-sm;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900;
+}
+
+/* ========== 文字截断 ========== */
+
+.sn-truncate {
+    @apply truncate;
+}
+.sn-truncate-2 {
+    @apply line-clamp-2;
+}
+.sn-truncate-3 {
+    @apply line-clamp-3;
+}
+.sn-truncate-4 {
+    @apply line-clamp-4;
+}
+
+/* ========== 通用过渡 ========== */
+
+.sn-transition {
+    @apply transition-all duration-300 ease-in-out;
+}
+.sn-transition-colors {
+    @apply transition-colors duration-200 ease-in-out;
+}
+.sn-transition-opacity {
+    @apply transition-opacity duration-200 ease-in-out;
+}
+.sn-transition-transform {
+    @apply transition-transform duration-300 ease-in-out;
+}
+
+/* ========== 遮罩层 ========== */
+
+.sn-overlay {
+    @apply fixed inset-0 z-40 bg-black/50 dark:bg-black/70;
+    @apply transition-opacity duration-300 ease-in-out;
+}
+
+/* ========== 自定义滚动条 ========== */
+
+.sn-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: theme("colors.gray.300") transparent;
+}
+
+.dark .sn-scrollbar {
+    scrollbar-color: theme("colors.gray.600") transparent;
+}
+
+.sn-scrollbar::-webkit-scrollbar {
+    @apply h-1.5 w-1.5;
+}
+.sn-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+}
+.sn-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-300 dark:bg-gray-600;
+}
+.sn-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* ========== 宽高比 ========== */
+
+.sn-aspect-video {
+    @apply aspect-video;
+}
+.sn-aspect-square {
+    @apply aspect-square;
+}
+.sn-aspect-portrait {
+    @apply aspect-[3/4];
+}
+
+/* ========== 屏幕阅读器专用 ========== */
+
+.sn-sr-only {
+    @apply sr-only;
 }
 
 /** ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ 自定义 class ⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️⬆️ **/
