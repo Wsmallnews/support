@@ -3,6 +3,7 @@
 namespace Wsmallnews\Support\Casts;
 
 use ArrayAccess;
+use Countable;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
@@ -16,7 +17,7 @@ class CounterCast implements CastsAttributes
         $data = $value ? json_decode($value, true) : [];
 
         // 包装为支持默认值
-        return new class($data) implements Arrayable, ArrayAccess, Jsonable, JsonSerializable, Wireable
+        return new class($data) implements Arrayable, ArrayAccess, Countable, Jsonable, JsonSerializable, Wireable
         {
             public function __construct(private array $data) {}
 
@@ -92,11 +93,19 @@ class CounterCast implements CastsAttributes
             {
                 return $this->data;
             }
+
+            /**
+             * 实现 Countable 接口的 count 方法, 定义了对象的元素数量
+             */
+            public function count(): int
+            {
+                return count($this->data);
+            }
         };
     }
 
     public function set($model, $key, $value, $attributes)
     {
-        return $value ? json_encode($value) : null;
+        return filled($value) ? json_encode($value) : null;
     }
 }
