@@ -106,6 +106,80 @@ Filament Resources 使用 `HasScopeableProperties` concern：
 - `Wsmallnews\Support\Filament\Resources\Concerns\Scopeable` — Resource 级别的 `applyScopeableToQuery()` 自动对 Eloquent 查询应用 scope 过滤
 - `Wsmallnews\Support\Filament\Pages\Concerns\Scopeable` — Page 级别的 scope 支持
 
+### SN 身份与实体接口
+
+为 preference 等扩展包提供统一的"操作者"（谁）和"目标实体"（什么）数据抽象。Blade 组件通过这两个接口获取展示数据和跳转链接。
+
+#### HasSnIdentifiable（身份/操作者接口）
+
+`Wsmallnews\Support\Contracts\HasSnIdentifiable` — 操作者侧（用户）的标准接口，preferencer 模型必须实现：
+
+```php
+use Wsmallnews\Support\Contracts\HasSnIdentifiable;
+use Illuminate\Support\HtmlString;
+
+// 接口方法：
+getSnId(): int;                                          // 操作者 ID
+getSnName(): string | HtmlString | null;                 // 操作者名称
+getSnAvatarUrl(): string | HtmlString | null;            // 头像 URL
+getSnEmail(): string | HtmlString | null;                // 邮箱
+getSnHrefUrl(): string | HtmlString | null;              // 详情页跳转链接
+```
+
+#### UserIdentifiable trait
+
+`Wsmallnews\Support\Concerns\UserIdentifiable` 为 `HasSnIdentifiable` 提供基于 Eloquent 属性的默认实现，自动映射 `$this->id`、`$this->name`、`$this->avatar_url`、`$this->email`。`getSnHrefUrl()` 默认返回 `null`：
+
+```php
+use Wsmallnews\Support\Contracts\HasSnIdentifiable;
+use Wsmallnews\Support\Concerns\UserIdentifiable;
+
+class User extends Authenticatable implements HasSnIdentifiable
+{
+    use UserIdentifiable;
+}
+```
+
+#### HasSnSubject（实体/目标接口）
+
+`Wsmallnews\Support\Contracts\HasSnSubject` — 目标侧（内容实体）的标准接口，preferenceable 模型必须实现：
+
+```php
+use Wsmallnews\Support\Contracts\HasSnSubject;
+use Illuminate\Support\HtmlString;
+
+// 接口方法：
+getSnSubjectId(): int;                                   // 实体 ID
+getSnSubjectTitle(): string | HtmlString | null;          // 标题
+getSnSubjectDescription(): string | HtmlString | null;    // 描述
+getSnSubjectCoverUrl(): string | HtmlString | null;       // 封面图 URL
+getSnSubjectHrefUrl(): string | HtmlString | null;        // 详情页跳转链接
+```
+
+`HasSnSubject` 没有默认 trait，每个实现类需自行实现所有方法：
+
+```php
+use Wsmallnews\Support\Contracts\HasSnSubject;
+
+class Post extends SupportModel implements HasSnSubject
+{
+    public function getSnSubjectId(): int { return $this->id; }
+    public function getSnSubjectTitle(): string | HtmlString | null { return $this->title; }
+    public function getSnSubjectDescription(): string | HtmlString | null { return $this->description; }
+    public function getSnSubjectCoverUrl(): string | HtmlString | null { return $this->getFirstMediaUrl('post_image'); }
+    public function getSnSubjectHrefUrl(): string | HtmlString | null { return null; }
+}
+```
+
+#### 接口对比
+
+| 接口 | 用途 | 对应 trait | href 方法 |
+|---|---|---|---|
+| `HasSnIdentifiable` | 操作者/用户 | `UserIdentifiable` | `getSnHrefUrl()` |
+| `HasSnSubject` | 目标/内容实体 | 无默认 trait | `getSnSubjectHrefUrl()` |
+
+两个接口的 href 方法返回非空 URL 时，preference 等包的 Blade 组件会渲染为可点击的 `<a>` 标签；返回 `null` 时点击会分发 Livewire 事件。
+
 ### 自定义表单字段
 
 @verbatim
@@ -169,6 +243,7 @@ class ActivityLogResource extends BaseResource
 
 - `Wsmallnews\Support\Contracts\ActivityLogs\HasActivityLogTitle` — 自定义日志标题
 - `Wsmallnews\Support\Contracts\ActivityLogs\HasActivityLogUrl` — 自定义查看链接
+- `Wsmallnews\Support\Contracts\HasModelLabel` — 自定义模型标签（`static getModelLabel(): string`），用于活动日志类型下拉选项的标签解析
 
 ### Tags 资源
 
@@ -212,6 +287,71 @@ $this->halt($shouldRollbackDatabaseTransaction: true);
 | `Scopeable` | `#[Locked]` `$scopeType`/`$scopeId`，`getScopeable()` |
 
 **注意：** `CanPagination` 已经 use 了 Livewire 的 `WithPagination`，**不要再单独 use `WithPagination`**。
+
+#### HasColumns（响应式列配置）
+
+`Wsmallnews\Support\Concerns\HasColumns` 提供响应式断点列配置：
+
+```php
+use Wsmallnews\Support\Concerns\HasColumns;
+
+// 设置列数
+$this->columns(2);                        // 所有断点默认 2 列
+$this->columns(['default' => 1, 'lg' => 3]); // 按断点设置
+
+// 获取列配置
+$this->getColumns();       // 获取完整配置数组
+$this->getColumns('lg');   // 获取指定断点的列数
+$this->getColumnsConfig(); // 获取带默认值的完整配置
+```
+
+#### 自定义属性（HasCustomProperties）
+
+**Plugin 层** — `Wsmallnews\Support\Concerns\Plugin\HasCustomProperties`：
+
+```php
+// 在插件中设置自定义属性
+$plugin->customProperties([
+    'table' => fn (Table $table, string $resource) => $table,
+    'form' => fn (Schema $schema, string $resource) => $schema,
+    'scopeable' => ['scopeType' => 'post', 'scopeId' => 0],
+]);
+
+// 读取
+$plugin->getCustomProperties($resourceClass);
+```
+
+**Resource 层** — `Wsmallnews\Support\Concerns\Resource\HasCustomProperties`：委托到插件层，提供快捷方法：
+
+```php
+// 快捷获取自定义的 table/form/infolist
+static::getCustomTable($table);           // 返回 ?Table
+static::getCustomForm($schema);           // 返回 ?Schema
+static::getCustomFormArray($arguments);   // 返回 ?array
+static::getCustomInfolist($schema);       // 返回 ?Schema
+static::getCustomInfolistArray();         // 返回 ?array
+
+// scopeable 相关
+static::getCustomScopeable();             // 返回 ?array
+static::getCustomScopeType();             // 返回 ?string
+static::getCustomScopeId();               // 返回 ?int
+static::getCustomProperty('key');         // 获取单个属性
+```
+
+#### HasMediaFilter（媒体筛选）
+
+`Wsmallnews\Support\Filament\Concerns\HasMediaFilter` 用于自定义媒体集合的筛选逻辑：
+
+```php
+use Wsmallnews\Support\Filament\Concerns\HasMediaFilter;
+
+$this->filterMediaUsing(function (Collection $media): Collection {
+    return $media->filter(fn ($item) => $item->getCustomProperty('featured'));
+});
+
+$this->filterMedia($media);  // 应用筛选
+$this->hasMediaFilter();     // 检查是否设置了筛选回调
+```
 
 ### 多租户
 
@@ -312,7 +452,13 @@ $rocket->getPayloads(); // Collection
 | Casts | `Wsmallnews\Support\Casts\` |
 | Enums | `Wsmallnews\Support\Enums\` |
 | Data 对象 | `Wsmallnews\Support\Data\` |
-| Contracts | `Wsmallnews\Support\Contracts\` |
+| Contracts（接口） | `Wsmallnews\Support\Contracts\` |
+| Contracts - 活动日志 | `Wsmallnews\Support\Contracts\ActivityLogs\` |
+| 通用 Traits | `Wsmallnews\Support\Concerns\` |
+| Plugin 自定义属性 | `Wsmallnews\Support\Concerns\Plugin\` |
+| Resource 自定义属性 | `Wsmallnews\Support\Concerns\Resource\` |
+| 安装工具 | `Wsmallnews\Support\Concerns\Install\` |
+| Filament 通用 | `Wsmallnews\Support\Filament\Concerns\` |
 | Utils | `Wsmallnews\Support\Support\Utils` |
 | Facade | `Wsmallnews\Support\Facades\Support` |
 | 中间件 | `Wsmallnews\Support\Http\Middleware\` |
