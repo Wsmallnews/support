@@ -448,6 +448,58 @@
     @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
 }
 
+/* 空状态图标背景圆 */
+.sn-empty-icon-bg {
+    @apply mb-4 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800;
+}
+.sn-empty-icon-bg.sn-empty-icon-sm {
+    @apply size-10;
+}
+.sn-empty-icon-bg.sn-empty-icon-md {
+    @apply size-14;
+}
+.sn-empty-icon-bg.sn-empty-icon-lg {
+    @apply size-20;
+}
+.sn-empty-icon-bg.sn-empty-icon-xl {
+    @apply size-24;
+}
+.sn-empty-icon-bg.sn-empty-icon-2xl {
+    @apply size-28;
+}
+
+/* 空状态图标颜色变体 */
+.sn-empty-icon-bg.sn-empty-icon-primary {
+    @apply bg-primary-100 text-primary-500 dark:bg-primary-900/30 dark:text-primary-400;
+}
+.sn-empty-icon-bg.sn-empty-icon-danger {
+    @apply bg-danger-100 text-danger-500 dark:bg-danger-900/30 dark:text-danger-400;
+}
+.sn-empty-icon-bg.sn-empty-icon-success {
+    @apply bg-success-100 text-success-500 dark:bg-success-900/30 dark:text-success-400;
+}
+.sn-empty-icon-bg.sn-empty-icon-info {
+    @apply bg-info-100 text-info-500 dark:bg-info-900/30 dark:text-info-400;
+}
+.sn-empty-icon-bg.sn-empty-icon-warning {
+    @apply bg-warning-100 text-warning-500 dark:bg-warning-900/30 dark:text-warning-400;
+}
+
+.sn-empty-footer {
+    @apply mt-4 text-sm text-gray-500 dark:text-gray-400;
+}
+
+.sn-empty-actions {
+    @apply mt-4 flex items-center justify-center gap-2;
+}
+
+.sn-empty.sn-compact {
+    @apply px-4 py-8;
+}
+.sn-empty.sn-compact .sn-empty-icon-bg {
+    @apply mb-3;
+}
+
 /* ========== 骨架屏 ========== */
 
 .sn-skeleton {

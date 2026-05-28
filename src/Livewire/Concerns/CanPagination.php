@@ -27,6 +27,11 @@ trait CanPagination
     public int $perPage = 10;
 
     /**
+     * 已加载的最后一页页码，用于防止重渲染时重复查询
+     */
+    public int $loadedPage = 0;
+
+    /**
      * 组装好的分页信息
      */
     public array $pageInfo = [];
@@ -52,6 +57,14 @@ trait CanPagination
 
     public function withPagination(Builder $builder)
     {
+        // Livewire 的 WithPagination trait 在重渲染时保留当前页码
+        $requestedPage = $this->getPage($this->pageName);
+
+        // 页码未变 → 跳过查询，直接返回缓存集合（scroll 和 paginator 都适用）
+        if ($requestedPage === $this->loadedPage && $this->loadedPage > 0) {
+            return $this->getCurrents();
+        }
+
         if ($this->getPageType() == 'paginator') {
             /** @var LengthAwarePaginator $current */
             $current = $builder->paginate($this->perPage, pageName: $this->pageName);
@@ -61,6 +74,9 @@ trait CanPagination
             $current = $builder->simplePaginate($this->perPage, pageName: $this->pageName);
             $collections = $this->getCurrents()->merge($current->items());
         }
+
+        // 记录当前页码
+        $this->loadedPage = $requestedPage;
 
         // 分页链接
         $this->links = $current->links();
