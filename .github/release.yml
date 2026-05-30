@@ -1,0 +1,17 @@
+changelog:
+  categories:
+    - title: 🚀 新功能
+      labels:
+        - feature
+        - enhancement
+    - title: 🐛 修复问题
+      labels:
+        - bug
+        - fix
+    - title: 🧹 清理与优化
+      labels:
+        - chore
+        - cleanup
+    - title: 📦 依赖更新
+      labels:
+        - dependencies
