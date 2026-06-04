@@ -89,8 +89,8 @@ class FormComponents
      * 为上传组件应用配置
      */
     protected static function applyUploadConfig(
-        Forms\Components\FileUpload | Forms\Components\SpatieMediaLibraryFileUpload $component
-    ): Forms\Components\FileUpload | Forms\Components\SpatieMediaLibraryFileUpload {
+        Forms\Components\FileUpload|Forms\Components\SpatieMediaLibraryFileUpload $component
+    ): Forms\Components\FileUpload|Forms\Components\SpatieMediaLibraryFileUpload {
         $config = SupportUtils::getConfig('form_components.upload');
 
         // 默认磁盘
@@ -127,6 +127,16 @@ class FormComponents
         if (isset($config['image_preview_height'])) {
             $component->imagePreviewHeight($config['image_preview_height']);
         }
+        // 面板布局 (compact, grid, compact circle)
+        if (isset($config['panel_layout'])) {
+            $component->panelLayout(function (Forms\Components\FileUpload $component) use ($config) {
+                if ($component->isMultiple()) {
+                    return $config['panel_layout'];
+                }
+
+                return 'compact';
+            });
+        }
 
         return $component;
     }
@@ -135,8 +145,8 @@ class FormComponents
      * 为编辑器组件应用配置
      */
     protected static function applyEditorConfig(
-        Forms\Components\MarkdownEditor | Forms\Components\RichEditor $component
-    ): Forms\Components\MarkdownEditor | Forms\Components\RichEditor {
+        Forms\Components\MarkdownEditor|Forms\Components\RichEditor $component
+    ): Forms\Components\MarkdownEditor|Forms\Components\RichEditor {
         $config = SupportUtils::getConfig('form_components.editor');
 
         // 默认磁盘

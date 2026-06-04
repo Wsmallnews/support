@@ -78,6 +78,13 @@ return [
              * Image preview height, default 200px
              */
             'image_preview_height' => '200',
+            /**
+             * (valid for multi-file upload) Panel layout: 'compact', 'grid', 'compact circle'
+             * - compact: Default layout, images in a single row
+             * - grid: Grid layout, images in multiple rows
+             * - compact circle: Circle avatar layout
+             */
+            'panel_layout' => 'grid',
         ],
 
         'editor' => [
