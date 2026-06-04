@@ -89,8 +89,8 @@ class FormComponents
      * 为上传组件应用配置
      */
     protected static function applyUploadConfig(
-        Forms\Components\FileUpload|Forms\Components\SpatieMediaLibraryFileUpload $component
-    ): Forms\Components\FileUpload|Forms\Components\SpatieMediaLibraryFileUpload {
+        Forms\Components\FileUpload | Forms\Components\SpatieMediaLibraryFileUpload $component
+    ): Forms\Components\FileUpload | Forms\Components\SpatieMediaLibraryFileUpload {
         $config = SupportUtils::getConfig('form_components.upload');
 
         // 默认磁盘
@@ -145,8 +145,8 @@ class FormComponents
      * 为编辑器组件应用配置
      */
     protected static function applyEditorConfig(
-        Forms\Components\MarkdownEditor|Forms\Components\RichEditor $component
-    ): Forms\Components\MarkdownEditor|Forms\Components\RichEditor {
+        Forms\Components\MarkdownEditor | Forms\Components\RichEditor $component
+    ): Forms\Components\MarkdownEditor | Forms\Components\RichEditor {
         $config = SupportUtils::getConfig('form_components.editor');
 
         // 默认磁盘
