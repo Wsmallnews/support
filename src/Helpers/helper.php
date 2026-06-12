@@ -284,6 +284,36 @@ if (! function_exists('sn_route')) {
     }
 }
 
+if (! function_exists('remove_query_param_from_url')) {
+    /**
+     * 移除 url 地址 query 参数
+     *
+     * @param  string  $url
+     * @param  string | array  $keys
+     */
+    function remove_query_param_from_url(string $url, string | array $keys): string
+    {
+        $parts = parse_url($url);
+
+        parse_str($parts['query'] ?? '', $query);
+
+        $keys = Arr::wrap($keys);
+        foreach ($keys as $key) {
+            if (isset($query[$key])) {
+                unset($query[$key]);
+            }
+        }
+
+        $newQuery = http_build_query($query);
+
+        return $parts['scheme'] . '://' . $parts['host']
+            . (($parts['port'] ?? '') ? ':' . $parts['port'] : '')
+            . ($parts['path'] ?? '')
+            . ($newQuery ? '?' . $newQuery : '');
+    }
+}
+
+
 if (! function_exists('scopeable_context')) {
     /**
      * Create a ScopeableContext instance from various inputs.

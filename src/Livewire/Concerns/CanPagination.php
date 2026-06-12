@@ -27,7 +27,8 @@ trait CanPagination
     public int $perPage = 10;
 
     /**
-     * 已加载的最后一页页码，用于防止重渲染时重复查询
+     * 已加载的最后一页页码。
+     * 值为 0 时表示需要新鲜开始（不合并旧数据，直接替换）。
      */
     public int $loadedPage = 0;
 
@@ -35,6 +36,13 @@ trait CanPagination
      * 组装好的分页信息
      */
     public array $pageInfo = [];
+
+
+    /**
+     * 上次加载时的查询指纹。
+     * 与 $loadedPage 共同构成缓存 key。指纹变化时自动重置分页。
+     */
+    protected ?string $loadedFingerprint = null;
 
     /**
      * 分页链接
@@ -55,15 +63,41 @@ trait CanPagination
         return $this->pageType;
     }
 
-    public function withPagination(Builder $builder)
+    /**
+     * 重置分页缓存，下次 render 时强制重新查询并回到第 1 页。
+     * 适用场景：数据新增/删除/修改后调用。
+     */
+    public function resetPagination(): void
     {
-        // Livewire 的 WithPagination trait 在重渲染时保留当前页码
+        $this->loadedPage = 0;
+        $this->resetPage($this->pageName);
+    }
+
+    /**
+     * 执行分页查询。
+     *
+     * @param  Builder  $builder  Eloquent 查询构造器
+     * @param  string  $fingerprint  查询指纹，用于标识当前查询条件。
+     *                               指纹变化时自动重置分页（回到第 1 页、清空已合并的数据）。
+     *                               应包含所有影响查询结果的属性（搜索词、筛选条件等）。
+     */
+    public function withPagination(Builder $builder, string $fingerprint)
+    {
+        // 指纹变化 → 全面重置（清缓存、回到第 1 页）
+        if ($fingerprint !== $this->loadedFingerprint) {
+            $this->resetPagination();
+            $this->loadedFingerprint = $fingerprint;
+        }
+
         $requestedPage = $this->getPage($this->pageName);
 
-        // 页码未变 → 跳过查询，直接返回缓存集合（scroll 和 paginator 都适用）
+        // 缓存命中：同页 + 同指纹 + 已加载过 → 跳过查询
         if ($requestedPage === $this->loadedPage && $this->loadedPage > 0) {
             return $this->getCurrents();
         }
+
+        // 是否为新鲜开始（需要替换而非合并旧数据）
+        $isFreshStart = ($this->loadedPage === 0);
 
         if ($this->getPageType() == 'paginator') {
             /** @var LengthAwarePaginator $current */
@@ -72,7 +106,9 @@ trait CanPagination
         } else {
             /** @var Paginator $current */
             $current = $builder->simplePaginate($this->perPage, pageName: $this->pageName);
-            $collections = $this->getCurrents()->merge($current->items());
+            $collections = $isFreshStart
+                ? collect($current->items())
+                : $this->getCurrents()->merge($current->items());
         }
 
         // 记录当前页码
