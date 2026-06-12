@@ -37,7 +37,6 @@ trait CanPagination
      */
     public array $pageInfo = [];
 
-
     /**
      * 上次加载时的查询指纹。
      * 与 $loadedPage 共同构成缓存 key。指纹变化时自动重置分页。

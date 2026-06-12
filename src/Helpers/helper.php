@@ -287,9 +287,6 @@ if (! function_exists('sn_route')) {
 if (! function_exists('remove_query_param_from_url')) {
     /**
      * 移除 url 地址 query 参数
-     *
-     * @param  string  $url
-     * @param  string | array  $keys
      */
     function remove_query_param_from_url(string $url, string | array $keys): string
     {
@@ -312,7 +309,6 @@ if (! function_exists('remove_query_param_from_url')) {
             . ($newQuery ? '?' . $newQuery : '');
     }
 }
-
 
 if (! function_exists('scopeable_context')) {
     /**
