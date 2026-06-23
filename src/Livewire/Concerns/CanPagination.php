@@ -41,7 +41,7 @@ trait CanPagination
      * 上次加载时的查询指纹。
      * 与 $loadedPage 共同构成缓存 key。指纹变化时自动重置分页。
      */
-    protected ?string $loadedFingerprint = null;
+    public ?string $loadedFingerprint = null;
 
     /**
      * 分页链接
