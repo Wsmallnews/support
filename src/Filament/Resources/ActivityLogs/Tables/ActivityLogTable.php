@@ -22,8 +22,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
-use Wsmallnews\Support\Filament\Filters\FilterComponents;
 use Wsmallnews\Support\Filament\Concerns\ModelFormat;
+use Wsmallnews\Support\Filament\Filters\FilterComponents;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Exports\ActivityLogExporter;
 
