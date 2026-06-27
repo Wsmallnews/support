@@ -1,22 +1,19 @@
 <?php
 
-namespace Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns;
+namespace Wsmallnews\Support\Filament\Concerns;
 
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Wsmallnews\Support\Contracts\ActivityLogs\HasActivityLogTitle;
-use Wsmallnews\Support\Contracts\ActivityLogs\HasActivityLogUrl;
 use Wsmallnews\Support\Contracts\HasModelLabel;
+use Wsmallnews\Support\Contracts\HasSnSubject;
 
-class ActivityLogFormat
+class ModelFormat
 {
     /**
-     * Get the title for the model's activity.
-     *
-     * @param  Model  $model
+     * Get the title for the subject model.
      */
     public static function getTitle(mixed $model): string
     {
@@ -35,7 +32,7 @@ class ActivityLogFormat
     }
 
     /**
-     * Get the URL for the model's activity.
+     * Get the URL for the subject model.
      */
     public static function getUrl(?Model $model): ?string
     {
@@ -52,6 +49,7 @@ class ActivityLogFormat
         if ($resource && $resource::hasPage('view')) {
             return $resource::getUrl('view', ['record' => $model]);
         }
+
         if ($resource && $resource::hasPage('edit')) {
             return $resource::getUrl('edit', ['record' => $model]);
         }
@@ -60,49 +58,41 @@ class ActivityLogFormat
     }
 
     /**
-     * 获取 subject type options
-     *
-     * @return array
+     * Get subject type options for filter/select.
      */
-    public static function getTypeOptions(Collection $types)
+    public static function getTypeOptions(Collection $types): array
     {
-        $options = $types->mapWithKeys(function ($type) {
+        return $types->mapWithKeys(function ($type) {
             return [$type => static::getTypeLabel($type)];
         })->toArray();
-
-        return $options;
     }
 
     /**
-     * 获取 subject type options
-     *
-     * @return string
+     * Get human-readable label for a morph type.
      */
-    public static function getTypeLabel(string $type)
+    public static function getTypeLabel(string $type): string
     {
         return static::resolveModelLabel(static::getModelName($type));
     }
 
     /**
-     * 根据多态 type 获取模型名
-     *
-     * @return string
+     * Resolve the actual model class name from a morph type string.
      */
-    public static function getModelName(string $type)
+    public static function getModelName(string $type): string
     {
         $model = Str::contains($type, '\\') ? $type : Relation::getMorphedModel($type);
-        $model = filled($model) ? $model : $type;       // 防止误判
+        $model = filled($model) ? $model : $type;
 
         return $model;
     }
 
     /**
-     * Get the custom URL for the model's activity.
+     * Get the custom URL for the subject model via HasSnSubject.
      */
     public static function customUrl(?Model $model): ?string
     {
-        if ($model instanceof HasActivityLogUrl) {
-            return $model->getActivityLogUrl();
+        if ($model instanceof HasSnSubject) {
+            return $model->getSnSubjectHrefUrl();
         }
 
         if (method_exists($model, 'getActivityLogUrl')) {
@@ -117,8 +107,10 @@ class ActivityLogFormat
      */
     protected static function resolveTitle(Model $model): string
     {
-        if ($model instanceof HasActivityLogTitle) {
-            return $model->getActivityLogTitle();
+        if ($model instanceof HasSnSubject) {
+            $title = $model->getSnSubjectTitle();
+
+            return filled($title) ? (string) $title : class_basename($model) . ' #' . $model->getKey();
         }
 
         if (method_exists($model, 'getActivityLogTitle')) {
@@ -135,7 +127,7 @@ class ActivityLogFormat
     }
 
     /**
-     * 模型 label
+     * Resolve human-readable label for a model class.
      */
     protected static function resolveModelLabel(string $model): string
     {

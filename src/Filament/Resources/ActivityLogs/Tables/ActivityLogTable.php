@@ -23,7 +23,7 @@ use Illuminate\Support\HtmlString;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Filament\Filters\FilterComponents;
-use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
+use Wsmallnews\Support\Filament\Concerns\ModelFormat;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Exports\ActivityLogExporter;
 
@@ -99,10 +99,10 @@ class ActivityLogTable
     {
         return Tables\Columns\TextColumn::make('subject_type')
             ->label(__('sn-support::activity.table.column.subject_info'))
-            ->formatStateUsing(fn ($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->subject_id . '</span> ' . (ActivityLogFormat::getTitle($record->subject))))
-            ->description(fn ($record) => ActivityLogFormat::getTypeLabel($record->subject_type))
+            ->formatStateUsing(fn ($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->subject_id . '</span> ' . (ModelFormat::getTitle($record->subject))))
+            ->description(fn ($record) => ModelFormat::getTypeLabel($record->subject_type))
             ->url(function ($record) {
-                return ActivityLogFormat::getUrl($record->subject);
+                return ModelFormat::getUrl($record->subject);
             })
             ->searchable()
             ->sortable()
@@ -116,7 +116,7 @@ class ActivityLogTable
             ->formatStateUsing(fn ($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->causer_id . '</span> ' . ($record->causer?->name ?? '')))
             ->description(fn ($record) => $record->causer?->email)
             ->url(function ($record) {
-                return ActivityLogFormat::getUrl($record->causer);
+                return ModelFormat::getUrl($record->causer);
             })
             ->searchable()
             ->sortable()
@@ -208,7 +208,7 @@ class ActivityLogTable
                                 ->whereNotNull('causer_type')
                                 ->pluck('causer_type', 'causer_type');
 
-                            $options = ActivityLogFormat::getTypeOptions($causerTypes);
+                            $options = ModelFormat::getTypeOptions($causerTypes);
 
                             return $options;
                         })
@@ -253,7 +253,7 @@ class ActivityLogTable
                     ->whereNotNull('subject_type')
                     ->pluck('subject_type', 'subject_type');
 
-                return ActivityLogFormat::getTypeOptions($subjectTypes);
+                return ModelFormat::getTypeOptions($subjectTypes);
             });
     }
 

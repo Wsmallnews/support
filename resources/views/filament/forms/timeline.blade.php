@@ -1,7 +1,7 @@
 @php
     use Filament\Support\Icons\Heroicon;
     use Wsmallnews\Support\Enums\ActivityLogEvent;
-    use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\ActivityLogFormat;
+    use Wsmallnews\Support\Filament\Concerns\ModelFormat;
 
     $activities = $activities ?? $getState() ?? collect();
     if (!$activities instanceof \Illuminate\Support\Collection) {
@@ -46,17 +46,17 @@
 
                         @if ($activity->subject)
                             <div class="sn-descript-text">
-                                {{ ActivityLogFormat::getTypeLabel($activity->subject_type) }}
+                                {{ ModelFormat::getTypeLabel($activity->subject_type) }}
                             </div>
 
-                            <x-filament::link :href="ActivityLogFormat::getUrl($activity->subject)">
+                            <x-filament::link :href="ModelFormat::getUrl($activity->subject)">
                                 #{{ $activity->subject_id }}
                             </x-filament::link>
                         @endif
                     </div>
 
                     <div class="sn-descript-text">
-                        {{ ActivityLogFormat::getTitle($activity->subject) }}
+                        {{ ModelFormat::getTitle($activity->subject) }}
                     </div>
                     <div class="sn-descript-text">
                         {{ $activity->description }}
