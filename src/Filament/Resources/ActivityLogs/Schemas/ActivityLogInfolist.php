@@ -12,7 +12,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
-use Wsmallnews\Support\Filament\Concerns\ModelFormat;
+use Wsmallnews\Support\Helpers\FilamentModelHelper;
 
 class ActivityLogInfolist
 {
@@ -46,14 +46,14 @@ class ActivityLogInfolist
                                                 ->label(__('sn-support::activity.infolist.entry.causer'))
                                                 ->getStateUsing(fn ($record) => $record->causer?->name ?? 'System')
                                                 ->url(function ($record) {
-                                                    return ModelFormat::getUrl($record->causer);
+                                                    return FilamentModelHelper::getUrl($record->causer);
                                                 }),
 
                                             TextEntry::make('subject')
                                                 ->label(__('sn-support::activity.infolist.entry.subject'))
-                                                ->getStateUsing(fn ($record) => ModelFormat::getTitle($record->subject))
+                                                ->getStateUsing(fn ($record) => FilamentModelHelper::getTitle($record->subject))
                                                 ->url(function ($record) {
-                                                    return ModelFormat::getUrl($record->subject);
+                                                    return FilamentModelHelper::getUrl($record->subject);
                                                 }),
 
                                             TextEntry::make('properties.ip_address')

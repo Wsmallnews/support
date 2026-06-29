@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
-use Wsmallnews\Support\Filament\Concerns\ModelFormat;
+use Wsmallnews\Support\Helpers\FilamentModelHelper;
 use Wsmallnews\Support\Filament\Filters\FilterComponents;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Exports\ActivityLogExporter;
@@ -99,10 +99,10 @@ class ActivityLogTable
     {
         return Tables\Columns\TextColumn::make('subject_type')
             ->label(__('sn-support::activity.table.column.subject_info'))
-            ->formatStateUsing(fn ($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->subject_id . '</span> ' . (ModelFormat::getTitle($record->subject))))
-            ->description(fn ($record) => ModelFormat::getTypeLabel($record->subject_type))
+            ->formatStateUsing(fn ($state, $record) => FilamentModelHelper::getTitle($record->subject))
+            ->description(fn ($record) => FilamentModelHelper::getTypeLabel($record->subject_type))
             ->url(function ($record) {
-                return ModelFormat::getUrl($record->subject);
+                return FilamentModelHelper::getUrl($record->subject);
             })
             ->searchable()
             ->sortable()
@@ -113,10 +113,10 @@ class ActivityLogTable
     {
         return Tables\Columns\TextColumn::make('causer.name')
             ->label(__('sn-support::activity.table.column.causer_info'))
-            ->formatStateUsing(fn ($state, $record) => new HtmlString('<span class="sn-primary-text">#' . $record->causer_id . '</span> ' . ($record->causer?->name ?? '')))
+            ->formatStateUsing(fn ($state, $record) => FilamentModelHelper::getTitle($record->causer))
             ->description(fn ($record) => $record->causer?->email)
             ->url(function ($record) {
-                return ModelFormat::getUrl($record->causer);
+                return FilamentModelHelper::getUrl($record->causer);
             })
             ->searchable()
             ->sortable()
@@ -197,51 +197,22 @@ class ActivityLogTable
 
     protected static function causerFilter()
     {
-        return Tables\Filters\Filter::make('causer')
-            ->label(__('sn-support::activity.table.filter.causer'))
-            ->schema([
-                Schemas\Components\FusedGroup::make([
-                    Forms\Components\Select::make('causer_type')
-                        ->options(function () {
-                            $causerTypes = ActivitylogConfig::activityModel()::query()
-                                ->distinct()
-                                ->whereNotNull('causer_type')
-                                ->pluck('causer_type', 'causer_type');
+        return FilterComponents::morphFilter(
+            type: 'causer', 
+            label:  __('sn-support::activity.table.filter.causer'), 
+            options: function () {
+                $causerTypes = ActivitylogConfig::activityModel()::query()
+                    ->distinct()
+                    ->whereNotNull('causer_type')
+                    ->pluck('causer_type', 'causer_type');
 
-                            $options = ModelFormat::getTypeOptions($causerTypes);
-
-                            return $options;
-                        })
-                        ->selectablePlaceholder(false)      // 禁用空选项，默认选择第一个
-                        ->columnSpan(1),
-                    Forms\Components\TextInput::make('causer_keyword')
-                        ->placeholder(__('sn-support::activity.table.filter.causer_keyword.placeholder'))
-                        ->columnSpan(2),
-                ])->columns(3),
-            ])
-            ->query(function (Builder $query, array $data): Builder {
-                return $query
-                    ->when(
-                        $data['causer_keyword'],
-                        function (Builder $query, $causer_keyword) use ($data) {
-                            $panel = Filament::getCurrentPanel();
-                            $causer_type = $data['causer_type'] ?? 'user';
-
-                            return $query->where('causer_type', $causer_type)
-                                ->where(function ($query) use ($panel, $causer_keyword) {
-                                    $query->where('causer_id', $causer_keyword)
-                                        ->orWhereHas('causer', function ($query) use ($panel, $causer_keyword) {
-                                            $query->withoutGlobalScope($panel->getTenancyScopeName())       // 如果 panel 的auth model 是 user, 则需要去掉全局作用域 (不影响正常查询用户的日志)
-                                                ->where(function ($query) use ($causer_keyword) {
-                                                    $query->where('name', 'like', "%{$causer_keyword}%")
-                                                        ->orWhere('email', 'like', "%{$causer_keyword}%");
-                                                });
-                                        });
-                                });
-                        }
-                    );
-            });
+                return FilamentModelHelper::getTypeOptions($causerTypes);
+            },
+            keywordSearchFields: ['name', 'email'],
+            morphKeywordPlaceholder: __('sn-support::activity.table.filter.causer_keyword.placeholder')
+        );
     }
+
 
     protected static function subjectTypeFilter()
     {
@@ -253,7 +224,7 @@ class ActivityLogTable
                     ->whereNotNull('subject_type')
                     ->pluck('subject_type', 'subject_type');
 
-                return ModelFormat::getTypeOptions($subjectTypes);
+                return FilamentModelHelper::getTypeOptions($subjectTypes);
             });
     }
 
