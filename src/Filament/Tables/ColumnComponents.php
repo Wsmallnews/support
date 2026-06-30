@@ -5,18 +5,18 @@ namespace Wsmallnews\Support\Filament\Tables;
 use Closure;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\HtmlString;
-use Wsmallnews\Support\Helpers\FilamentModelHelper;
 use Wsmallnews\Support\Contracts\HasSnIdentifiable;
+use Wsmallnews\Support\Helpers\FilamentModelHelper;
 
 use function Filament\Support\generate_href_html;
 
 class ColumnComponents
 {
-
     /**
      * 模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
-     * @param  string   $name           列名（如 'causer.name'）
-     * @param  string   $label          列标签
+     *
+     * @param  string  $name  列名（如 'causer.name'）
+     * @param  string  $label  列标签
      * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
      */
     public static function modelColumn(
@@ -36,11 +36,11 @@ class ColumnComponents
             ->toggleable();
     }
 
-
     /**
      * 关联模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
-     * @param  string   $name           列名（如 'causer.name'）
-     * @param  string   $label          列标签
+     *
+     * @param  string  $name  列名（如 'causer.name'）
+     * @param  string  $label  列标签
      * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
      */
     public static function relationColumn(
@@ -60,11 +60,11 @@ class ColumnComponents
             ->toggleable();
     }
 
-
     /**
      * 多态关联模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
-     * @param  string   $name           列名（如 'causer.name'）
-     * @param  string   $label          列标签
+     *
+     * @param  string  $name  列名（如 'causer.name'）
+     * @param  string  $label  列标签
      * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
      */
     public static function morphColumn(
@@ -84,12 +84,10 @@ class ColumnComponents
             ->toggleable();
     }
 
-
     /**
      * 处理 模型 样式
      *
-     * @param mixed $model
-     * @param string $type
+     * @param  string  $type
      * @return HtmlString
      */
     protected static function modelInfo(mixed $model, $type = 'model')
@@ -109,7 +107,7 @@ class ColumnComponents
             $imageHtml .= '<img class="w-full h-full object-cover" src="' . files_url($coverUrl) . '" alt="' . $title . '" />';
         } else {
             $imageHtml .= '<div class="sn-image-placeholder">
-                ' . svg($modelType === 'identifiable' ? "heroicon-m-user" : "heroicon-m-photo")->toHtml() . '
+                ' . svg($modelType === 'identifiable' ? 'heroicon-m-user' : 'heroicon-m-photo')->toHtml() . '
             </div>';
         }
         $imageHtml .= '</div>';
@@ -119,15 +117,15 @@ class ColumnComponents
 
         $contentHtml = '<div class="flex flex-col justify-between max-w-80">
             <' . $tag . ' ' . ($tag == 'a' ? generate_href_html($url) : '') . ' class="flex items-center gap-1 no-underline">';
-                if (in_array($type, ['morph', 'relation'])) {
-                    $contentHtml .= '<span class="sn-primary-text">#' . $model->getKey() . '</span>';
-                }
-                if ($type == 'morph') {
-                    $contentHtml .= '<div class="sn-primary-bg text-white rounded-md px-1 text-sm">
+        if (in_array($type, ['morph', 'relation'])) {
+            $contentHtml .= '<span class="sn-primary-text">#' . $model->getKey() . '</span>';
+        }
+        if ($type == 'morph') {
+            $contentHtml .= '<div class="sn-primary-bg text-white rounded-md px-1 text-sm">
                         ' . FilamentModelHelper::getModelLabel($model) . '
                     </div>';
-                }
-                $contentHtml .= '<span class="sn-content-text ' . ($tag == 'a' ? 'sn-hover' : '') . ' truncate" title="' . $title . '">' . $title . '</span>
+        }
+        $contentHtml .= '<span class="sn-content-text ' . ($tag == 'a' ? 'sn-hover' : '') . ' truncate" title="' . $title . '">' . $title . '</span>
             </' . $tag . '>
             <span class="text-sm font-medium text-gray-400 dark:text-white truncate" title="' . $description . '">' . $description . '</span>
         </div>';

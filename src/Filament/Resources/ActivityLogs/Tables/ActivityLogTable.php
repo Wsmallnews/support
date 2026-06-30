@@ -14,19 +14,17 @@ use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Notifications\Notification;
-use Filament\Schemas;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\HtmlString;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
-use Wsmallnews\Support\Filament\Tables\ColumnComponents;
-use Wsmallnews\Support\Helpers\FilamentModelHelper;
 use Wsmallnews\Support\Filament\Filters\FilterComponents;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Exports\ActivityLogExporter;
+use Wsmallnews\Support\Filament\Tables\ColumnComponents;
+use Wsmallnews\Support\Helpers\FilamentModelHelper;
 
 class ActivityLogTable
 {
@@ -83,11 +81,8 @@ class ActivityLogTable
             ->toggleable();
     }
 
-
     /**
      * if config/activitylog.php activity_model is Wsmallnews\Support\Models\Activity，you can not use formatStateUsing、color、icon method
-     *
-     * @return Tables\Columns\TextColumn
      */
     protected static function eventColumn(): Tables\Columns\TextColumn
     {
@@ -194,8 +189,8 @@ class ActivityLogTable
     protected static function causerFilter()
     {
         return FilterComponents::morphFilter(
-            type: 'causer', 
-            label:  __('sn-support::activity.table.filter.causer'), 
+            type: 'causer',
+            label: __('sn-support::activity.table.filter.causer'),
             options: function () {
                 $causerTypes = ActivitylogConfig::activityModel()::query()
                     ->distinct()
@@ -208,7 +203,6 @@ class ActivityLogTable
             morphKeywordPlaceholder: __('sn-support::activity.table.filter.causer_keyword.placeholder')
         );
     }
-
 
     protected static function subjectTypeFilter()
     {
