@@ -32,7 +32,6 @@ class FilterComponents
                 Schemas\Components\FusedGroup::make([
                     Forms\Components\Select::make('morph_type')
                         ->options($options)
-                        // ->selectablePlaceholder(false)      // 禁用空选项，默认选择第一个
                         ->columnSpan(1),
                     Forms\Components\TextInput::make('morph_keyword')
                         ->placeholder($morphKeywordPlaceholder)

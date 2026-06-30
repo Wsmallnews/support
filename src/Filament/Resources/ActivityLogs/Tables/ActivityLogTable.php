@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
+use Wsmallnews\Support\Filament\Tables\ColumnComponents;
 use Wsmallnews\Support\Helpers\FilamentModelHelper;
 use Wsmallnews\Support\Filament\Filters\FilterComponents;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
@@ -82,14 +83,20 @@ class ActivityLogTable
             ->toggleable();
     }
 
+
+    /**
+     * if config/activitylog.php activity_model is Wsmallnews\Support\Models\Activity，you can not use formatStateUsing、color、icon method
+     *
+     * @return Tables\Columns\TextColumn
+     */
     protected static function eventColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('event')
             ->label(__('sn-support::activity.table.column.event'))
             ->badge()
-            ->formatStateUsing(fn ($state) => ActivityLogEvent::tryFrom($state)?->getLabel() ?? ucfirst((string) $state))
-            ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
-            ->icon(fn ($state) => ActivityLogEvent::tryFrom($state)?->getIcon())
+            // ->formatStateUsing(fn ($state) => ActivityLogEvent::tryFrom($state)?->getLabel() ?? ucfirst((string) $state))
+            // ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
+            // ->icon(fn ($state) => ActivityLogEvent::tryFrom($state)?->getIcon())
             ->searchable()
             ->sortable()
             ->toggleable();
@@ -97,30 +104,20 @@ class ActivityLogTable
 
     protected static function subjectTypeColumn(): Tables\Columns\TextColumn
     {
-        return Tables\Columns\TextColumn::make('subject_type')
-            ->label(__('sn-support::activity.table.column.subject_info'))
-            ->formatStateUsing(fn ($state, $record) => FilamentModelHelper::getTitle($record->subject))
-            ->description(fn ($record) => FilamentModelHelper::getTypeLabel($record->subject_type))
-            ->url(function ($record) {
-                return FilamentModelHelper::getUrl($record->subject);
-            })
-            ->searchable()
-            ->sortable()
-            ->toggleable();
+        return ColumnComponents::morphColumn(
+            'subject_type',
+            __('sn-support::activity.table.column.subject_info'),
+            fn ($record) => $record->subject,
+        );
     }
 
     protected static function causerColumn(): Tables\Columns\TextColumn
     {
-        return Tables\Columns\TextColumn::make('causer.name')
-            ->label(__('sn-support::activity.table.column.causer_info'))
-            ->formatStateUsing(fn ($state, $record) => FilamentModelHelper::getTitle($record->causer))
-            ->description(fn ($record) => $record->causer?->email)
-            ->url(function ($record) {
-                return FilamentModelHelper::getUrl($record->causer);
-            })
-            ->searchable()
-            ->sortable()
-            ->toggleable();
+        return ColumnComponents::morphColumn(
+            'causer_type',
+            __('sn-support::activity.table.column.causer_info'),
+            fn ($record) => $record->causer,
+        );
     }
 
     protected static function ipAddressColumn(): Tables\Columns\TextColumn
@@ -169,7 +166,6 @@ class ActivityLogTable
     {
         return Tables\Columns\TextColumn::make('created_at')
             ->label(__('sn-support::activity.table.column.created_at'))
-            ->searchable()
             ->sortable()
             ->toggleable();
     }

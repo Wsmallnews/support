@@ -1,4 +1,5 @@
 @source "../views/**/*";
+@source '../../src/Filament/Tables/ColumnComponents.php';
 
 /* 尊重用户的减少动画偏好 (UI/UX Pro Max - reduced-motion) */
 @media (prefers-reduced-motion: reduce) {

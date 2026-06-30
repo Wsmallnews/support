@@ -1,0 +1,139 @@
+<?php
+
+namespace Wsmallnews\Support\Filament\Tables;
+
+use Closure;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\HtmlString;
+use Wsmallnews\Support\Helpers\FilamentModelHelper;
+use Wsmallnews\Support\Contracts\HasSnIdentifiable;
+
+use function Filament\Support\generate_href_html;
+
+class ColumnComponents
+{
+
+    /**
+     * 模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
+     * @param  string   $name           列名（如 'causer.name'）
+     * @param  string   $label          列标签
+     * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
+     */
+    public static function modelColumn(
+        string $name,
+        string $label,
+        Closure $modelResolver,
+    ): TextColumn {
+        return TextColumn::make($name)
+            ->label($label)
+            ->formatStateUsing(function ($state, $record) use ($modelResolver): HtmlString {
+                $model = $modelResolver($record);
+
+                return static::modelInfo($model, 'model');
+            })
+            ->searchable()
+            ->sortable()
+            ->toggleable();
+    }
+
+
+    /**
+     * 关联模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
+     * @param  string   $name           列名（如 'causer.name'）
+     * @param  string   $label          列标签
+     * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
+     */
+    public static function relationColumn(
+        string $name,
+        string $label,
+        Closure $modelResolver,
+    ): TextColumn {
+        return TextColumn::make($name)
+            ->label($label)
+            ->formatStateUsing(function ($state, $record) use ($modelResolver): HtmlString {
+                $model = $modelResolver($record);
+
+                return static::modelInfo($model, 'relation');
+            })
+            ->searchable()
+            ->sortable()
+            ->toggleable();
+    }
+
+
+    /**
+     * 多态关联模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
+     * @param  string   $name           列名（如 'causer.name'）
+     * @param  string   $label          列标签
+     * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
+     */
+    public static function morphColumn(
+        string $name,
+        string $label,
+        Closure $modelResolver,
+    ): TextColumn {
+        return TextColumn::make($name)
+            ->label($label)
+            ->formatStateUsing(function ($state, $record) use ($modelResolver): HtmlString {
+                $model = $modelResolver($record);
+
+                return static::modelInfo($model, 'morph');
+            })
+            ->searchable()
+            ->sortable()
+            ->toggleable();
+    }
+
+
+    /**
+     * 处理 模型 样式
+     *
+     * @param mixed $model
+     * @param string $type
+     * @return HtmlString
+     */
+    protected static function modelInfo(mixed $model, $type = 'model')
+    {
+        if (! $model) {
+            return new HtmlString('<span class="text-gray-400">-</span>');
+        }
+
+        $modelType = $model instanceof HasSnIdentifiable ? 'identifiable' : 'other';
+
+        $coverUrl = FilamentModelHelper::getCoverUrl($model);
+        $title = FilamentModelHelper::getTitle($model);
+        $description = FilamentModelHelper::getDescription($model);
+
+        $imageHtml = '<div class="w-10 h-10 ' . ($modelType === 'identifiable' ? 'rounded-full' : 'rounded-md') . ' shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800">';
+        if ($coverUrl) {
+            $imageHtml .= '<img class="w-full h-full object-cover" src="' . files_url($coverUrl) . '" alt="' . $title . '" />';
+        } else {
+            $imageHtml .= '<div class="sn-image-placeholder">
+                ' . svg($modelType === 'identifiable' ? "heroicon-m-user" : "heroicon-m-photo")->toHtml() . '
+            </div>';
+        }
+        $imageHtml .= '</div>';
+
+        $url = FilamentModelHelper::getUrl($model);
+        $tag = in_array($type, ['morph', 'relation']) && filled($url) ? 'a' : 'div';
+
+        $contentHtml = '<div class="flex flex-col justify-between max-w-80">
+            <' . $tag . ' ' . ($tag == 'a' ? generate_href_html($url) : '') . ' class="flex items-center gap-1 no-underline">';
+                if (in_array($type, ['morph', 'relation'])) {
+                    $contentHtml .= '<span class="sn-primary-text">#' . $model->getKey() . '</span>';
+                }
+                if ($type == 'morph') {
+                    $contentHtml .= '<div class="sn-primary-bg text-white rounded-md px-1 text-sm">
+                        ' . FilamentModelHelper::getModelLabel($model) . '
+                    </div>';
+                }
+                $contentHtml .= '<span class="sn-content-text ' . ($tag == 'a' ? 'sn-hover' : '') . ' truncate" title="' . $title . '">' . $title . '</span>
+            </' . $tag . '>
+            <span class="text-sm font-medium text-gray-400 dark:text-white truncate" title="' . $description . '">' . $description . '</span>
+        </div>';
+
+        return new HtmlString(
+            '<div class="flex items-center gap-2">' . $imageHtml . $contentHtml . '</div>'
+        );
+    }
+}
