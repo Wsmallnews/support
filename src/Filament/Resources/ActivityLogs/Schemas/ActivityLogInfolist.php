@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Phiki\Grammar\Grammar;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Helpers\FilamentModelHelper;
 
@@ -32,9 +33,10 @@ class ActivityLogInfolist
                                             TextEntry::make('event')
                                                 ->badge()
                                                 ->label(__('sn-support::activity.infolist.entry.event'))
-                                                ->formatStateUsing(fn ($state) => ucfirst($state))
-                                                ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
-                                                ->icon(fn ($state) => ActivityLogEvent::tryFrom($state)?->getIcon()),
+                                                // ->formatStateUsing(fn ($state) => ucfirst($state))
+                                                // ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
+                                                // ->icon(fn ($state) => ActivityLogEvent::tryFrom($state)?->getIcon())
+                                                ,
 
                                             TextEntry::make('created_at')
                                                 ->label(__('sn-support::activity.infolist.entry.created_at'))
@@ -91,6 +93,8 @@ class ActivityLogInfolist
                                 CodeEntry::make('attribute_changes')
                                     ->label(__('sn-support::activity.infolist.entry.attribute_changes'))
                                     ->jsonFlags(JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                                    ->copyable()
+                                    ->grammar(Grammar::Json)
                                     ->columnSpanFull(),
                             ]),
                     ])

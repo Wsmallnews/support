@@ -31,6 +31,7 @@ class ColumnComponents
 
                 return static::modelInfo($model, 'model');
             })
+            ->disabledClick()
             ->searchable()
             ->sortable()
             ->toggleable();
@@ -55,6 +56,7 @@ class ColumnComponents
 
                 return static::modelInfo($model, 'relation');
             })
+            ->disabledClick()
             ->searchable()
             ->sortable()
             ->toggleable();
@@ -79,6 +81,7 @@ class ColumnComponents
 
                 return static::modelInfo($model, 'morph');
             })
+            ->disabledClick()
             ->searchable()
             ->sortable()
             ->toggleable();
@@ -133,7 +136,7 @@ class ColumnComponents
         </div>';
 
         return new HtmlString(
-            '<div class="flex items-center gap-2">' . $imageHtml . $contentHtml . '</div>'
+            '<div class="flex items-center gap-2 justify-start">' . $imageHtml . $contentHtml . '</div>'
         );
     }
 }
