@@ -16,16 +16,14 @@ use Wsmallnews\Support\Helpers\FilamentModelHelper;
 
 class FilterComponents
 {
-
     public static function morphFilter(
         string $type,
-        string | Htmlable | Closure | null $label, 
+        string | Htmlable | Closure | null $label,
         array | Arrayable | string | Closure | null $options = null,
         array $keywordSearchFields = [],
         string | Closure | null $morphKeywordPlaceholder = null,
         array $morphFields = [],
-    )
-    {
+    ) {
         return Tables\Filters\Filter::make($type)
             ->label($label)
             ->schema([
@@ -76,10 +74,10 @@ class FilterComponents
                     $indicators[] = Indicator::make(Str::ucfirst($type . ' keyword: ') . $data['morph_keyword'])
                         ->removeField('morph_keyword');
                 }
+
                 return $indicators;
             });
     }
-
 
     /**
      * 创建时间，更新时间 筛选

@@ -16,9 +16,6 @@ class FilamentModelHelper
 {
     /**
      * 获取模型标题/名称。
-     * 
-     * @param ?Model $model
-     * @return string | HtmlString
      */
     public static function getTitle(?Model $model): string | HtmlString
     {
@@ -38,6 +35,7 @@ class FilamentModelHelper
             foreach (['name', 'title', 'email', 'username', 'label', 'content'] as $attribute) {
                 if ($model->hasAttribute($attribute)) {
                     $title = (string) $model->getAttribute($attribute);
+
                     break;
                 }
             }
@@ -48,9 +46,6 @@ class FilamentModelHelper
 
     /**
      * 获取模型详情页 URL。
-     * 
-     * @param ?Model $model
-     * @return ?string
      */
     public static function getUrl(?Model $model): ?string
     {
@@ -65,14 +60,11 @@ class FilamentModelHelper
             $url = $model->getSnHrefUrl();
         }
 
-        return filled($url) ? (string)$url : static::resolveResourceUrl($model);
+        return filled($url) ? (string) $url : static::resolveResourceUrl($model);
     }
 
     /**
      * 获取模型描述。
-     * 
-     * @param ?Model $model
-     * @return ?string
      */
     public static function getDescription(?Model $model): ?string
     {
@@ -98,9 +90,8 @@ class FilamentModelHelper
 
     /**
      * 获取模型封面/头像 URL。
-     * 
+     *
      * @param ?Model
-     * @return ?string
      */
     public static function getCoverUrl(?Model $model): ?string
     {
@@ -118,12 +109,8 @@ class FilamentModelHelper
         return $cover ?? null;
     }
 
-
     /**
      * Get subject type options for filter/select.
-     * 
-     * @param Collection $types
-     * @return array
      */
     public static function getTypeOptions(Collection $types): array
     {
@@ -134,9 +121,6 @@ class FilamentModelHelper
 
     /**
      * Get human-readable label for a morph type.
-     * 
-     * @param string $type
-     * @return string
      */
     public static function getTypeLabel(string $type): string
     {
@@ -145,9 +129,6 @@ class FilamentModelHelper
 
     /**
      * Resolve the actual model class name from a morph type string.
-     * 
-     * @param string $type
-     * @return string
      */
     protected static function getModelClassName(string $type): string
     {
@@ -158,9 +139,6 @@ class FilamentModelHelper
 
     /**
      * Resolve human-readable label for a model class.
-     * 
-     * @param mixed $model
-     * @return string
      */
     public static function getModelLabel(mixed $model): string
     {
@@ -177,9 +155,6 @@ class FilamentModelHelper
 
     /**
      * Resolve Filament Resource URL for a model.
-     * 
-     * @param Model $model
-     * @return ?string
      */
     protected static function resolveResourceUrl(Model $model): ?string
     {
