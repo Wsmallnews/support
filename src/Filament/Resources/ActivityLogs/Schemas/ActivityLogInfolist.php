@@ -33,10 +33,10 @@ class ActivityLogInfolist
                                             TextEntry::make('event')
                                                 ->badge()
                                                 ->label(__('sn-support::activity.infolist.entry.event'))
-                                                // ->formatStateUsing(fn ($state) => ucfirst($state))
-                                                // ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
-                                                // ->icon(fn ($state) => ActivityLogEvent::tryFrom($state)?->getIcon())
-                                                ,
+                                            // ->formatStateUsing(fn ($state) => ucfirst($state))
+                                            // ->color(fn ($state) => ActivityLogEvent::tryFrom($state)?->getColor() ?? 'gray')
+                                            // ->icon(fn ($state) => ActivityLogEvent::tryFrom($state)?->getIcon())
+                                            ,
 
                                             TextEntry::make('created_at')
                                                 ->label(__('sn-support::activity.infolist.entry.created_at'))
