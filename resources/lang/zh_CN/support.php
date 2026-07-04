@@ -31,7 +31,7 @@ return [
         'column' => [
             'view_content' => '查看内容',
             'content_close' => '关闭',
-        ]
+        ],
     ],
     'action' => [
         'delete_failed' => '删除失败',

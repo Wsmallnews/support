@@ -4,12 +4,12 @@ namespace Wsmallnews\Support\Filament\Tables;
 
 use Closure;
 use Filament\Actions\Action;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Support\Enums\Width;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\HtmlString;
 use Wsmallnews\Support\Contracts\HasSnIdentifiable;
-use Wsmallnews\Support\Helpers\FilamentModelHelper;
 use Wsmallnews\Support\Enums\ContentType;
+use Wsmallnews\Support\Helpers\FilamentModelHelper;
 
 use function Filament\Support\generate_href_html;
 
@@ -19,9 +19,8 @@ class ColumnComponents
         string $name,
         string $label,
         array | bool $searchable = true,
-        Closure | null $actionResolver = null,
-    ): TextColumn
-    {
+        ?Closure $actionResolver = null,
+    ): TextColumn {
         // 处理 内容 弹框
         $action = Action::make('viewContent')
             ->modal()
@@ -39,12 +38,12 @@ class ColumnComponents
             })
             ->formatStateUsing(function ($state, $record) {
                 $html = '<div class="flex max-w-80 items-center gap-1 overflow-hidden">';
-                    if ($record->content_type === ContentType::Textarea) {
-                        $html .= '<div class="w-full truncate">' . $state . '</div>';
-                    } else {
-                        $html .= svg('heroicon-m-document-text', 'w-4 h-4')->toHtml();
-                        $html .= e($record->content_type->getLabel());
-                    }
+                if ($record->content_type === ContentType::Textarea) {
+                    $html .= '<div class="w-full truncate">' . $state . '</div>';
+                } else {
+                    $html .= svg('heroicon-m-document-text', 'w-4 h-4')->toHtml();
+                    $html .= e($record->content_type->getLabel());
+                }
                 $html .= '</div>';
 
                 return new HtmlString($html);
@@ -53,8 +52,6 @@ class ColumnComponents
             ->action($action)
             ->toggleable();
     }
-
-
 
     /**
      * 模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
