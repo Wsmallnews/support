@@ -27,7 +27,12 @@ return [
         'code_incorrect' => 'Verification code is incorrect',
         'send_failed' => 'Failed to send SMS',
     ],
-
+    'table' => [
+        'column' => [
+            'view_content' => 'View Content',
+            'content_close' => 'Close',
+        ],
+    ],
     'action' => [
         'delete_failed' => 'Failed to delete',
     ],

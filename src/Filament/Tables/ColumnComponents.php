@@ -3,15 +3,59 @@
 namespace Wsmallnews\Support\Filament\Tables;
 
 use Closure;
+use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Support\Enums\Width;
 use Illuminate\Support\HtmlString;
 use Wsmallnews\Support\Contracts\HasSnIdentifiable;
 use Wsmallnews\Support\Helpers\FilamentModelHelper;
+use Wsmallnews\Support\Enums\ContentType;
 
 use function Filament\Support\generate_href_html;
 
 class ColumnComponents
 {
+    public static function contentColumn(
+        string $name,
+        string $label,
+        array | bool $searchable = true,
+        Closure | null $actionResolver = null,
+    ): TextColumn
+    {
+        // 处理 内容 弹框
+        $action = Action::make('viewContent')
+            ->modal()
+            ->modalHeading(fn ($record) => __('sn-support::support.table.column.view_content') . ' #' . $record->id)
+            ->modalWidth(Width::ThreeExtraLarge)
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel(__('sn-support::support.table.column.content_close'));
+        $action = $actionResolver ? $actionResolver($action) : $action;
+
+        return TextColumn::make($name)
+            ->label($label)
+            ->state(function ($record) {
+                // 文本域内容直接返回，其他类型返回 '-', 保证 formatStateUsing 方法正常被调用(state == null, 会跳过 formatStateUsing 方法)
+                return $record->content_type === ContentType::Textarea ? $record->content : '-';
+            })
+            ->formatStateUsing(function ($state, $record) {
+                $html = '<div class="flex max-w-80 items-center gap-1 overflow-hidden">';
+                    if ($record->content_type === ContentType::Textarea) {
+                        $html .= '<div class="w-full truncate">' . $state . '</div>';
+                    } else {
+                        $html .= svg('heroicon-m-document-text', 'w-4 h-4')->toHtml();
+                        $html .= e($record->content_type->getLabel());
+                    }
+                $html .= '</div>';
+
+                return new HtmlString($html);
+            })
+            ->searchable($searchable)
+            ->action($action)
+            ->toggleable();
+    }
+
+
+
     /**
      * 模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
      *

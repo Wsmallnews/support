@@ -27,7 +27,12 @@ return [
         'code_incorrect' => '验证码不正确',
         'send_failed' => '短信发送失败',
     ],
-
+    'table' => [
+        'column' => [
+            'view_content' => '查看内容',
+            'content_close' => '关闭',
+        ]
+    ],
     'action' => [
         'delete_failed' => '删除失败',
     ],
