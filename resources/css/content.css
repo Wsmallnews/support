@@ -1,0 +1,272 @@
+/* 内容容器 - 防止子元素溢出撑开容器 */
+.sn-content-container {
+    @apply w-full overflow-hidden;
+}
+
+/* sn prose 内容样式 */
+.sn-prose {
+    @apply p-px text-base leading-relaxed break-words text-gray-700 dark:text-gray-300;
+}
+
+/* ========== 链接 ========== */
+.sn-prose a {
+    @apply text-primary-600 dark:text-primary-400 decoration-primary-300 dark:decoration-primary-700 underline underline-offset-2;
+    @apply hover:text-primary-700 dark:hover:text-primary-300 hover:decoration-primary-500 dark:hover:decoration-primary-500;
+    @apply transition-colors duration-150;
+}
+
+/* ========== 列表 ========== */
+.sn-prose ul,
+.sn-prose ol {
+    @apply mb-5 pl-6;
+}
+
+.sn-prose ul {
+    @apply list-disc;
+}
+
+.sn-prose ol {
+    @apply list-decimal;
+}
+
+.sn-prose li {
+    @apply mb-1.5 leading-7;
+}
+
+.sn-prose li > ul,
+.sn-prose li > ol {
+    @apply mt-1.5 mb-0;
+}
+
+.sn-prose ul ul {
+    @apply list-[circle];
+}
+
+.sn-prose ul ul ul {
+    @apply list-[square];
+}
+
+/* 任务列表 */
+.sn-prose input[type="checkbox"] {
+    @apply mr-2 h-4 w-4 rounded border-gray-300 dark:border-gray-600;
+    @apply text-primary-600 dark:text-primary-500;
+    @apply focus:ring-primary-500 dark:focus:ring-primary-600;
+}
+
+/* ========== 引用块 ========== */
+.sn-prose blockquote {
+    @apply border-primary-400 dark:border-primary-600 my-5 border-l-4 py-1 pl-5;
+    @apply text-gray-600 italic dark:text-gray-400;
+    @apply rounded-r-md bg-gray-50 dark:bg-gray-800/50;
+}
+
+.sn-prose blockquote p:last-child {
+    @apply mb-0;
+}
+
+/* ========== 行内代码 ========== */
+.sn-prose > code {
+    @apply bg-white dark:bg-gray-900;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply my-6 overflow-x-auto rounded-md p-4 leading-none text-gray-700 dark:text-gray-300;
+    @apply block border-0 bg-transparent font-mono text-sm break-words;
+    counter-reset: line;
+}
+
+.sn-prose a code {
+    @apply text-primary-600 dark:text-primary-400;
+}
+
+/* ========== 代码块容器 (非 Shiki 的普通 pre) ========== */
+.sn-prose pre {
+    @apply bg-gray-50 dark:bg-gray-800;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply my-6 max-w-full overflow-x-auto rounded-md p-0;
+    counter-reset: line;
+}
+
+.sn-prose pre code {
+    @apply block border-0 bg-transparent font-mono text-sm;
+    @apply p-4 leading-none text-gray-700 dark:text-gray-300;
+}
+/* 行号 */
+.sn-prose pre .line {
+    @apply relative block min-h-3.5 pl-0;
+}
+
+.sn-prose pre .line::before {
+    @apply absolute -left-9 w-7 text-right text-sm leading-none text-gray-400 select-none dark:text-gray-600;
+    counter-increment: line;
+    content: counter(line);
+}
+
+/* ========== Shiki 代码高亮 ========== */
+.sn-prose .shiki {
+    @apply bg-gray-50 dark:bg-gray-800;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply my-6 max-w-full overflow-x-auto rounded-md;
+    counter-reset: line;
+}
+
+.sn-prose .shiki code {
+    @apply block border-0 bg-transparent font-mono text-sm;
+    @apply py-4 pr-4 pl-13 leading-none text-gray-700 dark:text-gray-300;
+}
+
+/* Shiki 双主题暗黑模式切换 */
+html.dark .sn-prose .shiki,
+html.dark .sn-prose .shiki span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/* 行号 */
+.sn-prose .shiki .line {
+    @apply relative block min-h-3.5 pl-0;
+}
+
+.sn-prose .shiki .line::before {
+    @apply absolute -left-9 w-7 text-right text-sm leading-none text-gray-400 select-none dark:text-gray-600;
+    counter-increment: line;
+    content: counter(line);
+}
+
+/* ========== 分隔线 ========== */
+.sn-prose hr {
+    @apply my-8 border-0 border-t border-gray-200 dark:border-gray-700;
+}
+
+/* ========== 表格 ========== */
+.sn-prose table {
+    @apply my-6 w-full border-separate border-spacing-0 rounded-md border border-gray-200 text-sm dark:border-gray-700;
+}
+
+.sn-prose thead {
+    @apply bg-gray-100 dark:bg-gray-800;
+}
+
+.sn-prose th {
+    @apply px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-200;
+    @apply border-r border-b border-gray-200 dark:border-gray-700;
+}
+
+.sn-prose td {
+    @apply px-4 py-2.5 text-gray-600 dark:text-gray-400;
+    @apply border-r border-b border-gray-200 dark:border-gray-700;
+}
+
+.sn-prose th:last-child,
+.sn-prose td:last-child {
+    @apply border-r-0;
+}
+
+.sn-prose tr:last-child td {
+    @apply border-b-0;
+}
+
+.sn-prose tbody tr {
+    @apply transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/60;
+}
+
+.sn-prose thead tr:first-child th:first-child {
+    @apply rounded-tl-md;
+}
+.sn-prose thead tr:first-child th:last-child {
+    @apply rounded-tr-md;
+}
+.sn-prose tbody tr:last-child td:first-child {
+    @apply rounded-bl-md;
+}
+.sn-prose tbody tr:last-child td:last-child {
+    @apply rounded-br-md;
+}
+
+/* ========== 图片 ========== */
+.sn-prose img {
+    @apply my-6 h-auto max-w-full rounded-md;
+}
+
+/* ========== 强调 ========== */
+.sn-prose strong {
+    @apply font-bold text-gray-900 dark:text-gray-100;
+}
+
+/* ========== 删除线 ========== */
+.sn-prose del {
+    @apply text-gray-400 dark:text-gray-500;
+}
+
+/* ========== 脚注 ========== */
+.sn-prose sup a {
+    @apply text-primary-500 dark:text-primary-400 text-xs no-underline;
+}
+
+/* ========== 详情折叠 ========== */
+.sn-prose details {
+    @apply my-4 rounded-md border border-gray-200 p-4 dark:border-gray-700;
+}
+
+.sn-prose summary {
+    @apply cursor-pointer font-semibold text-gray-800 dark:text-gray-200;
+}
+
+/* ========== 键盘按键 ========== */
+.sn-prose kbd {
+    @apply inline-block px-1.5 py-0.5 font-mono text-xs font-semibold;
+    @apply text-gray-700 dark:text-gray-300;
+    @apply bg-gray-100 dark:bg-gray-800;
+    @apply border border-gray-300 dark:border-gray-600;
+    @apply rounded shadow-sm;
+}
+
+/* ========== 代码块语言标签 (通过 CSS 模拟) ========== */
+.sn-prose pre[data-language] {
+    @apply relative pt-9;
+}
+
+.sn-prose pre[data-language]::before {
+    @apply rounded-br-md bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply absolute top-0 left-0 px-3 py-1 text-xs font-bold;
+    @apply tracking-widest uppercase;
+    content: attr(data-language);
+}
+
+.sn-prose sub,
+.sn-prose sup {
+    @apply text-xs;
+}
+
+.sn-prose sup {
+    @apply -top-2;
+}
+
+.sn-prose sub {
+    @apply -bottom-1;
+}
+
+/* ========== 内容展开/收起 ========== */
+
+.sn-collapse-container .sn-collapse-content {
+    @apply relative overflow-hidden transition-all duration-300 ease-in-out;
+}
+
+.sn-collapse-container .sn-collapse-content .sn-collapse-fade {
+    @apply pointer-events-none absolute right-0 bottom-0 left-0 h-20;
+    @apply bg-gradient-to-b from-transparent to-white dark:to-gray-900;
+}
+
+.sn-collapse-container .sn-collapse-content.sn-expanded .sn-collapse-fade {
+    @apply opacity-0;
+}
+
+.sn-collapse-container .sn-collapse-toggle {
+    @apply flex cursor-pointer items-center justify-center gap-1.5 select-none;
+    @apply text-sm text-gray-500 dark:text-gray-400;
+    @apply hover:text-primary-500 dark:hover:text-primary-400;
+    @apply transition-all duration-300 ease-in-out;
+    @apply px-4 py-2;
+}

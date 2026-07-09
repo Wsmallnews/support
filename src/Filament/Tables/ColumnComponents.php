@@ -25,7 +25,7 @@ class ColumnComponents
         $action = Action::make('viewContent')
             ->modal()
             ->modalHeading(fn ($record) => __('sn-support::support.table.column.view_content') . ' #' . $record->id)
-            ->modalWidth(Width::ThreeExtraLarge)
+            ->modalWidth(Width::FourExtraLarge)
             ->modalSubmitAction(false)
             ->modalCancelActionLabel(__('sn-support::support.table.column.content_close'));
         $action = $actionResolver ? $actionResolver($action) : $action;

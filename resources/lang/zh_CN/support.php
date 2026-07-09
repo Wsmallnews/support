@@ -35,5 +35,8 @@ return [
     ],
     'action' => [
         'delete_failed' => '删除失败',
+        'bulk_success' => '批量操作完成',
+        'bulk_partial_failure' => ':total 条记录中已处理 :count 条',
+        'bulk_total_failure' => '全部 :count 条记录处理失败',
     ],
 ];

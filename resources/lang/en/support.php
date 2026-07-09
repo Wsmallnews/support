@@ -35,5 +35,8 @@ return [
     ],
     'action' => [
         'delete_failed' => 'Failed to delete',
+        'bulk_success' => 'Bulk operation completed',
+        'bulk_partial_failure' => ':count of :total records processed',
+        'bulk_total_failure' => 'Failed to process all :count records',
     ],
 ];
