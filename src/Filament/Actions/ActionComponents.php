@@ -41,7 +41,6 @@ class ActionComponents
             ->groupedIcon(Heroicon::PencilSquare);
     }
 
-
     /**
      * 创建带自动错误处理的自定义批量操作。
      *
@@ -73,11 +72,10 @@ class ActionComponents
                     'total' => Number::format($totalCount),
                 ]);
             })
-            ->action(function (BulkAction $action, Collection|EloquentCollection $records) use ($process, $prepare): void {
+            ->action(function (BulkAction $action, Collection | EloquentCollection $records) use ($process, $prepare): void {
                 static::safeBulkProcess($action, $records, $process, $prepare);
             });
     }
-
 
     /**
      * 安全执行批量操作，自动处理 try/catch 和失败上报。
@@ -92,7 +90,7 @@ class ActionComponents
      * @param  \Closure(BulkAction, Model): void  $process  单条记录的业务逻辑
      * @param  \Closure(Collection|EloquentCollection): void|null  $prepare  可选：批量预处理（如 eager load），异常导致整批标记失败
      */
-    public static function safeBulkProcess(BulkAction $action, Collection|EloquentCollection $records, \Closure $process, ?\Closure $prepare = null): void
+    public static function safeBulkProcess(BulkAction $action, Collection | EloquentCollection $records, \Closure $process, ?\Closure $prepare = null): void
     {
         if ($prepare) {
             try {
