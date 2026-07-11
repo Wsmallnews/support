@@ -89,6 +89,54 @@
         @apply transition-shadow duration-300 ease-in-out;
     }
 }
+.sn-contour-primary {
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-primary-200/80 dark:shadow-gray-800/80 dark:ring-primary-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-primary-300 dark:hover:ring-primary-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-danger {
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-danger-200/80 dark:shadow-gray-800/80 dark:ring-danger-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-danger-300 dark:hover:ring-danger-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-success {
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-success-200/80 dark:shadow-gray-800/80 dark:ring-success-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-success-300 dark:hover:ring-success-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-info {
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-info-200/80 dark:shadow-gray-800/80 dark:ring-info-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-info-300 dark:hover:ring-info-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-warning {
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-warning-200/80 dark:shadow-gray-800/80 dark:ring-warning-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-warning-300 dark:hover:ring-warning-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-gray {
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-gray-300 dark:hover:ring-gray-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
 
 /* 区块轮廓，这里用的是 border ring 不支持设置单条边 需要外面指定那条边存在 */
 .sn-contour-only {
@@ -269,6 +317,150 @@
     .sn-active {
         /** 内部 active */
         @apply bg-primary-100 dark:bg-primary-900;
+    }
+}
+.sn-container-primary {
+    @apply bg-primary-50 dark:bg-primary-950;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-primary-200/80 dark:shadow-gray-800/80 dark:ring-primary-800/60;
+    @apply rounded-md transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-primary-300 dark:hover:ring-primary-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-primary-100/70 dark:hover:bg-primary-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-primary-100/70 dark:hover:bg-primary-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-primary-100 dark:bg-primary-900;
+    }
+    .sn-active {
+        @apply bg-primary-100 dark:bg-primary-900;
+    }
+}
+.sn-container-danger {
+    @apply bg-danger-50 dark:bg-danger-950;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-danger-200/80 dark:shadow-gray-800/80 dark:ring-danger-800/60;
+    @apply rounded-md transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-danger-300 dark:hover:ring-danger-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-danger-100/70 dark:hover:bg-danger-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-danger-100/70 dark:hover:bg-danger-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-danger-100 dark:bg-danger-900;
+    }
+    .sn-active {
+        @apply bg-danger-100 dark:bg-danger-900;
+    }
+}
+.sn-container-success {
+    @apply bg-success-50 dark:bg-success-950;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-success-200/80 dark:shadow-gray-800/80 dark:ring-success-800/60;
+    @apply rounded-md transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-success-300 dark:hover:ring-success-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-success-100/70 dark:hover:bg-success-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-success-100/70 dark:hover:bg-success-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-success-100 dark:bg-success-900;
+    }
+    .sn-active {
+        @apply bg-success-100 dark:bg-success-900;
+    }
+}
+.sn-container-info {
+    @apply bg-info-50 dark:bg-info-950;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-info-200/80 dark:shadow-gray-800/80 dark:ring-info-800/60;
+    @apply rounded-md transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-info-300 dark:hover:ring-info-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-info-100/70 dark:hover:bg-info-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-info-100/70 dark:hover:bg-info-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-info-100 dark:bg-info-900;
+    }
+    .sn-active {
+        @apply bg-info-100 dark:bg-info-900;
+    }
+}
+.sn-container-warning {
+    @apply bg-warning-50 dark:bg-warning-950;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-warning-200/80 dark:shadow-gray-800/80 dark:ring-warning-800/60;
+    @apply rounded-md transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-warning-300 dark:hover:ring-warning-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-warning-100/70 dark:hover:bg-warning-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-warning-100/70 dark:hover:bg-warning-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-warning-100 dark:bg-warning-900;
+    }
+    .sn-active {
+        @apply bg-warning-100 dark:bg-warning-900;
+    }
+}
+.sn-container-gray {
+    @apply bg-gray-50 dark:bg-gray-900;
+    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply rounded-md transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-lg hover:ring-gray-300 dark:hover:ring-gray-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-gray-100/70 dark:hover:bg-gray-800/70;
+    }
+
+    .sn-link {
+        @apply hover:bg-gray-100/70 dark:hover:bg-gray-800/70;
+    }
+
+    &.sn-active {
+        @apply bg-gray-100 dark:bg-gray-800;
+    }
+    .sn-active {
+        @apply bg-gray-100 dark:bg-gray-800;
     }
 }
 
@@ -542,6 +734,30 @@
     @apply flex -space-x-2;
 }
 .sn-avatar-group .sn-avatar {
+    @apply ring-2 ring-white dark:ring-gray-900;
+}
+
+/* ========== 图片（非头像，圆角方形） ========== */
+
+.sn-image {
+    @apply inline-flex size-10 items-center justify-center overflow-hidden rounded-md;
+    @apply bg-gray-200 text-sm font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400;
+}
+.sn-image-sm {
+    @apply size-8 text-xs;
+}
+.sn-image-lg {
+    @apply size-12 text-base;
+}
+.sn-image-xl {
+    @apply size-16 text-lg;
+}
+
+/* 图片组 */
+.sn-image-group {
+    @apply flex -space-x-2;
+}
+.sn-image-group .sn-image {
     @apply ring-2 ring-white dark:ring-gray-900;
 }
 

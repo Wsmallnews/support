@@ -146,7 +146,8 @@ class ColumnComponents
         $title = FilamentModelHelper::getTitle($model);
         $description = FilamentModelHelper::getDescription($model);
 
-        $imageHtml = '<div class="w-10 h-10 ' . ($modelType === 'identifiable' ? 'rounded-full' : 'rounded-md') . ' shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800">';
+        $imageClass = $modelType === 'identifiable' ? 'sn-avatar' : 'sn-image';
+        $imageHtml = '<div class="' . $imageClass . '">';
         if ($coverUrl) {
             $imageHtml .= '<img class="w-full h-full object-cover" src="' . files_url($coverUrl) . '" alt="' . $title . '" />';
         } else {
@@ -165,9 +166,9 @@ class ColumnComponents
             $contentHtml .= '<span class="sn-primary-text">#' . $model->getKey() . '</span>';
         }
         if ($type == 'morph') {
-            $contentHtml .= '<div class="sn-primary-bg text-white rounded-md px-1 text-sm">
+            $contentHtml .= '<span class="sn-badge sn-badge-primary">
                         ' . FilamentModelHelper::getModelLabel($model) . '
-                    </div>';
+                    </span>';
         }
         $contentHtml .= '<span class="sn-content-text ' . ($tag == 'a' ? 'sn-hover' : '') . ' truncate" title="' . $title . '">' . $title . '</span>
             </' . $tag . '>
