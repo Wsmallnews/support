@@ -35,6 +35,114 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Filament Action Components
+    |--------------------------------------------------------------------------
+    |
+    | Unified management of default configurations for Filament action components
+    |
+    */
+    'action_components' => [
+        /**
+         * Record actions 分组配置。
+         * 控制 Table::recordActions() 中的操作是否包裹在 ActionGroup 下拉菜单中。
+         */
+        'table_record_actions' => [
+            /**
+             * 是否将 record actions 包裹在 ActionGroup 下拉菜单中。
+             * 设为 false 时，actions 以独立按钮形式平铺展示。
+             */
+            'group' => true,
+
+            /**
+             * 触发器视图模式：'icon_button'（默认）、'button'、'link'。
+             * - icon_button: 纯图标按钮，label 仅对屏幕阅读器可见，outlined 无效
+             * - button: 完整按钮，label 可见、outlined 有效
+             * - link: 链接样式，label 可见、outlined 无效
+             */
+            'trigger' => 'icon_button',
+
+            /**
+             * ActionGroup 触发按钮图标（Heroicon 名称，null 使用默认图标）
+             */
+            'icon' => null,
+
+            /**
+             * ActionGroup 触发按钮文本（null 使用 Filament 默认翻译）
+             */
+            'label' => null,
+
+            /**
+             * 触发按钮颜色
+             */
+            'color' => null,
+
+            /**
+             * 触发按钮尺寸（xs|sm|md|lg|xl）
+             */
+            'size' => null,
+
+            /**
+             * 是否使用 outlined 按钮样式（仅 trigger 为 button 时有效）
+             */
+            'outlined' => false,
+
+            /**
+             * 触发按钮的 tooltip 文本
+             */
+            'tooltip' => null,
+        ],
+
+        /**
+         * Toolbar actions 分组配置。
+         * 控制 Table::toolbarActions() 中的批量操作是否包裹在 BulkActionGroup 中。
+         */
+        'table_toolbar_actions' => [
+            /**
+             * 是否将 toolbar actions 包裹在 BulkActionGroup 中。
+             * 设为 false 时，批量操作以独立按钮形式平铺展示。
+             */
+            'group' => true,
+
+            /**
+             * 触发器视图模式：'button'（默认）、'icon_button'、'link'。
+             * BulkActionGroup 默认使用 button 模式，label 可直接显示。
+             */
+            'trigger' => 'button',
+
+            /**
+             * BulkActionGroup 触发按钮图标
+             */
+            'icon' => null,
+
+            /**
+             * BulkActionGroup 触发按钮文本
+             */
+            'label' => null,
+
+            /**
+             * 触发按钮颜色
+             */
+            'color' => null,
+
+            /**
+             * 触发按钮尺寸（xs|sm|md|lg|xl）
+             */
+            'size' => null,
+
+            /**
+             * 是否使用 outlined 按钮样式（仅 trigger 为 button 时有效）
+             */
+            'outlined' => false,
+
+            /**
+             * 触发按钮的 tooltip 文本
+             */
+            'tooltip' => null,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Filament Form Components
     |--------------------------------------------------------------------------
     |

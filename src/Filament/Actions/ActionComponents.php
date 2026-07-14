@@ -3,13 +3,16 @@
 namespace Wsmallnews\Support\Filament\Actions;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Number;
 use Throwable;
+use Wsmallnews\Support\Support\Utils;
 
 class ActionComponents
 {
@@ -119,5 +122,117 @@ class ActionComponents
                 }
             }
         }
+    }
+
+    /**
+     * 根据配置，条件性地将 record actions 包裹在 ActionGroup 中。
+     *
+     * 当配置 'action_components.table_record_actions.group' 为 true 时，
+     * actions 被包裹在 ActionGroup::make() 中；为 false 时原样返回。
+     *
+     * @param  array<Action>  $actions
+     * @param  array|null  $groupConfig  单表覆盖配置，会与全局配置合并
+     * @return array<Action|ActionGroup>
+     */
+    public static function recordActions(array $actions, ?array $groupConfig = null): array
+    {
+        $config = array_merge(
+            Utils::getConfig('action_components.table_record_actions', []),
+            $groupConfig ?? [],
+        );
+
+        if (($config['group'] ?? true) === false) {
+            return $actions;
+        }
+
+        $group = ActionGroup::make($actions);
+
+        match ($config['trigger'] ?? 'icon_button') {
+            'button' => $group->button(),
+            'link' => $group->link(),
+            default => null, // icon_button 已是 ActionGroup 默认值
+        };
+
+        if (! empty($config['icon'])) {
+            $group->icon($config['icon']);
+        }
+
+        if (! empty($config['label'])) {
+            $group->label($config['label']);
+        }
+
+        if (! empty($config['color'])) {
+            $group->color($config['color']);
+        }
+
+        if (! empty($config['size'])) {
+            $group->size($config['size']);
+        }
+
+        if (! empty($config['outlined'])) {
+            $group->outlined();
+        }
+
+        if (! empty($config['tooltip'])) {
+            $group->tooltip($config['tooltip']);
+        }
+
+        return [$group];
+    }
+
+    /**
+     * 根据配置，条件性地将 toolbar actions 包裹在 BulkActionGroup 中。
+     *
+     * 当配置 'action_components.table_toolbar_actions.group' 为 true 时，
+     * actions 被包裹在 BulkActionGroup::make() 中；为 false 时原样返回。
+     *
+     * @param  array<Action>  $actions
+     * @param  array|null  $groupConfig  单表覆盖配置，会与全局配置合并
+     * @return array<Action|BulkActionGroup>
+     */
+    public static function toolbarActions(array $actions, ?array $groupConfig = null): array
+    {
+        $config = array_merge(
+            Utils::getConfig('action_components.table_toolbar_actions', []),
+            $groupConfig ?? [],
+        );
+
+        if (($config['group'] ?? true) === false) {
+            return $actions;
+        }
+
+        $group = BulkActionGroup::make($actions);
+
+        match ($config['trigger'] ?? 'button') {
+            'icon_button' => $group->iconButton(),
+            'link' => $group->link(),
+            default => null, // button 已是 BulkActionGroup 默认值
+        };
+
+        if (! empty($config['icon'])) {
+            $group->icon($config['icon']);
+        }
+
+        if (! empty($config['label'])) {
+            $group->label($config['label']);
+        }
+
+        if (! empty($config['color'])) {
+            $group->color($config['color']);
+        }
+
+        if (! empty($config['size'])) {
+            $group->size($config['size']);
+        }
+
+        if (! empty($config['outlined'])) {
+            $group->outlined();
+        }
+
+        if (! empty($config['tooltip'])) {
+            $group->tooltip($config['tooltip']);
+        }
+
+        return [$group];
     }
 }

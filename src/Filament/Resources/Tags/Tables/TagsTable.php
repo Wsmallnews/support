@@ -2,13 +2,13 @@
 
 namespace Wsmallnews\Support\Filament\Resources\Tags\Tables;
 
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Width;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Wsmallnews\Support\Filament\Actions\ActionComponents;
 use Wsmallnews\Support\Filament\Filters\FilterComponents;
 
 class TagsTable
@@ -55,11 +55,13 @@ class TagsTable
                 ...FilterComponents::createUpdateRangeFilter(),
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                ...ActionComponents::recordActions([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
+                ...ActionComponents::toolbarActions([
                     DeleteBulkAction::make(),
                 ]),
             ]);

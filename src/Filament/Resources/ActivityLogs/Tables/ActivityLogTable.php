@@ -3,9 +3,7 @@
 namespace Wsmallnews\Support\Filament\Resources\ActivityLogs\Tables;
 
 use Filament\Actions\Action;
-use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ExportAction as FilamentExportAction;
@@ -20,6 +18,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
+use Wsmallnews\Support\Filament\Actions\ActionComponents;
 use Wsmallnews\Support\Filament\Filters\FilterComponents;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Concerns\SubjectTimelineAction;
 use Wsmallnews\Support\Filament\Resources\ActivityLogs\Exports\ActivityLogExporter;
@@ -53,7 +52,7 @@ class ActivityLogTable
                 static::exportHeaderAction(),
             ])
             ->recordActions([
-                ActionGroup::make([
+                ...ActionComponents::recordActions([
                     SubjectTimelineAction::make()->color('info'),
                     ViewAction::make(),
                     static::revertAction(),
@@ -61,7 +60,7 @@ class ActivityLogTable
                 ]),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
+                ...ActionComponents::toolbarActions([
                     static::exportBulkAction(),
                     static::deleteBulkAction(),
                     static::revertBulkAction(),
