@@ -7,6 +7,7 @@ use Closure;
 use Filament\Contracts\Plugin;
 use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Resources\Resource;
+use Filament\Resources\ResourceConfiguration;
 use Illuminate\Support\Str;
 use UnitEnum;
 
@@ -134,18 +135,6 @@ trait CanBeConfigured
     }
 
     /**
-     * 获取当前资源所属的插件
-     *
-     * @return Plugin|null
-     */
-    protected static function getCurrentPlugin(): ?Plugin
-    {
-        $current = static::class;
-
-        return method_exists($current, 'getEssentialsPlugin') ? $current::getEssentialsPlugin() : null;
-    }
-
-    /**
      * 优先获取 configuration ，其次获取 配置文件中的配置
      *
      * @param string $property
@@ -170,7 +159,7 @@ trait CanBeConfigured
     protected static function getConfigurationValue(string $property): mixed
     {
         $value = null;
-        $configuration = static::getConfiguration();
+        $configuration = static::getSafeConfiguration();
         if ($configuration) {
             $getter = 'get' . ucfirst($property);
             if (method_exists($configuration, $getter)) {
@@ -216,11 +205,40 @@ trait CanBeConfigured
 
     protected static function resolveCustomProperty(string $key, mixed $default = null): mixed
     {
-        $configuration = static::getConfiguration();
+        $configuration = static::getSafeConfiguration();
         if ($configuration && method_exists($configuration, 'getCustomProperty')) {
             return $configuration->getCustomProperty($key, $default);
         }
 
         return $default;
+    }
+
+    /**
+     * 获取当前资源所属的插件
+     *
+     * @return Plugin|null
+     */
+    protected static function getCurrentPlugin(): ?Plugin
+    {
+        $current = static::class;
+
+        return method_exists($current, 'getEssentialsPlugin') ? $current::getEssentialsPlugin() : null;
+    }
+
+
+    /**
+     * 安全获取当前 config
+     *
+     * @return ResourceConfiguration|null
+     */
+    protected static function getSafeConfiguration(): ?ResourceConfiguration
+    {
+        try {
+            $config = static::getConfiguration();   
+        } catch (\Throwable) {
+            $config = null;
+        } 
+
+        return $config;
     }
 }

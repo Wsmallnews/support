@@ -62,9 +62,9 @@ trait HasConfigurationProperties
     protected bool | Closure | null $shouldSplitGlobalSearchTerms = null;
 
 
-    protected ?string $scopeType = null;
+    protected string | Closure | null $scopeType = null;
 
-    protected ?int $scopeId = null;
+    protected int | Closure | null $scopeId = null;
 
 
     protected array $customProperties = [];
@@ -366,7 +366,7 @@ trait HasConfigurationProperties
     // Scope setters & getters
     // ========================================================================
 
-    public function scopeType(?string $scopeType): static
+    public function scopeType(string | Closure | null $scopeType): static
     {
         $this->scopeType = $scopeType;
 
@@ -375,10 +375,10 @@ trait HasConfigurationProperties
 
     public function getScopeType(): ?string
     {
-        return $this->scopeType;
+        return $this->evaluate($this->scopeType);
     }
 
-    public function scopeId(?int $scopeId): static
+    public function scopeId(int | Closure | null $scopeId): static
     {
         $this->scopeId = $scopeId;
 
@@ -387,7 +387,7 @@ trait HasConfigurationProperties
 
     public function getScopeId(): ?int
     {
-        return $this->scopeId;
+        return $this->evaluate($this->scopeId);
     }
 
     // ========================================================================
