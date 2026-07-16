@@ -33,7 +33,6 @@ trait HasConfigurationProperties
 
     protected string | Closure | null $subNavigationPosition = null;
 
-
     protected string | Closure | null $modelLabel = null;
 
     protected string | Closure | null $pluralModelLabel = null;
@@ -42,16 +41,13 @@ trait HasConfigurationProperties
 
     protected bool | Closure | null $hasTitleCaseModelLabel = null;
 
-
     protected bool | Closure | null $isScopedToTenant = null;
 
     protected string | Closure | null $tenantOwnershipRelationshipName = null;
 
     protected string | Closure | null $tenantRelationshipName = null;
 
-
     protected string | Closure | null $parentResource = null;
-
 
     protected bool | Closure | null $isGloballySearchable = null;
 
@@ -66,9 +62,7 @@ trait HasConfigurationProperties
 
     protected int | Closure | null $scopeId = null;
 
-
     protected array $customProperties = [];
-
 
     public function navigationGroup(string | UnitEnum | Closure | null $group): static
     {

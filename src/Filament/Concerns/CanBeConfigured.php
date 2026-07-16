@@ -13,7 +13,6 @@ use UnitEnum;
 
 trait CanBeConfigured
 {
-
     // ========================================================================
     // Navigation getters
     // ========================================================================
@@ -120,7 +119,7 @@ trait CanBeConfigured
     }
 
     // ========================================================================
-    // Scopeable 
+    // Scopeable
     // ========================================================================
 
     public static function getScopeType(): string
@@ -128,6 +127,7 @@ trait CanBeConfigured
         // 默认 读取 config 中设置的 scopeable 信息
         return static::getConfigurationValue('scopeType') ?? static::getCurrentPlugin()->getScopeType();
     }
+
     public static function getScopeId(): int
     {
         // 默认 读取 config 中设置的 scopeable 信息
@@ -170,7 +170,6 @@ trait CanBeConfigured
         return $value;
     }
 
-
     /**
      * 从配置文件中获取配置值
      *
@@ -201,7 +200,6 @@ trait CanBeConfigured
 
         return null;
     }
-
 
     protected static function resolveCustomProperty(string $key, mixed $default = null): mixed
     {
