@@ -32,8 +32,6 @@ trait RegistersConfigurable
 
     /**
      * Get the configurable resources.
-     *
-     * @return array
      */
     public function getConfigurableResources(): array
     {
@@ -55,8 +53,6 @@ trait RegistersConfigurable
 
     /**
      * Get the configurable pages.
-     *
-     * @return array
      */
     public function getConfigurablePages(): array
     {
