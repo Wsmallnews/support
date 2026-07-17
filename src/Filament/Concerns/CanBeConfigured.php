@@ -5,8 +5,8 @@ namespace Wsmallnews\Support\Filament\Concerns;
 use BackedEnum;
 use Filament\Contracts\Plugin;
 use Filament\Pages\Enums\SubNavigationPosition;
-use Filament\Resources\ResourceConfiguration;
 use Filament\Pages\PageConfiguration;
+use Filament\Resources\ResourceConfiguration;
 use Illuminate\Support\Str;
 use UnitEnum;
 
@@ -137,7 +137,6 @@ trait CanBeConfigured
     // Core resolution
     // ========================================================================
 
-
     /**
      * 从 Configuration 对象安全获取属性值
      */
@@ -155,7 +154,6 @@ trait CanBeConfigured
 
         return null;
     }
-
 
     /**
      * 从 Configuration 对象获取自定义属性
@@ -182,8 +180,6 @@ trait CanBeConfigured
 
     /**
      * 安全获取当前 config
-     *
-     * @return ResourceConfiguration|PageConfiguration|null
      */
     protected static function getSafeConfiguration(): PageConfiguration | ResourceConfiguration | null
     {

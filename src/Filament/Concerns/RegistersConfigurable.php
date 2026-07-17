@@ -38,7 +38,6 @@ trait RegistersConfigurable
         $panel->pages([...$this->pageConfigurations]);
     }
 
-
     /**
      * 从 PanelProvider 覆盖资源配置
      *
@@ -84,7 +83,6 @@ trait RegistersConfigurable
     {
         return $this->pageConfigurations;
     }
-
 
     /**
      * 从配置文件读取条目，合并共享默认，构建 Configuration 对象
@@ -151,6 +149,7 @@ trait RegistersConfigurable
                 if (is_array($value)) {
                     $configObj->customProperties($value);
                 }
+
                 continue;
             }
 
