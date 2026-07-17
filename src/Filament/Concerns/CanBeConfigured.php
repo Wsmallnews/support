@@ -172,8 +172,6 @@ trait CanBeConfigured
 
     /**
      * 获取当前资源所属的插件
-     *
-     * @return Plugin|null
      */
     protected static function getCurrentPlugin(): ?Plugin
     {
@@ -190,10 +188,10 @@ trait CanBeConfigured
     protected static function getSafeConfiguration(): PageConfiguration | ResourceConfiguration | null
     {
         try {
-            $config = static::getConfiguration();   
+            $config = static::getConfiguration();
         } catch (\Throwable) {
             $config = null;
-        } 
+        }
 
         return $config;
     }

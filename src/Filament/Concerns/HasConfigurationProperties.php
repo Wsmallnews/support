@@ -57,7 +57,6 @@ trait HasConfigurationProperties
 
     protected bool | Closure | null $shouldSplitGlobalSearchTerms = null;
 
-
     protected string | Closure | null $scopeType = null;
 
     protected int | Closure | null $scopeId = null;
