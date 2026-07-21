@@ -102,6 +102,8 @@ class ActivityLogTable
             'subject_type',
             __('sn-support::activity.table.column.subject_info'),
             fn ($record) => $record->subject,
+            fn ($record) => $record->subject_type,
+            fn ($record) => $record->subject_id,
         );
     }
 
@@ -111,6 +113,8 @@ class ActivityLogTable
             'causer_type',
             __('sn-support::activity.table.column.causer_info'),
             fn ($record) => $record->causer,
+            fn ($record) => $record->causer_type,
+            fn ($record) => $record->causer_id,
         );
     }
 

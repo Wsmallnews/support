@@ -31,6 +31,7 @@ return [
         'column' => [
             'view_content' => 'View Content',
             'content_close' => 'Close',
+            'model_deleted' => 'Deleted',
         ],
     ],
     'action' => [

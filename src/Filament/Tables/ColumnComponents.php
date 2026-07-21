@@ -84,18 +84,35 @@ class ColumnComponents
      * @param  string  $name  列名（如 'causer.name'）
      * @param  string  $label  列标签
      * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
+     * @param  ?Closure  $relationTypeResolver  关联模型类型 fn ($record) => ‘post’  或者 fn ($record) => Post::class 
+     * @param  ?Closure  $relationIdResolver  从 $record 获取关联 ID，如 fn ($record) => $record->post_id
      */
     public static function relationColumn(
         string $name,
         string $label,
         Closure $modelResolver,
+        ?Closure $relationTypeResolver = null,
+        ?Closure $relationIdResolver = null,
     ): TextColumn {
         return TextColumn::make($name)
             ->label($label)
-            ->formatStateUsing(function ($state, $record) use ($modelResolver): HtmlString {
+            ->state(function ($record) use ($name, $relationTypeResolver) {
+                $relationType = $relationTypeResolver instanceof Closure ? $relationTypeResolver($record) : null;
+                return $relationType ?? ($record->{$name} ?? '-');       // 确保 formatStateUsing 方法执行(null 的话 formatStateUsing 不会执行)
+            })
+            ->formatStateUsing(function ($state, $record) use ($modelResolver, $relationTypeResolver, $relationIdResolver): HtmlString {
                 $model = $modelResolver($record);
+                $relationType = $relationTypeResolver instanceof Closure ? $relationTypeResolver($record) : null;
+                $relationId = $relationIdResolver instanceof Closure ? $relationIdResolver($record) : null;
 
-                return static::modelInfo($model, 'relation');
+                if ($model) {
+                    return static::modelInfo($model, 'relation');
+                } else {
+                    return static::emptyModelInfo(
+                        $relationType,
+                        $relationId,
+                    );
+                }
             })
             ->disabledClick()
             ->searchable()
@@ -109,18 +126,35 @@ class ColumnComponents
      * @param  string  $name  列名（如 'causer.name'）
      * @param  string  $label  列标签
      * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
+     * @param  ?Closure  $morphTypeResolver  从 $record 获取多态类型，如 fn ($record) => $record->causer_type
+     * @param  ?Closure  $morphIdResolver  从 $record 获取多态 ID，如 fn ($record) => $record->causer_id
      */
     public static function morphColumn(
         string $name,
         string $label,
         Closure $modelResolver,
+        ?Closure $morphTypeResolver = null,
+        ?Closure $morphIdResolver = null,
     ): TextColumn {
         return TextColumn::make($name)
             ->label($label)
-            ->formatStateUsing(function ($state, $record) use ($modelResolver): HtmlString {
+            ->state(function ($record) use ($name, $morphTypeResolver) {
+                $morphType = $morphTypeResolver instanceof Closure ? $morphTypeResolver($record) : null;
+                return $morphType ?? ($record->{$name} ?? '-');       // 确保 formatStateUsing 方法执行(null 的话 formatStateUsing 不会执行)
+            })
+            ->formatStateUsing(function ($state, $record) use ($modelResolver, $morphTypeResolver, $morphIdResolver): HtmlString {
                 $model = $modelResolver($record);
+                $morphType = $morphTypeResolver instanceof Closure ? $morphTypeResolver($record) : null;
+                $morphId = $morphIdResolver instanceof Closure ? $morphIdResolver($record) : null;
 
-                return static::modelInfo($model, 'morph');
+                if ($model) {
+                    return static::modelInfo($model, 'morph');
+                } else {
+                    return static::emptyModelInfo(
+                        $morphType,
+                        $morphId,
+                    );
+                }
             })
             ->disabledClick()
             ->searchable()
@@ -136,10 +170,6 @@ class ColumnComponents
      */
     protected static function modelInfo(mixed $model, $type = 'model')
     {
-        if (! $model) {
-            return new HtmlString('<span class="text-gray-400">-</span>');
-        }
-
         $modelType = $model instanceof HasSnIdentifiable ? 'identifiable' : 'other';
 
         $coverUrl = FilamentModelHelper::getCoverUrl($model);
@@ -173,6 +203,37 @@ class ColumnComponents
         $contentHtml .= '<span class="sn-content-text ' . ($tag == 'a' ? 'sn-hover' : '') . ' truncate" title="' . $title . '">' . $title . '</span>
             </' . $tag . '>
             <span class="text-sm font-medium text-gray-400 dark:text-white truncate" title="' . $description . '">' . $description . '</span>
+        </div>';
+
+        return new HtmlString(
+            '<div class="flex items-center gap-2 justify-start">' . $imageHtml . $contentHtml . '</div>'
+        );
+    }
+
+    /**
+     * 已删除多态模型的降级显示
+     */
+    protected static function emptyModelInfo(?string $modelType, ?int $modelId): HtmlString
+    {
+        if (! $modelType || ! $modelId) {
+            return new HtmlString('<span class="text-gray-400">-</span>');
+        }
+
+        $modelLabel = filled($modelType) ? FilamentModelHelper::getTypeLabel($modelType) : '-';
+        $id = $modelId ?? '-';
+
+        $imageHtml = '<div class="sn-image">
+            <div class="sn-image-placeholder">
+                ' . svg('heroicon-m-question-mark-circle')->toHtml() . '
+            </div>
+        </div>';
+
+        $contentHtml = '<div class="flex flex-col justify-between max-w-80">
+            <div class="flex items-center gap-1">
+                <span class="sn-primary-text">#' . e((string) $id) . '</span>
+                <span class="sn-badge sn-badge-primary">' . e($modelLabel) . '</span>
+                <span class="sn-content-text text-gray-400 truncate">' . __('sn-support::support.table.column.model_deleted') . '</span>
+            </div>
         </div>';
 
         return new HtmlString(
