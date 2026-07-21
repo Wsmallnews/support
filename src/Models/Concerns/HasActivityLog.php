@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Wsmallnews\Support\Models\Concerns;
 
 use Illuminate\Support\Str;
-use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 
 /**
@@ -43,7 +43,7 @@ trait HasActivityLog
 
     /**
      * 获取活动日志选项.
-     * 
+     *
      * @return LogOptions 活动日志选项
      */
     public function getActivitylogOptions(): LogOptions
@@ -57,8 +57,8 @@ trait HasActivityLog
 
     /**
      * 生成日志描述文本.
-     * 
-     * @param string $eventName 事件名称
+     *
+     * @param  string  $eventName  事件名称
      * @return string 日志描述文本
      */
     protected function getActivityDescription(string $eventName): string
