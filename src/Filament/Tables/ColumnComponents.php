@@ -84,7 +84,7 @@ class ColumnComponents
      * @param  string  $name  列名（如 'causer.name'）
      * @param  string  $label  列标签
      * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
-     * @param  ?Closure  $relationTypeResolver  关联模型类型 fn ($record) => ‘post’  或者 fn ($record) => Post::class 
+     * @param  ?Closure  $relationTypeResolver  关联模型类型 fn ($record) => ‘post’  或者 fn ($record) => Post::class
      * @param  ?Closure  $relationIdResolver  从 $record 获取关联 ID，如 fn ($record) => $record->post_id
      */
     public static function relationColumn(
@@ -98,6 +98,7 @@ class ColumnComponents
             ->label($label)
             ->state(function ($record) use ($name, $relationTypeResolver) {
                 $relationType = $relationTypeResolver instanceof Closure ? $relationTypeResolver($record) : null;
+
                 return $relationType ?? ($record->{$name} ?? '-');       // 确保 formatStateUsing 方法执行(null 的话 formatStateUsing 不会执行)
             })
             ->formatStateUsing(function ($state, $record) use ($modelResolver, $relationTypeResolver, $relationIdResolver): HtmlString {
@@ -140,6 +141,7 @@ class ColumnComponents
             ->label($label)
             ->state(function ($record) use ($name, $morphTypeResolver) {
                 $morphType = $morphTypeResolver instanceof Closure ? $morphTypeResolver($record) : null;
+
                 return $morphType ?? ($record->{$name} ?? '-');       // 确保 formatStateUsing 方法执行(null 的话 formatStateUsing 不会执行)
             })
             ->formatStateUsing(function ($state, $record) use ($modelResolver, $morphTypeResolver, $morphIdResolver): HtmlString {
