@@ -42,6 +42,14 @@ trait HasActivityLog
     }
 
     /**
+     * 获取其他的要记录的字段，子类可覆盖.
+     */
+    protected function getActivityOthersAttributes(): array
+    {
+        return [];
+    }
+
+    /**
      * 获取活动日志选项.
      *
      * @return LogOptions 活动日志选项
@@ -49,7 +57,7 @@ trait HasActivityLog
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logAll()
+            ->logOnly(['*', ...$this->getActivityOthersAttributes()])
             ->logOnlyDirty()
             ->dontLogIfAttributesChangedOnly($this->getActivityIgnoreAttributes())
             ->setDescriptionForEvent(fn (string $eventName) => $this->getActivityDescription($eventName));

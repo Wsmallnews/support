@@ -20,8 +20,10 @@ use Spatie\Activitylog\Support\Config as ActivitylogConfig;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\LaravelSettings\Events\SavingSettings;
+use Spatie\LaravelSettings\Models\SettingsProperty;
 use Wsmallnews\Support\Commands\SupportInstallCommand;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
+use Wsmallnews\Support\Settings\Listeners\LogSettingsActivity;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
@@ -51,7 +53,14 @@ class SupportServiceProvider extends PackageServiceProvider
             'sn_sms_log' => SupportUtils::getSmsLogModel(),
             'sn_content' => SupportUtils::getContentModel(),
             'activity' => ActivitylogConfig::activityModel(),
+            'settings' => SettingsProperty::class,
         ]);
+
+        // 自动记录设置修改日志
+        Event::listen(
+            SavingSettings::class,
+            LogSettingsActivity::class,
+        );
 
         // 多租户时注册自动创建设置监听器 (不需要迁移默认配置)
         if (SupportUtils::isTenancyEnabled()) {
