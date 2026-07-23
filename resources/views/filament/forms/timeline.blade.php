@@ -1,10 +1,12 @@
 @php
     use Filament\Support\Icons\Heroicon;
+    use Illuminate\Support\Arr;
+    use Illuminate\Support\Collection;
     use Wsmallnews\Support\Enums\ActivityLogEvent;
     use Wsmallnews\Support\Helpers\FilamentModelHelper;
 
     $activities = $activities ?? $getState() ?? collect();
-    if (!$activities instanceof \Illuminate\Support\Collection) {
+    if (!$activities instanceof Collection) {
         $activities = collect($activities);
     }
 @endphp
@@ -12,7 +14,7 @@
 <div class="sn-bg">
     @forelse ($activities as $key => $activity)
         @php
-            $event = $activity->event ? ActivityLogEvent::tryFrom($activity->event) : null;
+            $event = $activity->event ?: null;
             $icon = $event?->getIcon() ?? Heroicon::Clock;
             $label = $event?->getLabel() ?? $activity->event;
             $color = $event?->getColor() ?? 'gray';
@@ -97,8 +99,8 @@
                 </div>
 
                 @php
-                    $old = $activity->attribute_changes->get('old', []);
-                    $attributes = $activity->attribute_changes->get('attributes', []);
+                    $old = Arr::dot($activity->attribute_changes->get('old', []));
+                    $attributes = Arr::dot($activity->attribute_changes->get('attributes', []));
                 @endphp
                 @if($old || $attributes)
                     <div x-data="{ open: false }" class="w-full flex flex-col gap-2">
@@ -112,9 +114,9 @@
                         </button>
 
                         <div class="w-full flex flex-col gap-2 @container" x-show="open" x-collapse>
-                            <div class="w-full flex flex-col @2xl:flex-row gap-4">
+                            <div class="w-full flex flex-col gap-4">
                                 @if($old)
-                                    <div class="sn-rounded sn-danger-text w-full flex flex-col divide-y divide-danger-200 border bg-danger-50 border-danger-200">
+                                    <div class="sn-rounded sn-danger-text w-full min-w-0 flex flex-col divide-y divide-danger-200 border bg-danger-50 border-danger-200">
                                         <div class="w-full p-2">
                                             {{ __('sn-support::activity.infolist.tab.old') }}
                                         </div>
@@ -137,7 +139,7 @@
                                 @endif
     
                                 @if($attributes)
-                                    <div class="sn-rounded sn-success-text w-full flex flex-col divide-y divide-success-200 border bg-success-50 border-success-200">
+                                    <div class="sn-rounded sn-success-text w-full min-w-0 flex flex-col divide-y divide-success-200 border bg-success-50 border-success-200">
                                         <div class="w-full p-2">
                                             {{ __('sn-support::activity.infolist.tab.new') }}
                                         </div>

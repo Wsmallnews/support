@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Arr;
 use Phiki\Grammar\Grammar;
 use Wsmallnews\Support\Enums\ActivityLogEvent;
 use Wsmallnews\Support\Helpers\FilamentModelHelper;
@@ -78,12 +79,14 @@ class ActivityLogInfolist
                                 KeyValueEntry::make('attribute_changes.attributes')
                                     ->label(__('sn-support::activity.infolist.entry.attributes'))
                                     ->keyLabel(__('sn-support::activity.infolist.entry.key'))
-                                    ->valueLabel(__('sn-support::activity.infolist.entry.value')),
+                                    ->valueLabel(__('sn-support::activity.infolist.entry.value'))
+                                    ->state(fn ($record) => Arr::dot($record->attribute_changes->get('attributes', []))),
 
                                 KeyValueEntry::make('attribute_changes.old')
                                     ->label(__('sn-support::activity.infolist.entry.old'))
                                     ->keyLabel(__('sn-support::activity.infolist.entry.key'))
-                                    ->valueLabel(__('sn-support::activity.infolist.entry.value')),
+                                    ->valueLabel(__('sn-support::activity.infolist.entry.value'))
+                                    ->state(fn ($record) => Arr::dot($record->attribute_changes->get('old', []))),
                             ]),
 
                         Tab::make('Raw Data')
