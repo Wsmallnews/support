@@ -215,12 +215,12 @@ class ColumnComponents
      */
     protected static function emptyModelInfo(?string $modelType, ?int $modelId): HtmlString
     {
-        if (! $modelType || ! $modelId) {
+        if (! $modelType) {
             return new HtmlString('<span class="text-gray-400">-</span>');
         }
 
         $modelLabel = filled($modelType) ? FilamentModelHelper::getTypeLabel($modelType) : '-';
-        $id = $modelId ?? '-';
+        $id = $modelId ?? null;
 
         $imageHtml = '<div class="sn-image">
             <div class="sn-image-placeholder">
@@ -229,11 +229,11 @@ class ColumnComponents
         </div>';
 
         $contentHtml = '<div class="flex flex-col justify-between max-w-80">
-            <div class="flex items-center gap-1">
-                <span class="sn-primary-text">#' . e((string) $id) . '</span>
-                <span class="sn-badge sn-badge-primary">' . e($modelLabel) . '</span>
-                <span class="sn-content-text text-gray-400 truncate">' . __('sn-support::support.table.column.model_deleted') . '</span>
-            </div>
+            <div class="flex items-center gap-1">';
+                $contentHtml .= $id ? '<span class="sn-primary-text">#' . e((string) $id) . '</span>' : '';
+                $contentHtml .= '<span class="sn-badge sn-badge-primary">' . e($modelLabel) . '</span>';
+                $contentHtml .= $id ? '<span class="sn-content-text sn-danger-text truncate">' . __('sn-support::support.table.column.model_deleted') . '</span>' : '';
+            $contentHtml .= '</div>
         </div>';
 
         return new HtmlString(
