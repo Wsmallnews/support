@@ -232,10 +232,10 @@ class ColumnComponents
 
         $contentHtml = '<div class="flex flex-col justify-between max-w-80">
             <div class="flex items-center gap-1">';
-                $contentHtml .= $id ? '<span class="sn-primary-text">#' . e((string) $id) . '</span>' : '';
-                $contentHtml .= '<span class="sn-badge sn-badge-primary">' . e($modelLabel) . '</span>';
-                $contentHtml .= $id ? '<span class="sn-content-text sn-danger-text truncate">' . __('sn-support::support.table.column.model_deleted') . '</span>' : '';
-            $contentHtml .= '</div>
+        $contentHtml .= $id ? '<span class="sn-primary-text">#' . e((string) $id) . '</span>' : '';
+        $contentHtml .= '<span class="sn-badge sn-badge-primary">' . e($modelLabel) . '</span>';
+        $contentHtml .= $id ? '<span class="sn-content-text sn-danger-text truncate">' . __('sn-support::support.table.column.model_deleted') . '</span>' : '';
+        $contentHtml .= '</div>
         </div>';
 
         return new HtmlString(
