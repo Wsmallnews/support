@@ -160,6 +160,20 @@ class FilamentModelHelper
     {
         $resource = Filament::getModelResource(get_class($model));
 
+        // Fallback: getModelResource() 仅查找纯字符串注册的资源，
+        // ResourceConfiguration 注册的资源需要从 getResourceConfigurations() 中查找
+        if (! $resource) {
+            // 查找当前面板的资源配置
+            $panel = Filament::getCurrentPanel();
+            foreach ($panel->getResourceConfigurations() as $config) {
+                if (is_a($model, $config->resource::getModel())) {
+                    $resource = $config->resource;
+
+                    break;
+                }
+            }
+        }
+
         if ($resource && $resource::hasPage('view')) {
             return $resource::getUrl('view', ['record' => $model]);
         }
