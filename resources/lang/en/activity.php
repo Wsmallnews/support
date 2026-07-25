@@ -35,12 +35,16 @@ return [
             'created_filter_label' => 'Occurred',
         ],
         'filter' => [
+            'search_placeholder' => 'Search ID, description, IP,...',
             'only_panel' => 'Only show logs for current panel',
             'event' => 'Event',
             'causer' => 'Causer',
-            'subject_type' => 'Subject Type',
             'causer_keyword' => [
                 'placeholder' => 'Please enter causer name or ID',
+            ],
+            'subject' => 'Subject',
+            'subject_keyword' => [
+                'placeholder' => 'Please enter subject keyword',
             ],
         ],
     ],

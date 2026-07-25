@@ -57,6 +57,8 @@ trait HasConfigurationProperties
 
     protected bool | Closure | null $shouldSplitGlobalSearchTerms = null;
 
+    protected array | Closure | null $globallySearchableAttributes = null;
+
     protected string | Closure | null $scopeType = null;
 
     protected int | Closure | null $scopeId = null;
@@ -353,6 +355,18 @@ trait HasConfigurationProperties
     public function getShouldSplitGlobalSearchTerms(): ?bool
     {
         return $this->evaluate($this->shouldSplitGlobalSearchTerms);
+    }
+
+    public function globallySearchableAttributes(array | Closure | null $attributes): static
+    {
+        $this->globallySearchableAttributes = $attributes;
+
+        return $this;
+    }
+
+    public function getGloballySearchableAttributes(): ?array
+    {
+        return $this->evaluate($this->globallySearchableAttributes);
     }
 
     // ========================================================================

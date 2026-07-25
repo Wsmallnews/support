@@ -34,6 +34,10 @@ return [
             'model_deleted' => '已删除',
         ],
     ],
+    'morph_filter' => [
+        'type_indicator' => ':type：:value',
+        'keyword_indicator' => ':type 关键词：:value',
+    ],
     'action' => [
         'delete_failed' => '删除失败',
         'bulk_success' => '批量操作完成',

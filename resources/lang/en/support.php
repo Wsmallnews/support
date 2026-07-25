@@ -34,6 +34,10 @@ return [
             'model_deleted' => 'Deleted',
         ],
     ],
+    'morph_filter' => [
+        'type_indicator' => ':type: :value',
+        'keyword_indicator' => ':type keyword: :value',
+    ],
     'action' => [
         'delete_failed' => 'Failed to delete',
         'bulk_success' => 'Bulk operation completed',

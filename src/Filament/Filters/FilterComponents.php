@@ -3,9 +3,9 @@
 namespace Wsmallnews\Support\Filament\Filters;
 
 use Closure;
-use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Schemas;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Tables;
 use Filament\Tables\Filters\Indicator;
 use Illuminate\Contracts\Support\Arrayable;
@@ -20,7 +20,6 @@ class FilterComponents
         string $type,
         string | Htmlable | Closure | null $label,
         array | Arrayable | string | Closure | null $options = null,
-        array $keywordSearchFields = [],
         string | Closure | null $morphKeywordPlaceholder = null,
         array $morphFields = [],
     ) {
@@ -30,48 +29,82 @@ class FilterComponents
                 Schemas\Components\FusedGroup::make([
                     Forms\Components\Select::make('morph_type')
                         ->options($options)
+                        ->live()
                         ->columnSpan(1),
                     Forms\Components\TextInput::make('morph_keyword')
                         ->placeholder($morphKeywordPlaceholder)
+                        ->disabled(fn (Get $get): bool => blank($get('morph_type')))
                         ->columnSpan(2),
                 ])->label($label)->columns(3),
             ])
-            ->query(function (Builder $query, array $data) use ($type, $morphFields, $keywordSearchFields): Builder {
+            ->query(function (Builder $query, array $data) use ($type, $morphFields): Builder {
+                $morphTypeFieldName = $morphFields['morph_type'] ?? $type . '_type';
+                $morphIdFieldName = $morphFields['morph_id'] ?? $type . '_id';
+
                 return $query
                     ->when(
-                        $data['morph_keyword'],
-                        function (Builder $query, $morph_keyword) use ($type, $data, $morphFields, $keywordSearchFields) {
-                            $panel = Filament::getCurrentPanel();
+                        $data['morph_type'] ?? null,
+                        fn (Builder $query, $morphType) => $query->where($morphTypeFieldName, $morphType)
+                    )
+                    ->when(
+                        $data['morph_keyword'] ?? null,
+                        function (Builder $query, $keyword) use ($data, $type, $morphIdFieldName) {
                             $morphType = $data['morph_type'] ?? null;
-                            $morphKeyword = $morph_keyword ?? ($data['morph_keyword'] ?? '');
-                            $morphTypeFieldName = $morphFields['morph_type'] ?? $type . '_type';
-                            $morphIdFieldName = $morphFields['morph_id'] ?? $type . '_id';
 
-                            return $query->where($morphTypeFieldName, $morphType)
-                                ->where(function ($query) use ($type, $panel, $morphIdFieldName, $morphKeyword, $keywordSearchFields) {
-                                    $query->where($morphIdFieldName, $morphKeyword)
-                                        ->orWhereHas($type, function ($query) use ($panel, $morphKeyword, $keywordSearchFields) {
-                                            $query
-                                                ->withoutGlobalScope($panel->getTenancyScopeName())       // 如果 panel 的auth model 是 user, 则需要去掉全局作用域 (不影响正常查询用户的日志)
-                                                ->where(function ($query) use ($keywordSearchFields, $morphKeyword) {
-                                                    foreach ($keywordSearchFields as $field) {
-                                                        $query->orWhere($field, 'like', "%{$morphKeyword}%");
-                                                    }
-                                                });
-                                        });
+                            // 未选择 morphType，则不支持关键字搜索
+                            if (! $morphType) {
+                                return;
+                            }
+
+                            // 根据所选的 morphType，解析出对应的模型类
+                            $modelClass = FilamentModelHelper::getModelClassName($morphType);
+                            if (! $modelClass || ! class_exists($modelClass)) {
+                                // 默认搜索 morph_id 字段
+                                $query->where($morphIdFieldName, $keyword);
+                                return;
+                            }
+
+                            // 获取模型要 keyword search 的字段（关键词搜索用）
+                            $searchFields = FilamentModelHelper::resolveKeywordSearchFields($modelClass);
+                            $keyName = (new $modelClass)->getKeyName();
+
+                            // 过滤 dot-notation（whereHasMorph 已限定关联表，不需要跨表字段）
+                            $plainFields = array_values(array_filter(
+                                $searchFields,
+                                fn ($f) => ! str_contains($f, '.')  // 移除所有带 . 的字段
+                            ));
+
+                            $query->whereHasMorph($type, $modelClass, function ($q) use ($keyword, $plainFields, $keyName) {
+                                $q->where(function ($q) use ($keyword, $plainFields, $keyName) {
+                                    // 精确 ID 匹配（keyword 可能是数字 ID）
+                                    $q->where($keyName, $keyword);
+
+                                    // LIKE 搜索
+                                    foreach ($plainFields as $field) {
+                                        if ($field !== $keyName) {
+                                            $q->orWhere($field, 'like', "%{$keyword}%");
+                                        }
+                                    }
                                 });
+                            });
                         }
                     );
             })
-            ->indicateUsing(function (array $data) use ($type): array {
+            ->indicateUsing(function (array $data) use ($type, $label): array {
                 $indicators = [];
 
                 if ($data['morph_type'] ?? null) {
-                    $indicators[] = Indicator::make(Str::ucfirst($type . ' : ') . FilamentModelHelper::getTypeLabel($data['morph_type']))
+                    $indicators[] = Indicator::make(__('sn-support::support.morph_filter.type_indicator', [
+                        'type' => $label,
+                        'value' => FilamentModelHelper::getTypeLabel($data['morph_type']),
+                    ]))
                         ->removeField('morph_type');
                 }
                 if ($data['morph_keyword'] ?? null) {
-                    $indicators[] = Indicator::make(Str::ucfirst($type . ' keyword: ') . $data['morph_keyword'])
+                    $indicators[] = Indicator::make(__('sn-support::support.morph_filter.keyword_indicator', [
+                        'type' => $label,
+                        'value' => $data['morph_keyword'],
+                    ]))
                         ->removeField('morph_keyword');
                 }
 

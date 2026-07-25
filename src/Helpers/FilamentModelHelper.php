@@ -130,11 +130,46 @@ class FilamentModelHelper
     /**
      * Resolve the actual model class name from a morph type string.
      */
-    protected static function getModelClassName(string $type): string
+    public static function getModelClassName(string $type): string
     {
         $modelName = Str::contains($type, '\\') ? $type : Relation::getMorphedModel($type);
 
         return filled($modelName) ? $modelName : $type;
+    }
+
+    /**
+     * 解析模型的搜索字段（关键词搜索用）。
+     *
+     * 优先级：
+     *  1. Model::getKeywordSearchFields() 静态方法
+     *  2. Model::$keywordSearchFields 静态属性
+     *  3. 兜底：[$model->getKeyName()]
+     *
+     * 用于：
+     *  - morphFilter 关键词 LIKE 搜索
+     *  - CanBeConfigured::getGloballySearchableAttributes()
+     */
+    public static function resolveKeywordSearchFields(string $modelClass): array
+    {
+        if (! class_exists($modelClass)) {
+            return [];
+        }
+
+        // 优先调用静态方法 getKeywordSearchFields()
+        if (method_exists($modelClass, 'getKeywordSearchFields')) {
+            return $modelClass::getKeywordSearchFields();
+        }
+
+        // 其次读取静态属性 $keywordSearchFields
+        if (property_exists($modelClass, 'keywordSearchFields')) {
+            $fields = $modelClass::$keywordSearchFields;
+            if (is_array($fields) && ! empty($fields)) {
+                return $fields;
+            }
+        }
+
+        // 兜底：使用主键
+        return [(new $modelClass)->getKeyName()];
     }
 
     /**

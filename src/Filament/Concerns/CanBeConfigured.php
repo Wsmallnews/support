@@ -9,6 +9,7 @@ use Filament\Pages\PageConfiguration;
 use Filament\Resources\ResourceConfiguration;
 use Illuminate\Support\Str;
 use UnitEnum;
+use Wsmallnews\Support\Helpers\FilamentModelHelper;
 
 trait CanBeConfigured
 {
@@ -97,6 +98,29 @@ trait CanBeConfigured
     public static function getGlobalSearchResultsLimit(): int
     {
         return static::getConfigurationValue('globalSearchResultsLimit') ?? parent::getGlobalSearchResultsLimit();
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        // 优先从插件配置覆盖
+        $configValue = static::getConfigurationValue('globallySearchableAttributes');
+        if ($configValue !== null) {
+            return $configValue;
+        }
+
+        // 从模型约定获取
+        $model = static::getModel();
+        if (class_exists($model)) {
+            $fields = FilamentModelHelper::resolveKeywordSearchFields($model);
+
+            if ([(new $model)->getKeyName()] == $fields) {
+                // 如果 resolveKeywordSearchFields 只获取到了 兜底 的 [(new $model)->getKeyName()]，则合并默认的 getGloballySearchableAttributes
+                $fields = array_merge($fields, parent::getGloballySearchableAttributes());
+            }
+        }
+
+        // Filament 默认行为（返回 [$recordTitleAttribute]）
+        return parent::getGloballySearchableAttributes();
     }
 
     // ========================================================================

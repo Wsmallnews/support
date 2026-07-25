@@ -35,12 +35,16 @@ return [
             'created_filter_label' => '发生',
         ],
         'filter' => [
+            'search_placeholder' => '搜索ID、描述、IP等...',
             'only_panel' => '仅显示当前面板的日志',
             'event' => '事件',
             'causer' => '操作人',
-            'subject_type' => '对象类型',
             'causer_keyword' => [
                 'placeholder' => '请输入操作人姓名或 ID',
+            ],
+            'subject' => '操作对象',
+            'subject_keyword' => [
+                'placeholder' => '请输入操作对象关键字',
             ],
         ],
     ],

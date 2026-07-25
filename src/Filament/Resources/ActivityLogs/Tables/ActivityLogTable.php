@@ -12,6 +12,7 @@ use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -35,17 +36,19 @@ class ActivityLogTable
                 static::eventColumn(),
                 static::subjectTypeColumn(),
                 static::causerColumn(),
+                static::descriptionColumn(),
                 static::ipAddressColumn(),
                 static::userAgentColumn(),
-                static::descriptionColumn(),
                 static::createdAtColumn(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->searchPlaceholder(__('sn-support::activity.table.filter.search_placeholder'))
+            ->filtersFormWidth(Width::Medium)
             ->filters([
                 static::onlyPanelFilter(),
                 static::eventFilter(),
-                static::causerFilter(),
                 static::subjectTypeFilter(),
+                static::causerFilter(),
                 FilterComponents::dateTimeRangeFilter('created_at', __('sn-support::activity.table.column.created_filter_label')),
             ])
             ->headerActions([
@@ -170,7 +173,7 @@ class ActivityLogTable
 
     // ---------------------------- Filters --------------------------------
 
-    protected static function onlyPanelFilter()
+    protected static function onlyPanelFilter(): Tables\Filters\Filter
     {
         return Tables\Filters\Filter::make('only_panel')
             ->label(__('sn-support::activity.table.filter.only_panel'))
@@ -182,14 +185,14 @@ class ActivityLogTable
             });
     }
 
-    protected static function eventFilter()
+    protected static function eventFilter(): Tables\Filters\SelectFilter
     {
         return Tables\Filters\SelectFilter::make('event')
             ->label(__('sn-support::activity.table.filter.event'))
             ->options(ActivityLogEvent::class);
     }
 
-    protected static function causerFilter()
+    protected static function causerFilter(): Tables\Filters\Filter
     {
         return FilterComponents::morphFilter(
             type: 'causer',
@@ -202,23 +205,25 @@ class ActivityLogTable
 
                 return FilamentModelHelper::getTypeOptions($causerTypes);
             },
-            keywordSearchFields: ['name', 'email'],
             morphKeywordPlaceholder: __('sn-support::activity.table.filter.causer_keyword.placeholder')
         );
     }
 
-    protected static function subjectTypeFilter()
+    protected static function subjectTypeFilter(): Tables\Filters\Filter
     {
-        return Tables\Filters\SelectFilter::make('subject_type')
-            ->label(__('sn-support::activity.table.filter.subject_type'))
-            ->options(function () {
+        return FilterComponents::morphFilter(
+            type: 'subject',
+            label: __('sn-support::activity.table.filter.subject'),
+            options: function () {
                 $subjectTypes = ActivitylogConfig::activityModel()::query()
                     ->distinct()
                     ->whereNotNull('subject_type')
                     ->pluck('subject_type', 'subject_type');
 
                 return FilamentModelHelper::getTypeOptions($subjectTypes);
-            });
+            },
+            morphKeywordPlaceholder: __('sn-support::activity.table.filter.subject_keyword.placeholder')
+        );
     }
 
     // ---------------------------- Actions --------------------------------
