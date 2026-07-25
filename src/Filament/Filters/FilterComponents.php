@@ -11,7 +11,6 @@ use Filament\Tables\Filters\Indicator;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use Wsmallnews\Support\Helpers\FilamentModelHelper;
 
 class FilterComponents
@@ -61,6 +60,7 @@ class FilterComponents
                             if (! $modelClass || ! class_exists($modelClass)) {
                                 // 默认搜索 morph_id 字段
                                 $query->where($morphIdFieldName, $keyword);
+
                                 return;
                             }
 
@@ -90,7 +90,7 @@ class FilterComponents
                         }
                     );
             })
-            ->indicateUsing(function (array $data) use ($type, $label): array {
+            ->indicateUsing(function (array $data) use ($label): array {
                 $indicators = [];
 
                 if ($data['morph_type'] ?? null) {
