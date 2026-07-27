@@ -3,7 +3,6 @@
 namespace Wsmallnews\Support\Filament\Resources\ActivityLogs;
 
 use BackedEnum;
-use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -66,11 +65,9 @@ abstract class BaseResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $panel = Filament::getCurrentPanel();
-
         // resource 只查询 默认 log_name 的日志
         return parent::getEloquentQuery()->with([
-            'causer' => fn ($query) => $query->withoutGlobalScope($panel->getTenancyScopeName()),       // 查询的有普通用户日志，不能限制只关联管理员（移除全局作用域）
+            'causer',
             'subject',
         ])->where('log_name', config('activitylog.default_log_name'));
     }

@@ -1,6 +1,7 @@
 <?php
 
 use Filament\Facades\Filament;
+use Filament\Panel;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
@@ -229,6 +230,21 @@ if (! function_exists('current_tenant')) {
         }
 
         return $teannt;
+    }
+}
+
+if (! function_exists('get_tenancy_scope_name')) {
+    /**
+     * 获取租户作用域名称
+     * 
+     * @param Panel|string|null  $panel
+     * @return ?string
+     */
+    function get_tenancy_scope_name(Panel | string | null $panel = null): ?string
+    {
+        $panel = $panel instanceof Panel ? $panel : (is_string($panel) ? Filament::getPanel($panel) : Filament::getCurrentPanel());
+
+        return $panel?->getTenancyScopeName();
     }
 }
 

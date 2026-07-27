@@ -38,7 +38,10 @@ class SubjectTimelineAction extends CauserTimelineAction
             ]) ?? $query;
         }
 
-        $activities = $query->with(['causer', 'subject'])->latest()->limit(50)->get();
+        $activities = $query->with([
+            'causer',
+            'subject',
+        ])->latest()->limit(50)->get();
 
         return $activities;
     }
