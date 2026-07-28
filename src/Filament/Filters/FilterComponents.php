@@ -68,22 +68,42 @@ class FilterComponents
                             $searchFields = FilamentModelHelper::resolveKeywordSearchFields($modelClass);
                             $keyName = (new $modelClass)->getKeyName();
 
-                            // 过滤 dot-notation（whereHasMorph 已限定关联表，不需要跨表字段）
-                            $plainFields = array_values(array_filter(
-                                $searchFields,
-                                fn ($f) => ! str_contains($f, '.')  // 移除所有带 . 的字段
-                            ));
+                            // 分离普通字段和关联字段
+                            $plainFields = [];
+                            $relationFields = [];
 
-                            $query->whereHasMorph($type, $modelClass, function ($q) use ($keyword, $plainFields, $keyName) {
-                                $q->where(function ($q) use ($keyword, $plainFields, $keyName) {
+                            foreach ($searchFields as $field) {
+                                if (str_contains($field, '.')) {
+                                    $parts = explode('.', $field);
+                                    $column = array_pop($parts);           // 最后的段是列名
+                                    $relation = implode('.', $parts);      // 前面的是关联名
+                                    $relationFields[$relation][] = $column;
+                                } else {
+                                    $plainFields[] = $field;
+                                }
+                            }
+
+                            $query->whereHasMorph($type, $modelClass, function ($q) use ($keyword, $plainFields, $relationFields, $keyName) {
+                                $q->where(function ($q) use ($keyword, $plainFields, $relationFields, $keyName) {
                                     // 精确 ID 匹配（keyword 可能是数字 ID）
                                     $q->where($keyName, $keyword);
 
-                                    // LIKE 搜索
+                                    // 本表字段 LIKE 搜索
                                     foreach ($plainFields as $field) {
                                         if ($field !== $keyName) {
                                             $q->orWhere($field, 'like', "%{$keyword}%");
                                         }
+                                    }
+
+                                    // 关联字段：同一 relation 的多个字段合并到一个 whereHas
+                                    foreach ($relationFields as $relation => $columns) {
+                                        $q->orWhereHas($relation, function ($relQ) use ($keyword, $columns) {
+                                            $relQ->where(function ($innerQ) use ($keyword, $columns) {
+                                                foreach ($columns as $column) {
+                                                    $innerQ->orWhere($column, 'like', "%{$keyword}%");
+                                                }
+                                            });
+                                        });
                                     }
                                 });
                             });
