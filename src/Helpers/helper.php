@@ -236,9 +236,6 @@ if (! function_exists('current_tenant')) {
 if (! function_exists('get_tenancy_scope_name')) {
     /**
      * 获取租户作用域名称
-     * 
-     * @param Panel|string|null  $panel
-     * @return ?string
      */
     function get_tenancy_scope_name(Panel | string | null $panel = null): ?string
     {
