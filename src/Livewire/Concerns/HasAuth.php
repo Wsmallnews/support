@@ -9,12 +9,12 @@ trait HasAuth
     /**
      * 当前认证用户
      */
-    public HasSnIdentifiable | null $authUser = null;         // 当前认证用户
+    public ?HasSnIdentifiable $authUser = null;         // 当前认证用户
 
     /**
      * 设置当前认证用户
      */
-    public function authUser(HasSnIdentifiable | null $authUser): static
+    public function authUser(?HasSnIdentifiable $authUser): static
     {
         $this->authUser = $authUser;
 
@@ -24,7 +24,7 @@ trait HasAuth
     /**
      * 获取当前认证用户
      */
-    public function getAuthUser(): HasSnIdentifiable | null
+    public function getAuthUser(): ?HasSnIdentifiable
     {
         return $this->authUser;
     }
