@@ -2,22 +2,21 @@
 
 namespace Wsmallnews\Support\Livewire\Concerns;
 
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Model;
+use Wsmallnews\Support\Contracts\HasSnIdentifiable;
 
 trait HasAuth
 {
     /**
      * 当前认证用户
      */
-    public Model | Authenticatable | null $user = null;         // 当前认证用户
+    public HasSnIdentifiable | null $authUser = null;         // 当前认证用户
 
     /**
      * 设置当前认证用户
      */
-    public function authUser(Model | Authenticatable | null $user): static
+    public function authUser(HasSnIdentifiable | null $authUser): static
     {
-        $this->user = $user;
+        $this->authUser = $authUser;
 
         return $this;
     }
@@ -25,9 +24,9 @@ trait HasAuth
     /**
      * 获取当前认证用户
      */
-    public function getAuthUser(): Model | Authenticatable | null
+    public function getAuthUser(): HasSnIdentifiable | null
     {
-        return $this->user;
+        return $this->authUser;
     }
 
     /**
@@ -35,6 +34,6 @@ trait HasAuth
      */
     public function hasAuthUser(): bool
     {
-        return $this->user !== null;
+        return $this->authUser !== null;
     }
 }

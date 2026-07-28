@@ -39,7 +39,7 @@ class Utils
         $model = self::getConfig('models')[$name] ?? null;
 
         if (blank($model) && $shouldException) {
-            throw new SupportException("Model {$name} not found in config");
+            throw new SupportException("Model {$name} not found.");
         }
 
         return $model;
