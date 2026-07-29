@@ -268,7 +268,7 @@ class ActionComponents
         $cases = $enumClass::cases();
         if (count($cases) !== 2) {
             throw new InvalidArgumentException(
-                "toggleStatusAction requires exactly 2 enum cases, {$enumClass} has ".count($cases).'. '.
+                "toggleStatusAction requires exactly 2 enum cases, {$enumClass} has " . count($cases) . '. ' .
                 'Use switchStatusAction() for enums with more than 2 cases.'
             );
         }
