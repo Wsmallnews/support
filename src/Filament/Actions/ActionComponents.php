@@ -2,15 +2,21 @@
 
 namespace Wsmallnews\Support\Filament\Actions;
 
+use BackedEnum;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Number;
+use InvalidArgumentException;
 use Throwable;
 use Wsmallnews\Support\Support\Utils;
 
@@ -53,11 +59,11 @@ class ActionComponents
      * 默认设置：->requiresConfirmation()
      *
      * @param  string  $name  批量操作名称
-     * @param  \Closure(BulkAction, Model): void  $process  单条记录的业务逻辑
-     * @param  \Closure(Collection|EloquentCollection): void|null  $prepare  可选：批量预处理（如 eager load）
+     * @param  Closure(BulkAction, Model): void  $process  单条记录的业务逻辑
+     * @param  Closure(Collection|EloquentCollection): void|null  $prepare  可选：批量预处理（如 eager load）
      * @return BulkAction 可继续链式设置 UI 属性
      */
-    public static function bulkAction(string $name, \Closure $process, ?\Closure $prepare = null): BulkAction
+    public static function bulkAction(string $name, Closure $process, ?Closure $prepare = null): BulkAction
     {
         return BulkAction::make($name)
             ->requiresConfirmation()
@@ -90,10 +96,10 @@ class ActionComponents
      *
      * @param  BulkAction  $action  批量操作实例（用于调用 reportBulkProcessingFailure 等）
      * @param  Collection|EloquentCollection  $records  待处理的记录集合
-     * @param  \Closure(BulkAction, Model): void  $process  单条记录的业务逻辑
-     * @param  \Closure(Collection|EloquentCollection): void|null  $prepare  可选：批量预处理（如 eager load），异常导致整批标记失败
+     * @param  Closure(BulkAction, Model): void  $process  单条记录的业务逻辑
+     * @param  Closure(Collection|EloquentCollection): void|null  $prepare  可选：批量预处理（如 eager load），异常导致整批标记失败
      */
-    public static function safeBulkProcess(BulkAction $action, Collection | EloquentCollection $records, \Closure $process, ?\Closure $prepare = null): void
+    public static function safeBulkProcess(BulkAction $action, Collection | EloquentCollection $records, Closure $process, ?Closure $prepare = null): void
     {
         if ($prepare) {
             try {
@@ -234,5 +240,149 @@ class ActionComponents
         }
 
         return [$group];
+    }
+
+    /**
+     * 创建二态切换 Action。
+     *
+     * 枚举须恰好包含 2 个 case 且实现 HasColor、HasIcon、HasLabel。
+     * label、icon、color、modalHeading 均自动从目标 case 派生（运行时 closure）。
+     *
+     * @param  string  $enumClass  枚举 FQCN，须实现 HasColor、HasIcon、HasLabel
+     * @param  string  $field  模型字段名（默认 'status'）
+     * @param  Closure|null  $valueResolver  从记录中提取当前值的 closure（默认 null）
+     * @param  Closure|null  $process  处理保存逻辑
+     *
+     * @throws InvalidArgumentException 当枚举不存在或 case 数量不为 2
+     */
+    public static function toggleAction(
+        string $enumClass,
+        string $field = 'status',
+        ?Closure $valueResolver = null,
+        ?Closure $process = null,
+    ): Action {
+        if (! enum_exists($enumClass)) {
+            throw new InvalidArgumentException("{$enumClass} is not a valid enum.");
+        }
+
+        $cases = $enumClass::cases();
+        if (count($cases) !== 2) {
+            throw new InvalidArgumentException(
+                "toggleStatusAction requires exactly 2 enum cases, {$enumClass} has ".count($cases).'. '.
+                'Use switchStatusAction() for enums with more than 2 cases.'
+            );
+        }
+
+        // 当前值解析器
+        $valueResolver = fn (Model $record) => $valueResolver ? $valueResolver($record) : ($record->{$field} ?? null);
+
+        $action = Action::make($field . 'ToggleAction')
+            ->label(function (Model $record) use ($cases, $valueResolver): string {
+                return __('sn-support::support.action.toggle_status', [
+                    'label' => (string) static::findOppositeCase($cases, $valueResolver($record))->getLabel(),
+                ]);
+            })
+            ->icon(function (Model $record) use ($cases, $valueResolver) {
+                return static::findOppositeCase($cases, $valueResolver($record))->getIcon();
+            })
+            ->color(function (Model $record) use ($cases, $valueResolver) {
+                return static::findOppositeCase($cases, $valueResolver($record))->getColor();
+            })
+            ->successNotificationTitle(__('sn-support::support.action.toggle_success'))
+            ->failureNotificationTitle(__('sn-support::support.action.toggle_failure'))
+            ->requiresConfirmation()
+            ->modalHeading(function (Model $record) use ($cases, $valueResolver): string {
+                return __('sn-support::support.action.toggle_status', [
+                    'label' => (string) static::findOppositeCase($cases, $valueResolver($record))->getLabel(),
+                ]);
+            })
+            ->modalIcon(function (Model $record) use ($cases, $valueResolver) {
+                return static::findOppositeCase($cases, $valueResolver($record))->getIcon();
+            })
+            ->modalDescription(function (Model $record) use ($cases, $valueResolver): ?string {
+                return __('sn-support::support.action.toggle_status_description', [
+                    'label' => (string) static::findOppositeCase($cases, $valueResolver($record))->getLabel(),
+                ]);
+            });
+
+        $action->action($process ?? function (Action $action, Model $record) use ($field, $cases, $valueResolver): void {
+            $targetCase = static::findOppositeCase($cases, $valueResolver($record));
+            $record->update([$field => $targetCase->value]);
+        });
+
+        return $action;
+    }
+
+    /**
+     * 在二态枚举中，找到与当前值对立的 case。
+     *
+     * @param  array<object>  $cases  枚举的 ::cases() 结果
+     * @param  BackedEnum  $currentValue  当前记录字段的值
+     * @return object 对立的目标 case；当前值不匹配任何 case 时返回第一个 case
+     */
+    private static function findOppositeCase(array $cases, BackedEnum $currentValue): BackedEnum
+    {
+        foreach ($cases as $case) {
+            if ($case !== $currentValue) {
+                return $case;
+            }
+        }
+
+        return $cases[0];
+    }
+
+    /**
+     * 创建多态切换 Action。
+     *
+     * 点击弹出 Select 表单，列出枚举所有（非当前值）选项，选择后确认并执行。
+     *
+     * @param  string  $enumClass  枚举 FQCN，须实现 HasColor、HasIcon、HasLabel
+     * @param  string  $field  模型字段名
+     * @param  string | Htmlable | Closure | null  $label  自定义标签，默认取 __('sn-support::support.action.switch_status')
+     * @param  Closure|null  $valueResolver  当前值解析器 fn(Model $record): BackedEnum，默认取 $record->{$field}
+     * @param  Closure|null  $process  自定义处理逻辑 fn(Model $record, array $data): void，默认更新 $field
+     *
+     * @throws InvalidArgumentException 当枚举不存在
+     */
+    public static function switchAction(
+        string $enumClass,
+        string $field = 'status',
+        string | Htmlable | Closure | null $label = null,
+        ?Closure $valueResolver = null,
+        ?Closure $process = null,
+    ): Action {
+        if (! enum_exists($enumClass)) {
+            throw new InvalidArgumentException("{$enumClass} is not a valid enum.");
+        }
+
+        // 当前值解析器
+        $valueResolver = fn (Model $record) => $valueResolver ? $valueResolver($record) : ($record->{$field} ?? null);
+        $label = $label ?? __('sn-support::support.action.switch_status');
+
+        $action = Action::make($field . 'SwitchAction')
+            ->label($label)
+            ->icon(Heroicon::OutlinedArrowsRightLeft)
+            ->color('primary')
+            ->successNotificationTitle(__('sn-support::support.action.switch_success'))
+            ->failureNotificationTitle(__('sn-support::support.action.switch_failure'))
+            ->schema(function (Model $record) use ($enumClass, $field, $label, $valueResolver): array {
+                $currentValue = $valueResolver($record);
+
+                return [
+                    ToggleButtons::make($field)
+                        ->label($label)
+                        ->options($enumClass)
+                        ->disableOptionWhen(fn ($value): bool => $value === $currentValue->value)
+                        ->required()->grouped(),
+                ];
+            })
+            ->modalWidth(Width::TwoExtraLarge)
+            ->modalHeading($label);
+
+        $action->action($process ?? function (Model $record, array $data) use ($field): void {
+            $record->update([$field => $data[$field]]);
+        });
+
+        return $action;
     }
 }

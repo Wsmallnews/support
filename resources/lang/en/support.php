@@ -43,5 +43,12 @@ return [
         'bulk_success' => 'Bulk operation completed',
         'bulk_partial_failure' => ':count of :total records processed',
         'bulk_total_failure' => 'Failed to process all :count records',
+        'toggle_status' => 'Set to :label',
+        'toggle_status_description' => 'Are you sure you want to set to :label?',
+        'toggle_success' => 'Setting successful',
+        'toggle_failure' => 'Setting failed',
+        'switch_status' => 'Switch Status',
+        'switch_success' => 'Switch successful',
+        'switch_failure' => 'Switch failed',
     ],
 ];

@@ -43,5 +43,12 @@ return [
         'bulk_success' => '批量操作完成',
         'bulk_partial_failure' => ':total 条记录中已处理 :count 条',
         'bulk_total_failure' => '全部 :count 条记录处理失败',
+        'toggle_status' => '设置为 :label',
+        'toggle_status_description' => '确定要设置为 :label 吗？',
+        'toggle_success' => '设置成功',
+        'toggle_failure' => '设置失败',
+        'switch_status' => '切换状态',
+        'switch_success' => '切换成功',
+        'switch_failure' => '切换失败',
     ],
 ];

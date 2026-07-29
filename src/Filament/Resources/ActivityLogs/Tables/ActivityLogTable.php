@@ -42,6 +42,9 @@ class ActivityLogTable
                 static::createdAtColumn(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->modifyQueryUsing(fn (Builder $query) => $query->with([
+                'causer', 'subject',
+            ]))
             ->searchPlaceholder(__('sn-support::activity.table.filter.search_placeholder'))
             ->filtersFormWidth(Width::Medium)
             ->filters([
