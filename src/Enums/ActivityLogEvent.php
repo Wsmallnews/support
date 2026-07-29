@@ -45,7 +45,7 @@ enum ActivityLogEvent: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): string | BackedEnum | null
+    public function getIcon(): string | BackedEnum | Htmlable | null
     {
         return match ($this) {
             self::Created => Heroicon::Plus->getIconForSize(IconSize::Small),

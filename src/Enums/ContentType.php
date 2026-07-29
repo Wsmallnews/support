@@ -38,7 +38,7 @@ enum ContentType: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): string | BackedEnum | null
+    public function getIcon(): string | BackedEnum | Htmlable | null
     {
         return match ($this) {
             self::Textarea => Heroicon::OutlinedBars3BottomLeft,
