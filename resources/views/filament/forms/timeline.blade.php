@@ -74,15 +74,15 @@
                         @if ($activity->causer)
                             <span class="flex items-center gap-1">
                                 <div class="w-4 h-4 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                                    @if ($activity->causer->getFilamentAvatarUrl())
-                                        <img class="w-full h-full" src="{{ $activity->causer->getFilamentAvatarUrl() }}" alt="{{ $activity->causer->getFilamentName() }}" />
+                                    @if ($activity->causer->getSnAvatarUrl())
+                                        <img class="w-full h-full" src="{{ files_url($activity->causer->getSnAvatarUrl()) }}" alt="{{ $activity->causer->getSnName() }}" />
                                     @else
                                         <div class="sn-image-placeholder sn-motion-scale">
                                             <x-filament::icon :icon="Heroicon::User" class="w-full h-full" aria-hidden="true" />
                                         </div>
                                     @endif
                                 </div>
-                                {{ $activity->causer->getFilamentName() }}
+                                {{ $activity->causer->getSnName() }}
                             </span>
                         @endif
 
