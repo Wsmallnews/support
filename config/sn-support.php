@@ -20,6 +20,7 @@ return [
     'models' => [
         'content' => Models\Content::class,
         'sms_log' => Models\SmsLog::class,
+        'scheduled_task' => Models\ScheduledTask::class,
     ],
 
     /*
@@ -280,5 +281,45 @@ return [
                 'text_colors' => null,
             ],
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scheduler
+    |--------------------------------------------------------------------------
+    |
+    | 定时调度任务的配置。control 决定是否启用定时扫描任务，
+    | frequency 控制 sn-support:run-scheduled-tasks 命令的执行频率。
+    | 频率格式参考 Laravel Schedule：everyMinute / everyFiveMinutes / dailyAt:13:00 等。
+    |
+    */
+    'scheduler' => [
+        'enabled' => true,
+
+        /**
+         * Auto-audit comments frequency
+         * Support all Laravel schedule frequency methods, like:
+         * 'everyMinute', 'everyFiveMinutes', 'everyTenMinutes',
+         * 'everyThirtyMinutes', 'hourly', 'daily', 'weekly'
+         *
+         * Parameter format:
+         * dailyAt:13:00 => dailyAt('13:00') | monthlyOn:4,15:00 => monthlyOn(4, '15:00')
+         */
+        'frequency' => 'everyMinute',
+
+        /**
+         * Batch size
+         */
+        'batch_size' => 100,
+
+        /**
+         * Enable without overlapping tasks
+         */
+        'without_overlapping' => true,
+
+        /**
+         * Overlapping expire minutes (minutes)
+         */
+        'overlapping_expire_minutes' => 5,
     ],
 ];

@@ -8,12 +8,12 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
-use Intervention\Image\Image;
 use Livewire\Livewire;
 use RalphJSmit\Livewire\Urls\Middleware\LivewireUrlsMiddleware;
 use Spatie\Activitylog\Support\Config as ActivitylogConfig;
@@ -21,9 +21,12 @@ use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Spatie\LaravelSettings\Events\SavingSettings;
 use Spatie\LaravelSettings\Models\SettingsProperty;
+use Wsmallnews\Support\Commands\RunScheduledTasksCommand;
 use Wsmallnews\Support\Commands\SupportInstallCommand;
+use Wsmallnews\Support\Helpers\ScheduleHelper;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Settings\Listeners\LogSettingsActivity;
+use Wsmallnews\Support\ScheduledTaskRegistry;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
@@ -44,7 +47,13 @@ class SupportServiceProvider extends PackageServiceProvider
             ->hasViews(static::$viewNamespace);
     }
 
-    public function packageRegistered(): void {}
+    public function packageRegistered(): void
+    {
+        // 注册定时调度任务注册器
+        $this->app->singleton(ScheduledTaskRegistry::class, function (): ScheduledTaskRegistry {
+            return new ScheduledTaskRegistry;
+        });
+    }
 
     public function packageBooted(): void
     {
@@ -52,6 +61,7 @@ class SupportServiceProvider extends PackageServiceProvider
         Relation::enforceMorphMap([
             'sn_sms_log' => SupportUtils::getSmsLogModel(),
             'sn_content' => SupportUtils::getContentModel(),
+            'sn_scheduled_task' => SupportUtils::getScheduledTaskModel(),
             'activity' => ActivitylogConfig::activityModel(),
             'settings' => SettingsProperty::class,
         ]);
@@ -137,27 +147,19 @@ class SupportServiceProvider extends PackageServiceProvider
         // // Cknow\Money
         // \Cknow\Money\Money::setDefaultCurrency('CNY');
 
-        // 定义图片变体
-        // ImageManipulator::defineVariant(
-        //     'thumbnail',
-        //     ImageManipulation::make(function (Image $image, Media $originalMedia) {
-        //         $image->scaleDown(200, 200);
-        //     })
-        // );
+        // 注册定时调度任务（频率等配置从 sn-support.scheduler 读取）
+        if (SupportUtils::getSchedulerConfig('enabled', true)) {
+            $schedulerConfig = [
+                'frequency' => SupportUtils::getSchedulerConfig('frequency', 'everyMinute'),
+                'without_overlapping' => SupportUtils::getSchedulerConfig('without_overlapping', true),
+                'overlapping_expire_minutes' => SupportUtils::getSchedulerConfig('overlapping_expire_minutes', 5),
+            ];
 
-        // ImageManipulator::defineVariant(
-        //     'medium',
-        //     ImageManipulation::make(function (Image $image, Media $originalMedia) {
-        //         $image->scaleDown(500, 500);
-        //     })
-        // );
-
-        // ImageManipulator::defineVariant(
-        //     'large',
-        //     ImageManipulation::make(function (Image $image, Media $originalMedia) {
-        //         $image->scaleDown(800, 800);
-        //     })
-        // );
+            $this->callAfterResolving(Schedule::class, function (Schedule $schedule) use ($schedulerConfig) {
+                $task = $schedule->command('sn-support:run-scheduled-tasks');
+                ScheduleHelper::configure($task, $schedulerConfig);
+            });
+        }
     }
 
     protected function getAssetPackageName(): ?string
@@ -193,6 +195,7 @@ class SupportServiceProvider extends PackageServiceProvider
     {
         return [
             SupportInstallCommand::class,
+            RunScheduledTasksCommand::class,
         ];
     }
 
@@ -229,6 +232,7 @@ class SupportServiceProvider extends PackageServiceProvider
             // 'create_sn_sms_logs_table',
             'create_sn_team_settings_table',
             'create_sn_contents_table',
+            'create_sn_scheduled_tasks_table',
             'add_teams_fields_to_activity_log_table',
         ];
     }

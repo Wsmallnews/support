@@ -66,6 +66,27 @@ class Utils
     }
 
     /**
+     * Get scheduled task model class.
+     *
+     * @return string Models\ScheduledTask
+     */
+    public static function getScheduledTaskModel(): string
+    {
+        return self::getModel('scheduled_task');
+    }
+
+    /**
+     * Get scheduler configuration value.
+     *
+     * @param  string|null  $name  Configuration key under scheduler (dot notation)
+     * @param  mixed  $default  Default value if not found
+     */
+    public static function getSchedulerConfig(?string $name = null, mixed $default = null): mixed
+    {
+        return self::getConfig('scheduler' . ($name ? '.' . $name : ''), $default);
+    }
+
+    /**
      * Get the tenant model class.
      */
     public static function getTenantModel(): ?string

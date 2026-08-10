@@ -22,6 +22,15 @@ return [
         'richtext' => '富文本',
         'markdown' => 'Markdown',
     ],
+    'scheduled_task' => [
+        'label' => '定时任务',
+        'status' => [
+            'pending' => '待处理',
+            'executed' => '已处理',
+            'cancelled' => '已取消',
+            'failed' => '处理失败',
+        ],
+    ],
     'sms' => [
         'content_template' => '您的短信验证码为：{code}, {minutes}分钟有效，请勿告诉他人',
         'code_incorrect' => '验证码不正确',

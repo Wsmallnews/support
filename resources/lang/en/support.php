@@ -22,6 +22,15 @@ return [
         'richtext' => 'Rich Text',
         'markdown' => 'Markdown',
     ],
+    'scheduled_task' => [
+        'label' => 'Scheduled Tasks',
+        'status' => [
+            'pending' => 'Pending',
+            'executed' => 'Executed',
+            'cancelled' => 'Cancelled',
+            'failed' => 'Failed',
+        ],
+    ],
     'sms' => [
         'content_template' => 'Your verification code is: {code}, valid for {minutes} minutes. Do not share with others',
         'code_incorrect' => 'Verification code is incorrect',
