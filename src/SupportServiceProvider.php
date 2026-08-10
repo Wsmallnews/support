@@ -26,7 +26,6 @@ use Wsmallnews\Support\Commands\SupportInstallCommand;
 use Wsmallnews\Support\Helpers\ScheduleHelper;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Settings\Listeners\LogSettingsActivity;
-use Wsmallnews\Support\ScheduledTaskRegistry;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;

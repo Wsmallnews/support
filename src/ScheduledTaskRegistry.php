@@ -33,7 +33,6 @@ class ScheduledTaskRegistry
      *
      * @param  string  $morphType  实体 morph 别名（如 'sn_product'），用于模块隔离
      * @param  array  $actionInfo  注册项：{action, label, forms, handler, visible}
-     * @return static
      */
     public function register(string $morphType, array $actionInfo): static
     {
@@ -50,7 +49,6 @@ class ScheduledTaskRegistry
      *
      * @param  string  $morphType  实体 morph 别名
      * @param  array  $actionInfos  注册项数组
-     * @return static
      */
     public function registers(string $morphType, array $actionInfos): static
     {
@@ -85,8 +83,6 @@ class ScheduledTaskRegistry
 
     /**
      * 获取指定动作的自定义表单字段（闭包或数组）。
-     *
-     * @return array
      */
     public function getActionForms(string $morphType, string $action): array
     {
@@ -100,7 +96,7 @@ class ScheduledTaskRegistry
     /**
      * 获取指定动作的执行处理器。
      *
-     * @return Closure|null  function(ScheduledTask $task, ?array $payload): bool
+     * @return Closure|null function(ScheduledTask $task, ?array $payload): bool
      */
     public function getHandler(string $morphType, string $action): ?Closure
     {
@@ -112,7 +108,7 @@ class ScheduledTaskRegistry
     /**
      * 获取指定动作的 visible 条件（用于状态互斥过滤）。
      *
-     * @return Closure|null  function(Get $get): bool
+     * @return Closure|null function(Get $get): bool
      */
     public function getActionVisible(string $morphType, string $action): ?Closure
     {
@@ -145,8 +141,6 @@ class ScheduledTaskRegistry
 
     /**
      * Repeater item 的 schema（通用字段 + 动态加载 action 特有字段）。
-     *
-     * @return array
      */
     protected function repeaterSchema(string $morphType): array
     {
