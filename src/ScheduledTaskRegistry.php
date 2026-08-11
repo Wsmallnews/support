@@ -98,6 +98,21 @@ class ScheduledTaskRegistry
     }
 
     /**
+     * 检查指定动作是否有自定义表单字段。
+     *
+     * 用于控制 Repeater 中 payload Fieldset 的显隐：没有额外字段的 action
+     * （如 publish/unpublish）不显示 Fieldset；有字段的（如 price_change）才显示。
+     *
+     * @return bool
+     */
+    public function hasActionForms(string $morphType, string $action): bool
+    {
+        $forms = $this->getActionForms($morphType, $action);
+
+        return $forms && count($forms) > 0;
+    }
+
+    /**
      * 获取指定动作的执行处理器。
      *
      * @return Closure|null  function(ScheduledTask $task, ?array $payload): bool
@@ -120,10 +135,6 @@ class ScheduledTaskRegistry
 
         return $actionInfo['visible'] ?? null;
     }
-
-    // =====================================================================
-    // 表单工厂
-    // =====================================================================
 
     /**
      * 生成定时任务 Repeater（直接关联 sn_scheduled_tasks 表）。
@@ -186,7 +197,12 @@ class ScheduledTaskRegistry
                         ? $this->getActionForms($morphType, $action)
                         : [];
                 })
-                ->visible(fn (Get $get): bool => filled($get('action')))
+                ->visible(function (Get $get) use ($morphType): bool {
+                    $action = $get('action');
+
+                    // 选了 action，并且该 action 有自定义字段时才显示
+                    return filled($action) && $this->hasActionForms($morphType, $action);
+                })
                 ->statePath('payload')
                 ->key('payloadFields_' . $uuid),
         ];

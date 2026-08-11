@@ -13,6 +13,7 @@ use Wsmallnews\Support\ScheduledTaskRegistry;
  * @method static Collection getActions(string $morphType)
  * @method static array getActionsOptions(string $morphType)
  * @method static array getActionForms(string $morphType, string $action)
+ * @method static bool hasActionForms(string $morphType, string $action)
  * @method static Closure|null getHandler(string $morphType, string $action)
  * @method static Closure|null getActionVisible(string $morphType, string $action)
  * @method static \Filament\Forms\Components\Repeater scheduleRepeater(string $morphType, string $relationship = 'scheduledTasks')
