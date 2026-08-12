@@ -72,7 +72,6 @@ class ColumnComponents
 
                 return static::modelInfo($model, 'model');
             })
-            ->disabledClick()
             ->searchable()
             ->sortable()
             ->toggleable();

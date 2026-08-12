@@ -148,13 +148,13 @@ trait CanBeConfigured
     public static function getScopeType(): string
     {
         // 默认 读取 config 中设置的 scopeable 信息
-        return static::getConfigurationValue('scopeType') ?? static::getCurrentPlugin()->getScopeType();
+        return static::getConfigurationValue('scopeType') ?? (static::getCurrentPlugin()?->getScopeType() ?? 'default');
     }
 
     public static function getScopeId(): int
     {
         // 默认 读取 config 中设置的 scopeable 信息
-        return static::getConfigurationValue('scopeId') ?? static::getCurrentPlugin()->getScopeId();
+        return static::getConfigurationValue('scopeId') ?? (static::getCurrentPlugin()?->getScopeId() ?? 0);
     }
 
     // ========================================================================
