@@ -18,7 +18,7 @@ use Wsmallnews\Support\ScheduledTaskRegistry;
  * @method static Closure|null getActionVisible(string $morphType, string $action)
  * @method static \Filament\Forms\Components\Repeater scheduleRepeater(string $morphType, string $relationship = 'scheduledTasks')
  *
- * @see \Wsmallnews\Support\ScheduledTaskRegistry
+ * @see ScheduledTaskRegistry
  */
 class ScheduledTask extends Facade
 {
