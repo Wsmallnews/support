@@ -98,8 +98,6 @@ class ScheduledTaskRegistry
      *
      * 用于控制 Repeater 中 payload Fieldset 的显隐：没有额外字段的 action
      * （如 publish/unpublish）不显示 Fieldset；有字段的（如 price_change）才显示。
-     *
-     * @return bool
      */
     public function hasActionForms(string $morphType, string $action): bool
     {
