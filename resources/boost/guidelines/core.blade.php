@@ -45,8 +45,224 @@ FilterComponents::dateTimeRangeFilter('published_at', '发布时间');
 ```php
 use Wsmallnews\Support\Filament\Actions\ActionComponents;
 
+// 自定义标准操作，可以用在非 filament table 页面
 ActionComponents::deleteAction();
 ActionComponents::editAction();
+
+// 二态切换（枚举须恰好 2 个 case）
+ActionComponents::toggleAction(MemberStatus::class, 'status');
+
+// 多态切换（枚举 > 2 个 case，弹出 Select 选择）
+ActionComponents::switchAction(ProductStatus::class, 'status');
+
+// 自动错误处理的批量操作
+ActionComponents::bulkAction(name: 'bulk_enable', process: function ($action, $record) {
+    $record->update(['status' => MemberStatus::Active]);
+});
+
+// 包裹 record/toolbar actions（根据配置决定是否用 ActionGroup 包裹）
+ActionComponents::recordActions([ViewAction::make(), DeleteAction::make()]);
+ActionComponents::toolbarActions([DeleteBulkAction::make()]);
+```
+
+#### ColumnComponents
+
+`Wsmallnews\Support\Filament\Tables\ColumnComponents` 提供表格列工厂，用于展示关联模型信息：
+
+```php
+use Wsmallnews\Support\Filament\Tables\ColumnComponents;
+
+// 多态关联列（左侧图片 + 右侧标题/描述 + 类型 badge）
+ColumnComponents::morphColumn(
+    'causer_type',                      // 列名（必须模态类型字段）
+    '操作人',                           // 标签
+    fn ($record) => $record->causer,    // 获取关联模型
+    fn ($record) => $record->causer_type, // 获取多态类型
+    fn ($record) => $record->causer_id,   // 获取多态 ID
+);
+
+// 普通关联列（无类型 badge）
+ColumnComponents::relationColumn(
+    'user.name',
+    '关联用户',
+    fn ($record) => $record->user,
+);
+
+// 模型列（简单展示，无多态/关联逻辑）
+ColumnComponents::modelColumn('name', '名称', fn ($record) => $record);
+
+// 内容列（Textarea 直接展示，Richtext/Markdown 点击弹框）
+ColumnComponents::contentColumn('content', '内容');
+```
+
+### SupportModel 基类
+
+`Wsmallnews\Support\Models\SupportModel` 是所有 support 包模型的基类，提供 scopeable 和多租户感知：
+
+```php
+use Wsmallnews\Support\Models\SupportModel;
+
+class Post extends SupportModel
+{
+    // 自动获得：
+    // scopeTenant()    — 按当前租户过滤
+    // scopeSnScope()   — 组合 scopeable + tenant 过滤
+    // getModelLabel()  — 默认返回类名
+}
+```
+
+各扩展包的模型应继承 `SupportModel`（如 Post、Category、Comment、Member、Product 等），而非直接继承 Laravel 的 `Model`。
+
+### Filament 插件系统
+
+support 提供了一套可配置的 Filament 插件架构，让扩展包的 Resource/Page 可通过配置覆盖：
+
+```php
+use Wsmallnews\Support\Filament\Concerns\RegistersConfigurable;
+
+class CmsPlugin implements Plugin
+{
+    use RegistersConfigurable;
+
+    public function register(Panel $panel): void
+    {
+        $this->registerConfigurableResources($panel);
+        $this->registerConfigurablePages($panel);
+    }
+}
+```
+
+Resource 使用 `CanBeConfigured` + `ResourceConfiguration`：
+
+```php
+use Wsmallnews\Support\Filament\Concerns\CanBeConfigured;
+use Wsmallnews\Support\Filament\Resources\ResourceConfiguration;
+
+final class PostResource extends BaseResource
+{
+    use CanBeConfigured;
+
+    protected static ?string $configurationClass = ResourceConfiguration::class;
+
+    public static function getEssentialsPlugin(): ?CmsPlugin
+    {
+        return CmsPlugin::get();
+    }
+}
+```
+
+Page 使用 `CanBeConfigured` + `PageConfiguration`：
+
+```php
+use Wsmallnews\Support\Filament\Concerns\CanBeConfigured;
+use Wsmallnews\Support\Filament\Pages\PageConfiguration;
+
+class CategoryPage extends Base
+{
+    use CanBeConfigured;
+
+    protected static ?string $configurationClass = PageConfiguration::class;
+}
+```
+
+### ScheduledTasks 资源
+
+继承 `Wsmallnews\Support\Filament\Resources\ScheduledTasks\BaseResource` 快速实现定时任务管理：
+
+```php
+use Wsmallnews\Support\Filament\Resources\ScheduledTasks\BaseResource;
+
+class ScheduledTaskResource extends BaseResource
+{
+    // BaseResource 已提供：
+    // - 列表页、查看页
+    // - table() 配置（id、schedulable 多态列、action、status、scheduled_at、executed_at 等）
+    // - infolist() 配置（Tabs: Overview/Payload/Raw Data）
+    // - 图标、slug、导航排序、翻译标签
+}
+```
+
+提供可配置的具体实现 `ScheduledTaskResource`，支持通过插件配置覆盖：
+
+```php
+use Wsmallnews\Support\Filament\Resources\ScheduledTasks\ScheduledTaskResource;
+
+// 在 PanelProvider 中直接注册
+$panel->resources([ScheduledTaskResource::class]);
+```
+
+### 定时调度任务
+
+#### Facade 注册
+
+```php
+use Wsmallnews\Support\Facades\ScheduledTask;
+
+// 在 ServiceProvider 中注册可调度的动作
+ScheduledTask::registers('sn_post', [
+    'publish' => ['label' => '发布', 'handler' => PublishHandler::class],
+    'unpublish' => ['label' => '下架', 'handler' => UnpublishHandler::class],
+]);
+
+// 在表单中嵌入调度器
+ScheduledTask::scheduleRepeater('sn_post');
+```
+
+#### Resource & Widget
+
+```php
+// 查看页嵌入定时任务 Widget
+use Wsmallnews\Support\Filament\Resources\ScheduledTasks\Widgets\ScheduledTasks as ScheduledTasksWidget;
+
+ScheduledTasksWidget::make()
+
+// 表格行操作：查看关联的定时任务
+use Wsmallnews\Support\Filament\Resources\ScheduledTasks\Concerns\ViewScheduledTasksAction;
+
+ViewScheduledTasksAction::make()
+```
+
+### 异常体系
+
+所有扩展包的异常应继承 `SupportException`：
+
+```php
+use Wsmallnews\Support\Exceptions\SupportException;
+
+class CmsException extends SupportException {}
+class CommentException extends SupportException {}
+class ProductException extends SupportException {}
+```
+
+`InvalidScopeException` 用于 Scopeable 配置错误时抛出。
+
+### 枚举工具
+
+`EnumHelper` trait 为枚举提供 `getLabel()`、`getColor()`、`getIcon()` 等默认实现：
+
+```php
+use Wsmallnews\Support\Enums\Traits\EnumHelper;
+
+enum PostStatus: string implements HasColor, HasIcon, HasLabel
+{
+    use EnumHelper;
+
+    case Draft = 'draft';
+    case Published = 'published';
+}
+```
+
+### Blade 组件
+
+```blade
+{{-- 内容展示（根据 content_type 自动选择渲染方式） --}}
+<x-sn-support::content :content-type="$contentType" :content="$content" />
+
+{{-- 折叠内容（支持展开/收起） --}}
+<x-sn-support::collapse-content :content-type="$contentType" :content="$content" />
+
+{{-- 图片灯箱 --}}
+<x-sn-support::lightbox class="w-full" :galleries="$galleries" thumb-class="size-20" />
 ```
 
 ### Scopeable 系统
@@ -234,16 +450,14 @@ class ActivityLogResource extends BaseResource
 {
     // BaseResource 已提供：
     // - 列表页、查看页、导出、时间线
-    // - getEloquentQuery() 按 log_name 过滤，预加载 causer（移除租户全局作用域）和 subject
+    // - getEloquentQuery() 按 log_name 过滤
     // - 图标、slug、导航排序、翻译标签
 }
 ```
 
 模型实现接口可自定义日志展示：
 
-- `Wsmallnews\Support\Contracts\ActivityLogs\HasActivityLogTitle` — 自定义日志标题
-- `Wsmallnews\Support\Contracts\ActivityLogs\HasActivityLogUrl` — 自定义查看链接
-- `Wsmallnews\Support\Contracts\HasModelLabel` — 自定义模型标签（`static getModelLabel(): string`），用于活动日志类型下拉选项的标签解析
+- `Wsmallnews\Support\Contracts\HasModelLabel` — 自定义模型标签（`static getModelLabel(): string`），用于活动日志类型下拉选项的标签解析等
 
 ### Tags 资源
 
@@ -305,38 +519,6 @@ $this->getColumns('lg');   // 获取指定断点的列数
 $this->getColumnsConfig(); // 获取带默认值的完整配置
 ```
 
-#### 自定义属性（HasCustomProperties）
-
-**Plugin 层** — `Wsmallnews\Support\Concerns\Plugin\HasCustomProperties`：
-
-```php
-// 在插件中设置自定义属性
-$plugin->customProperties([
-    'table' => fn (Table $table, string $resource) => $table,
-    'form' => fn (Schema $schema, string $resource) => $schema,
-    'scopeable' => ['scopeType' => 'post', 'scopeId' => 0],
-]);
-
-// 读取
-$plugin->getCustomProperties($resourceClass);
-```
-
-**Resource 层** — `Wsmallnews\Support\Concerns\Resource\HasCustomProperties`：委托到插件层，提供快捷方法：
-
-```php
-// 快捷获取自定义的 table/form/infolist
-static::getCustomTable($table);           // 返回 ?Table
-static::getCustomForm($schema);           // 返回 ?Schema
-static::getCustomFormArray($arguments);   // 返回 ?array
-static::getCustomInfolist($schema);       // 返回 ?Schema
-static::getCustomInfolistArray();         // 返回 ?array
-
-// scopeable 相关
-static::getCustomScopeable();             // 返回 ?array
-static::getCustomScopeType();             // 返回 ?string
-static::getCustomScopeId();               // 返回 ?int
-static::getCustomProperty('key');         // 获取单个属性
-```
 
 #### HasMediaFilter（媒体筛选）
 
@@ -416,24 +598,37 @@ $rocket->getPayloads(); // Collection
 | `getConfig('key', $default)` | 读取 `sn-support` 配置（dot notation） |
 | `getModel('name', $shouldException)` | 获取配置中的模型类名，第二个参数 `false` 时不抛异常 |
 | `getTenantModel()` | 获取租户模型类名 |
+| `getContentModel()` | 获取 Content 模型类名 |
+| `getScheduledTaskModel()` | 获取 ScheduledTask 模型类名 |
 | `isTenancyEnabled()` | 判断多租户是否启用 |
 | `getFilesystemDisk()` | 获取文件系统磁盘（回退到 Filament 默认盘） |
 | `getScopeFromConfig('sn-cms.scopeable')` | 从配置创建 ScopeableContext |
+| `getSchedulerConfig('key', $default)` | 读取定时调度配置 |
 
 ### 关键辅助函数
 
 | 函数 | 说明 |
 |---|---|
-| `get_sn($id, $type)` | 生成唯一编号 |
-| `sn_route($name, $params)` | 租户感知路由，多租户启用时自动添加 tenant 参数 |
-| `files_url($files, $disk)` | 解析文件 URL |
-| `href_format($url, $newTab, $spaMode)` | 生成带 wire:navigate 的链接 |
-| `through_cache($key, $callback)` | 缓存穿透模式 |
+| `get_sn($id, $type)` | 生成唯一编号（时间戳 + 随机数 + ID） |
+| `client_unique()` | 获取客户端唯一标识（基于 URL + IP + UserAgent 的 MD5） |
+| `db_listen()` | 开启数据库查询监听（调试用，直接 echo SQL） |
+| `sn_currency()` | 获取自定义 Currency 操作类实例 |
+| `exception_log($exception, $name, $message)` | 格式化异常日志（含 Message、File、Trace） |
+| `through_cache($key, $callback, $store, $is_force, $ttl)` | 缓存穿透模式，支持指定 store、强制刷新、TTL |
+| `href_format($url, $newTab, $spaMode)` | 生成带 wire:navigate 的链接 HTML |
+| `files_url($files, $disk)` | 解析文件 URL（自动判断 http/data 开头 vs 相对路径） |
 | `filter_richeditor($content)` | 去除富文本中包裹图片的 anchor 标签 |
-| `tree_to_flatten($tree)` | 递归将树结构扁平化 |
-| `scopeable_context($input)` | 创建 ScopeableContext |
+| `frontend_has_tenancy()` | 前端是否有租户（从 request attributes 读取） |
+| `frontend_current_tenant()` | 前端当前租户 Model |
+| `has_tenancy()` | 全局是否有租户（自动判断前端/后台） |
+| `current_tenant()` | 全局当前租户 Model（自动判断前端/后台） |
+| `get_tenancy_scope_name($panel)` | 获取租户作用域名称 |
+| `is_in_panel()` | 当前是否在 Filament 后台面板 |
+| `tree_to_flatten($tree)` | 递归将树结构扁平化为一维集合 |
+| `sn_route($name, $params, $absolute)` | 租户感知路由，多租户启用时自动添加 tenant 参数 |
+| `remove_query_param_from_url($url, $keys)` | 移除 URL 中的指定 query 参数 |
+| `scopeable_context($input)` | 创建 ScopeableContext（支持数组、实例、配置 key） |
 | `scopeable_query($query, $scope)` | 对查询应用 scope 过滤 |
-| `exception_log($exception, $name, $message)` | 结构化异常日志 |
 
 ### 正确命名空间速查
 
@@ -442,25 +637,33 @@ $rocket->getPayloads(); // Collection
 | FormComponents 工厂 | `Wsmallnews\Support\Filament\Forms\FormComponents` |
 | FilterComponents 工厂 | `Wsmallnews\Support\Filament\Filters\FilterComponents` |
 | ActionComponents 工厂 | `Wsmallnews\Support\Filament\Actions\ActionComponents` |
+| ColumnComponents 工厂 | `Wsmallnews\Support\Filament\Tables\ColumnComponents` |
 | 自定义表单字段 | `Wsmallnews\Support\Filament\Forms\Fields\` |
 | Activity Logs 资源 | `Wsmallnews\Support\Filament\Resources\ActivityLogs\` |
 | Tags 资源 | `Wsmallnews\Support\Filament\Resources\Tags\` |
+| ScheduledTasks 资源 | `Wsmallnews\Support\Filament\Resources\ScheduledTasks\` |
+| SupportModel 基类 | `Wsmallnews\Support\Models\SupportModel` |
 | Livewire Base | `Wsmallnews\Support\Livewire\Base` |
 | Livewire Traits | `Wsmallnews\Support\Livewire\Concerns\` |
 | Model Traits | `Wsmallnews\Support\Models\Concerns\` |
 | Models | `Wsmallnews\Support\Models\` |
 | Casts | `Wsmallnews\Support\Casts\` |
 | Enums | `Wsmallnews\Support\Enums\` |
+| EnumHelper | `Wsmallnews\Support\Enums\Traits\EnumHelper` |
 | Data 对象 | `Wsmallnews\Support\Data\` |
 | Contracts（接口） | `Wsmallnews\Support\Contracts\` |
 | Contracts - 活动日志 | `Wsmallnews\Support\Contracts\ActivityLogs\` |
 | 通用 Traits | `Wsmallnews\Support\Concerns\` |
+| UserIdentifiable | `Wsmallnews\Support\Concerns\UserIdentifiable` |
+| HasColumns | `Wsmallnews\Support\Concerns\HasColumns` |
 | Plugin 自定义属性 | `Wsmallnews\Support\Concerns\Plugin\` |
 | Resource 自定义属性 | `Wsmallnews\Support\Concerns\Resource\` |
 | 安装工具 | `Wsmallnews\Support\Concerns\Install\` |
 | Filament 通用 | `Wsmallnews\Support\Filament\Concerns\` |
+| FilamentModelHelper | `Wsmallnews\Support\Helpers\FilamentModelHelper` |
 | Utils | `Wsmallnews\Support\Support\Utils` |
 | Facade | `Wsmallnews\Support\Facades\Support` |
+| ScheduledTask Facade | `Wsmallnews\Support\Facades\ScheduledTask` |
 | 中间件 | `Wsmallnews\Support\Http\Middleware\` |
 
 ### 常见错误
