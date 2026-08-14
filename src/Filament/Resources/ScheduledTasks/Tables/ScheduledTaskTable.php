@@ -5,8 +5,11 @@ namespace Wsmallnews\Support\Filament\Resources\ScheduledTasks\Tables;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Support\Enums\Width;
-use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Wsmallnews\Support\Enums\ScheduledTaskStatus;
 use Wsmallnews\Support\Filament\Actions\ActionComponents;
@@ -56,7 +59,7 @@ class ScheduledTaskTable
 
     protected static function IDColumn()
     {
-        return \Filament\Tables\Columns\TextColumn::make('id')
+        return TextColumn::make('id')
             ->label('ID')
             ->searchable()
             ->sortable()
@@ -77,7 +80,7 @@ class ScheduledTaskTable
 
     protected static function actionColumn()
     {
-        return \Filament\Tables\Columns\TextColumn::make('action')
+        return TextColumn::make('action')
             ->label(__('sn-support::scheduled_task.table.column.action'))
             ->badge()
             ->searchable()
@@ -87,7 +90,7 @@ class ScheduledTaskTable
 
     protected static function scheduledAtColumn()
     {
-        return \Filament\Tables\Columns\TextColumn::make('scheduled_at')
+        return TextColumn::make('scheduled_at')
             ->label(__('sn-support::scheduled_task.table.column.scheduled_at'))
             ->sortable()
             ->toggleable();
@@ -95,7 +98,7 @@ class ScheduledTaskTable
 
     protected static function statusColumn()
     {
-        return \Filament\Tables\Columns\TextColumn::make('status')
+        return TextColumn::make('status')
             ->label(__('sn-support::scheduled_task.table.column.status'))
             ->badge()
             ->searchable()
@@ -105,7 +108,7 @@ class ScheduledTaskTable
 
     protected static function executedAtColumn()
     {
-        return \Filament\Tables\Columns\TextColumn::make('executed_at')
+        return TextColumn::make('executed_at')
             ->label(__('sn-support::scheduled_task.table.column.executed_at'))
             ->placeholder(__('sn-support::scheduled_task.table.column.no_executed_placeholder'))
             ->sortable()
@@ -114,7 +117,7 @@ class ScheduledTaskTable
 
     protected static function createdAtColumn()
     {
-        return \Filament\Tables\Columns\TextColumn::make('created_at')
+        return TextColumn::make('created_at')
             ->label(__('sn-support::scheduled_task.table.column.created_at'))
             ->sortable()
             ->toggleable();
@@ -122,7 +125,7 @@ class ScheduledTaskTable
 
     protected static function updatedAtColumn()
     {
-        return \Filament\Tables\Columns\TextColumn::make('updated_at')
+        return TextColumn::make('updated_at')
             ->label(__('sn-support::scheduled_task.table.column.updated_at'))
             ->sortable()
             ->toggleable(isToggledHiddenByDefault: true);
@@ -132,17 +135,17 @@ class ScheduledTaskTable
 
     protected static function statusFilter()
     {
-        return \Filament\Tables\Filters\SelectFilter::make('status')
+        return SelectFilter::make('status')
             ->label(__('sn-support::scheduled_task.table.filter.status_label'))
             ->options(ScheduledTaskStatus::class);
     }
 
     protected static function actionFilter()
     {
-        return \Filament\Tables\Filters\Filter::make('action')
+        return Filter::make('action')
             ->label(__('sn-support::scheduled_task.table.column.action'))
             ->form([
-                \Filament\Forms\Components\TextInput::make('value')
+                TextInput::make('value')
                     ->label(__('sn-support::scheduled_task.table.filter.action_placeholder')),
             ])
             ->query(fn ($query, array $data) => $query->when($data['value'] ?? null, fn ($q, $v) => $q->where('action', $v)));

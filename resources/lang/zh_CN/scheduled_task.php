@@ -25,7 +25,7 @@ return [
             'executed_at' => '实际执行时间',
             'created_at' => '创建时间',
             'updated_at' => '更新时间',
-            'no_executed_placeholder' => '未执行'
+            'no_executed_placeholder' => '未执行',
         ],
         'filter' => [
             'search_placeholder' => '搜索 ID 或动作名称',
@@ -84,7 +84,7 @@ return [
         'executed_at' => '实际执行',
         'payload' => '参数',
         'result' => '结果',
-        'no_executed' => '未执行'
+        'no_executed' => '未执行',
     ],
 
     'no_tasks' => '暂无定时任务',
