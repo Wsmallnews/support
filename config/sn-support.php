@@ -1,5 +1,6 @@
 <?php
 
+use Wsmallnews\Support\Enums\ContentType;
 use Wsmallnews\Support\Models;
 
 return [
@@ -280,6 +281,24 @@ return [
                  */
                 'text_colors' => null,
             ],
+        ],
+
+        /**
+         * Content type group default configuration (FormComponents::contentTypeGroup)
+         * Used as fallback when the caller does not pass types / default_type
+         */
+        'content' => [
+            /**
+             * Allowed content types, null = all types
+             *
+             * @var array<int, ContentType>|null
+             */
+            'types' => null,
+
+            /**
+             * Default content type
+             */
+            'default_type' => ContentType::Richtext,
         ],
     ],
 

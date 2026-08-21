@@ -21,6 +21,16 @@ return [
         'textarea' => '纯文本',
         'richtext' => '富文本',
         'markdown' => 'Markdown',
+        'images' => '纯图',
+    ],
+    'form_components' => [
+        'content' => [
+            'type_label' => '编辑器类型',
+            'detail_label' => '内容详情',
+            'placeholder' => '请输入内容...',
+            'markdown_placeholder' => '请输入内容详情（支持Markdown）',
+            'preview' => '预览',
+        ],
     ],
     'scheduled_task' => [
         'label' => '定时任务',

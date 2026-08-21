@@ -21,11 +21,13 @@ class ColumnComponents
         array | bool $searchable = true,
         ?Closure $actionResolver = null,
     ): TextColumn {
-        // 处理 内容 弹框
+        // 处理 内容 弹框（弹窗内容由调用方通过 actionResolver 配置，如评论 table 的内容不一定来自 record->content）
         $action = Action::make('viewContent')
             ->modal()
             ->modalHeading(fn ($record) => __('sn-support::support.table.column.view_content') . ' #' . $record->id)
             ->modalWidth(Width::FourExtraLarge)
+            ->stickyModalHeader()
+            ->stickyModalFooter()
             ->modalSubmitAction(false)
             ->modalCancelActionLabel(__('sn-support::support.table.column.content_close'));
         $action = $actionResolver ? $actionResolver($action) : $action;
@@ -41,7 +43,9 @@ class ColumnComponents
                 if ($record->content_type === ContentType::Textarea) {
                     $html .= '<div class="w-full truncate">' . $state . '</div>';
                 } else {
-                    $html .= svg('heroicon-m-document-text', 'w-4 h-4')->toHtml();
+                    $html .= $record->content_type === ContentType::Images
+                        ? svg('heroicon-m-photo', 'w-4 h-4')->toHtml()
+                        : svg('heroicon-m-document-text', 'w-4 h-4')->toHtml();
                     $html .= e($record->content_type->getLabel());
                 }
                 $html .= '</div>';

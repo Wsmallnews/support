@@ -15,9 +15,9 @@ use Wsmallnews\Support\Filament\Forms\FormComponents;
 FormComponents::mediaImageUpload('avatar', 'avatars');
 FormComponents::mediaFileUpload('attachment', 'documents');
 
-// 本地图片/文件上传
-FormComponents::localImageUpload('cover');
-FormComponents::localFileUpload('report');
+// 直接存储到 disk 图片/文件上传
+FormComponents::plainImageUpload('cover');
+FormComponents::plainFileUpload('report');
 
 // Markdown / 富文本编辑器
 FormComponents::markdownEditor('description');

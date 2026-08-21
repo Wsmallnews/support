@@ -20,12 +20,15 @@ enum ContentType: string implements HasColor, HasIcon, HasLabel
 
     case Markdown = 'markdown';
 
+    case Images = 'images';
+
     public function getLabel(): string | Htmlable | null
     {
         return match ($this) {
             self::Textarea => __('sn-support::support.content_type.textarea'),
             self::Richtext => __('sn-support::support.content_type.richtext'),
             self::Markdown => __('sn-support::support.content_type.markdown'),
+            self::Images => __('sn-support::support.content_type.images'),
         };
     }
 
@@ -35,6 +38,7 @@ enum ContentType: string implements HasColor, HasIcon, HasLabel
             self::Textarea => 'gray',
             self::Richtext => 'primary',
             self::Markdown => 'success',
+            self::Images => 'info',
         };
     }
 
@@ -44,6 +48,7 @@ enum ContentType: string implements HasColor, HasIcon, HasLabel
             self::Textarea => Heroicon::OutlinedBars3BottomLeft,
             self::Richtext => Heroicon::OutlinedDocumentText,
             self::Markdown => Heroicon::OutlinedCodeBracket,
+            self::Images => Heroicon::OutlinedPhoto,
         };
     }
 }

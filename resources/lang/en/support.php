@@ -21,6 +21,16 @@ return [
         'textarea' => 'Plain Text',
         'richtext' => 'Rich Text',
         'markdown' => 'Markdown',
+        'images' => 'Images',
+    ],
+    'form_components' => [
+        'content' => [
+            'type_label' => 'Editor Type',
+            'detail_label' => 'Content Detail',
+            'placeholder' => 'Please enter content...',
+            'markdown_placeholder' => 'Please enter content detail (Markdown supported)',
+            'preview' => 'Preview',
+        ],
     ],
     'scheduled_task' => [
         'label' => 'Scheduled Tasks',

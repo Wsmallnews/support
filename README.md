@@ -366,11 +366,11 @@ FormComponents::mediaImageUpload('avatar', 'avatars');
 // Media library file upload
 FormComponents::mediaFileUpload('attachment', 'files');
 
-// Local image upload
-FormComponents::localImageUpload('cover');
+// Direct storage disk image upload
+FormComponents::plainImageUpload('cover');
 
-// Local file upload
-FormComponents::localFileUpload('document');
+// Direct storage file upload
+FormComponents::plainFileUpload('document');
 
 // Markdown editor
 FormComponents::markdownEditor('content');
