@@ -143,6 +143,8 @@ class ScheduledTaskRegistry
     {
         return Repeater::make($relationship)
             ->label(__('sn-support::support.scheduled_task.label'))
+            // 显式空默认：避免 fill/hydrate 时自动生成一条全默认空项（大多场景无需定时任务）
+            ->default([])
             ->relationship(modifyQueryUsing: fn ($query) => $query->where('status', ScheduledTaskStatus::Pending))
             ->schema(fn (): array => $this->repeaterSchema($morphType))
             ->columns(2);
