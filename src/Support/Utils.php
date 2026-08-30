@@ -87,6 +87,17 @@ class Utils
     }
 
     /**
+     * Get search configuration (dot notation under "search").
+     *
+     * @param  string|null  $name  Configuration key under search (dot notation)
+     * @param  mixed  $default  Default value if not found
+     */
+    public static function getSearchConfig(?string $name = null, mixed $default = null): mixed
+    {
+        return self::getConfig('search' . ($name ? '.' . $name : ''), $default);
+    }
+
+    /**
      * Get the tenant model class.
      */
     public static function getTenantModel(): ?string

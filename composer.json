@@ -81,9 +81,13 @@
                 "Wsmallnews\\Support\\SupportServiceProvider"
             ],
             "aliases": {
-                "Support": "Wsmallnews\\Support\\Facades\\Support"
+                "Support": "Wsmallnews\\Support\\Facades\\Support",
+                "Search": "Wsmallnews\\Support\\Facades\\Search"
             }
         }
+    },
+    "suggest": {
+        "laravel/scout": "Required to use the scout search engine (^10.0)"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

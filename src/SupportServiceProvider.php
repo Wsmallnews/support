@@ -25,6 +25,8 @@ use Wsmallnews\Support\Commands\RunScheduledTasksCommand;
 use Wsmallnews\Support\Commands\SupportInstallCommand;
 use Wsmallnews\Support\Helpers\ScheduleHelper;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
+use Wsmallnews\Support\Features\Search\SearchRegistry;
+use Wsmallnews\Support\Livewire\Components\Search as SearchComponent;
 use Wsmallnews\Support\Settings\Listeners\LogSettingsActivity;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
@@ -51,6 +53,11 @@ class SupportServiceProvider extends PackageServiceProvider
         // 注册定时调度任务注册器
         $this->app->singleton(ScheduledTaskRegistry::class, function (): ScheduledTaskRegistry {
             return new ScheduledTaskRegistry;
+        });
+
+        // 注册通用全局搜索注册器
+        $this->app->singleton(SearchRegistry::class, function (): SearchRegistry {
+            return new SearchRegistry;
         });
     }
 
@@ -111,6 +118,9 @@ class SupportServiceProvider extends PackageServiceProvider
             // 记录路由历史
             LivewireUrlsMiddleware::class,
         ]);
+
+        // 注册前端全局搜索组件
+        Livewire::component('sn-support-components-search', SearchComponent::class);
 
         // 暂时先放开
         Number::macro('symbol', function (string $in = 'USD', ?string $locale = null) {
