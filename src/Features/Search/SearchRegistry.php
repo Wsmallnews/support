@@ -4,6 +4,7 @@ namespace Wsmallnews\Support\Features\Search;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Laravel\Scout\EngineManager;
 use Wsmallnews\Support\Exceptions\SupportException;
 use Wsmallnews\Support\Features\Search\Engines\DatabaseEngine;
 use Wsmallnews\Support\Features\Search\Engines\Engine;
@@ -53,7 +54,7 @@ class SearchRegistry
         return $this;
     }
 
-    public function register(string $search, array|SearchSource $source): static
+    public function register(string $search, array | SearchSource $source): static
     {
         $options = $source instanceof SearchSource ? $source->options() : $source;
 
@@ -176,7 +177,7 @@ class SearchRegistry
         }
 
         if ($engine === 'scout') {
-            if (! class_exists(\Laravel\Scout\EngineManager::class)) {
+            if (! class_exists(EngineManager::class)) {
                 throw new SupportException(__('sn-support::search.exceptions.scout_missing'));
             }
 

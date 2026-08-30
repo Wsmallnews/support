@@ -2,7 +2,6 @@
 
 namespace Wsmallnews\Support\Livewire\Components;
 
-use Illuminate\Support\Collection;
 use Wsmallnews\Support\Facades\Search as SearchFacade;
 use Wsmallnews\Support\Livewire\Base;
 use Wsmallnews\Support\Livewire\Concerns\HasProperties;
