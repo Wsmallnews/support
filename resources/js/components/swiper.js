@@ -96,6 +96,7 @@ export default function supportSwiper({
             if (this.thumbSwiper) {
                 swiperOptions.thumbs = {
                     swiper: this.thumbSwiper,
+                    slideToClickedSlide: true,  // 点击缩略图切换主 swiper
                 };
             }
 
