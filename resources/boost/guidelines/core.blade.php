@@ -324,7 +324,7 @@ Filament Resources 使用 `HasScopeableProperties` concern：
 
 ### SN 身份与实体接口
 
-为 preference 等扩展包提供统一的"操作者"（谁）和"目标实体"（什么）数据抽象。Blade 组件通过这两个接口获取展示数据和跳转链接。
+为 preference 等扩展包提供统一的"操作者"（谁）和"目标实体"（什么）数据抽象。Blade 组件通过这两个接口获取展示数据。
 
 #### HasSnIdentifiable（身份/操作者接口）
 
@@ -339,12 +339,11 @@ getSnId(): int;                                          // 操作者 ID
 getSnName(): string | HtmlString | null;                 // 操作者名称
 getSnAvatarUrl(): string | HtmlString | null;            // 头像 URL
 getSnEmail(): string | HtmlString | null;                // 邮箱
-getSnHrefUrl(): string | HtmlString | null;              // 详情页跳转链接
 ```
 
 #### UserIdentifiable trait
 
-`Wsmallnews\Support\Concerns\UserIdentifiable` 为 `HasSnIdentifiable` 提供基于 Eloquent 属性的默认实现，自动映射 `$this->id`、`$this->name`、`$this->avatar_url`、`$this->email`。`getSnHrefUrl()` 默认返回 `null`：
+`Wsmallnews\Support\Concerns\UserIdentifiable` 为 `HasSnIdentifiable` 提供基于 Eloquent 属性的默认实现，自动映射 `$this->id`、`$this->name`、`$this->avatar_url`、`$this->email`：
 
 ```php
 use Wsmallnews\Support\Contracts\HasSnIdentifiable;
@@ -369,10 +368,9 @@ getSnSubjectId(): int;                                   // 实体 ID
 getSnSubjectTitle(): string | HtmlString | null;          // 标题
 getSnSubjectDescription(): string | HtmlString | null;    // 描述
 getSnSubjectCoverUrl(): string | HtmlString | null;       // 封面图 URL
-getSnSubjectHrefUrl(): string | HtmlString | null;        // 详情页跳转链接
 ```
 
-`HasSnSubject` 没有默认 trait，每个实现类需自行实现所有方法：
+`HasSnSubject` 没有默认 trait，每个实现类需自行实现所有方法（契约只包含固有展示数据，不含跳转链接）：
 
 ```php
 use Wsmallnews\Support\Contracts\HasSnSubject;
@@ -383,7 +381,6 @@ class Post extends SupportModel implements HasSnSubject
     public function getSnSubjectTitle(): string | HtmlString | null { return $this->title; }
     public function getSnSubjectDescription(): string | HtmlString | null { return $this->description; }
     public function getSnSubjectCoverUrl(): string | HtmlString | null { return $this->getFirstMediaUrl('post_image'); }
-    public function getSnSubjectHrefUrl(): string | HtmlString | null { return null; }
 }
 ```
 
@@ -391,10 +388,10 @@ class Post extends SupportModel implements HasSnSubject
 
 | 接口 | 用途 | 对应 trait | href 方法 |
 |---|---|---|---|
-| `HasSnIdentifiable` | 操作者/用户 | `UserIdentifiable` | `getSnHrefUrl()` |
-| `HasSnSubject` | 目标/内容实体 | 无默认 trait | `getSnSubjectHrefUrl()` |
+| `HasSnIdentifiable` | 操作者/用户 | `UserIdentifiable` | 无（链接由调用方传入） |
+| `HasSnSubject` | 目标/内容实体 | 无默认 trait | 无（链接由调用方传入） |
 
-两个接口的 href 方法返回非空 URL 时，preference 等包的 Blade 组件会渲染为可点击的 `<a>` 标签；返回 `null` 时点击会分发 Livewire 事件。
+两个接口只包含固有展示数据，跳转链接由调用方在 Blade 组件上传入 `href` prop（string|Closure），未传时渲染为普通元素并分发 Livewire 事件；panel 语境（`is_in_panel()`）下未传时组件自动兜底 `FilamentModelHelper::getUrl()`（后台资源链接）。
 
 ### 自定义表单字段
 

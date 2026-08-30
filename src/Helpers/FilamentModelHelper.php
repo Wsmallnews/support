@@ -45,7 +45,7 @@ class FilamentModelHelper
     }
 
     /**
-     * 获取模型详情页 URL。
+     * 获取模型详情页 URL（统一走后台资源链接兜底）。
      */
     public static function getUrl(?Model $model): ?string
     {
@@ -53,14 +53,7 @@ class FilamentModelHelper
             return null;
         }
 
-        $url = null;
-        if ($model instanceof HasSnSubject) {
-            $url = $model->getSnSubjectHrefUrl();
-        } elseif ($model instanceof HasSnIdentifiable) {
-            $url = $model->getSnHrefUrl();
-        }
-
-        return filled($url) ? (string) $url : static::resolveResourceUrl($model);
+        return static::resolveResourceUrl($model);
     }
 
     /**
@@ -198,8 +191,8 @@ class FilamentModelHelper
         // Fallback: getModelResource() 仅查找纯字符串注册的资源，
         // ResourceConfiguration 注册的资源需要从 getResourceConfigurations() 中查找
         if (! $resource) {
-            // 查找当前面板的资源配置
-            $panel = Filament::getCurrentPanel();
+            // 查找当前面板的资源配置（无 panel 请求上下文时回退默认面板）
+            $panel = Filament::getCurrentOrDefaultPanel();
             foreach ($panel->getResourceConfigurations() as $config) {
                 if (is_a($model, $config->resource::getModel())) {
                     $resource = $config->resource;

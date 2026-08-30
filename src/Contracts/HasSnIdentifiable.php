@@ -13,6 +13,4 @@ interface HasSnIdentifiable
     public function getSnAvatarUrl(): string | HtmlString | null;
 
     public function getSnEmail(): string | HtmlString | null;
-
-    public function getSnHrefUrl(): string | HtmlString | null;
 }

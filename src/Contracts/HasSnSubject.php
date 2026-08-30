@@ -13,6 +13,4 @@ interface HasSnSubject
     public function getSnSubjectDescription(): string | HtmlString | null;
 
     public function getSnSubjectCoverUrl(): string | HtmlString | null;
-
-    public function getSnSubjectHrefUrl(): string | HtmlString | null;
 }

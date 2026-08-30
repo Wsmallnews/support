@@ -25,9 +25,4 @@ trait UserIdentifiable
     {
         return $this->email ?? null;
     }
-
-    public function getSnHrefUrl(): string | HtmlString | null
-    {
-        return null;
-    }
 }
