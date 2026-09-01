@@ -272,6 +272,12 @@
 .sn-primary-text {
     @apply text-primary-500 dark:text-primary-600;
 }
+
+/** 文本关键词高亮（text_highlight() 助手生成）。
+ *  文字样式全部继承父级（颜色/字重/字号随父级，hover 变色同步），只改背景色。 */
+.sn-text-highlight {
+    @apply rounded-sm bg-primary-200 px-0.5 text-inherit dark:bg-primary-800/70;
+}
 .sn-danger-text {
     @apply text-danger-500 dark:text-danger-600;
 }

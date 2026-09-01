@@ -316,6 +316,23 @@ return [
         'engine' => 'database',
 
         /**
+         * 前端搜索结果的展示方式：
+         * - 'dropdown'：输入即搜，结果浮层展示在搜索框下方，点击条目跳转（默认）
+         * - 'page'：搜索框回车后跳转到独立的搜索结果页
+         * 各扩展包可在自己的配置节（如 sn-cms.search.display）覆盖此值
+         */
+        'display' => 'dropdown',
+
+        /**
+         * 搜索结果页地址（display = page 时的全局兜底）：
+         * - URL 字符串：回车跳转时由 support 统一拼接 ?q=关键词
+         * - 匿名函数：fn (?string $query) => ... 接收搜索关键词，自行返回完整 URL（含 ?q= 等参数）
+         * 模块级通过 Search::config($search, ['page' => ...]) 声明覆盖
+         * （在扩展包 ServiceProvider 中注册，与来源 url 选项同风格）
+         */
+        'page' => null,
+
+        /**
          * 每个来源默认返回条数
          */
         'results_limit' => 8,

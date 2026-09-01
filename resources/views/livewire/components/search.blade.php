@@ -1,54 +1,49 @@
+@php
+    use Filament\Support\Icons\Heroicon;
+
+    // Blade 组件标签的属性名不支持插值，防抖时长由配置决定，故用属性包传入。
+    // dropdown：输入实时防抖搜索；page：回车才搜索并跳转结果页
+    $searchInput = $display === 'page'
+        ? new Illuminate\View\ComponentAttributeBag([
+            'wire:model' => 'query',
+            'wire:keydown.enter' => 'gotoSearchPage',
+        ])
+        : new Illuminate\View\ComponentAttributeBag([
+            "wire:model.live.debounce.{$debounce}" => 'query',
+            '@focus' => 'open = true',
+            '@input' => 'open = true',
+            '@keydown.escape' => 'open = false',
+        ]);
+@endphp
+
 <div
     class="w-full relative"
     x-data="{ open: false }"
     @click.outside="open = false"
 >
-    <input
-        type="search"
-        wire:model.live.debounce.{{ $debounce }}="query"
-        placeholder="{{ $placeholder }}"
-        @focus="open = true"
-        @input="open = true"
-        @keydown.escape="open = false"
-        class="w-full rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm sn-content-text outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30"
-    />
+    {{-- page 模式的 Enter 提示参考 Filament 全局搜索实现：wrapper 的 suffix（inline-suffix，常驻显示），
+        输入框原生清除按钮（type=search 的 ×）保留在前，suffix 在其后 --}}
+    <x-filament::input.wrapper
+        inline-prefix
+        :prefix-icon="Heroicon::MagnifyingGlass"
+        :suffix="$display === 'page' ? '↵ Enter' : null"
+        inline-suffix
+    >
+        <x-filament::input 
+            type="search"
+            placeholder="{{ $placeholder }}"
+            aria-label="{{ $placeholder }}"
+            :attributes="$searchInput" 
+        />
+    </x-filament::input.wrapper>
 
-    @if (trim((string) $query) !== '')
+    @if ($display === 'dropdown' && trim((string) $query) !== '')
         <div
-            class="absolute z-20 mt-2 w-full max-h-96 overflow-y-auto rounded-md border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg"
+            class="sn-container absolute z-40 mt-2 w-full max-h-96 overflow-y-auto"
+            x-cloak
             x-show="open"
         >
-            @forelse ($groups as $group => $results)
-                <div class="py-1">
-                    <div class="sn-tip-text px-4 py-1.5 bg-gray-50 dark:bg-gray-800/60 sticky top-0">
-                        {{ $group }}
-                    </div>
-
-                    @foreach ($results as $result)
-                        @php
-                            $rowClass = 'flex items-center gap-3 px-4 py-2.5 sn-hover sn-link';
-                        @endphp
-
-                        @if ($result->url)
-                            <a href="{{ $result->url }}" class="{{ $rowClass }}">
-                                @include('sn-support::livewire.components.search-result', ['result' => $result])
-                            </a>
-                        @else
-                            <div class="{{ $rowClass }}">
-                                @include('sn-support::livewire.components.search-result', ['result' => $result])
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-            @empty
-                <x-sn-support::empty-state
-                    :contained="false"
-                    icon="heroicon-m-magnifying-glass"
-                    icon-color="gray"
-                    :heading="__('sn-support::search.empty')"
-                    :description="__('sn-support::search.empty_tip')"
-                />
-            @endforelse
+            @include('sn-support::livewire.components.search-results-list', ['stickyGroupHeader' => true])
         </div>
     @endif
 </div>

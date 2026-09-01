@@ -348,3 +348,28 @@ if (! function_exists('scopeable_query')) {
         return ScopeableHelper::applyToQuery($query, $scope);
     }
 }
+
+if (! function_exists('text_highlight')) {
+    /**
+     * 文本关键词高亮：逐词、大小写不敏感，文本已转义，命中处包 <mark> 标签。
+     * 通用助手（不限于搜索场景），搜索结果条目视图（自定义视图与默认模板）亦直接调用。
+     */
+    function text_highlight(?string $text, ?string $query): string
+    {
+        $text = e((string) $text);
+
+        $query = trim((string) $query);
+
+        if ($query === '' || $text === '') {
+            return $text;
+        }
+
+        $terms = preg_split('/\s+/u', $query, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        foreach ($terms as $term) {
+            $text = preg_replace('/(' . preg_quote($term, '/') . ')/iu', '<mark class="sn-text-highlight">$1</mark>', $text);
+        }
+
+        return $text;
+    }
+}

@@ -24,11 +24,19 @@ use Wsmallnews\Support\Support\Utils as SupportUtils;
  * - scout: Scout 引擎的索引过滤闭包（此时 query/scopeable/fields 不生效）
  * - scopeable: LIKE 引擎的 scope 过滤 ['scope_type' => ..., 'scope_id' => ...]
  * - title / description / cover / badge / url: 展示映射闭包（url 仅由注册方提供，默认无链接）
+ * - view: 自定义条目视图（接收 $result（含 ->record 原始模型）、$query 关键词；高亮用 text_highlight() 助手）；
+ *   未声明时 itemView() 兜底返回 DEFAULT_ITEM_VIEW 默认统一模板
+ * - render: 自定义条目渲染闭包 fn ($result, $query) => HtmlString|string（优先于 view）
  * - visible: 来源是否参与本次搜索的闭包
  * - results: 完全自定义结果闭包（绕过引擎，返回 SearchResult 集合）
  */
 class SearchSource
 {
+    /**
+     * 默认条目视图（注册方未声明 view 时的兜底）
+     */
+    public const DEFAULT_ITEM_VIEW = 'sn-support::livewire.components.search-result';
+
     public function __construct(protected array $options)
     {
         // model 归一化为类名（支持 morph 别名）
@@ -192,7 +200,28 @@ class SearchSource
             url: $this->url($record),
             badge: $this->badge($record),
             morphType: $record->getMorphClass(),
+            record: $record,
         );
+    }
+
+    /**
+     * 条目视图：注册方声明优先，未声明兜底默认统一模板。
+     */
+    public function itemView(): string
+    {
+        $view = $this->options['view'] ?? null;
+
+        return filled($view) ? (string) $view : static::DEFAULT_ITEM_VIEW;
+    }
+
+    /**
+     * 自定义条目渲染闭包 fn ($result, $query)（优先于视图，null = 未声明）。
+     */
+    public function itemRender(): ?Closure
+    {
+        $render = $this->options['render'] ?? null;
+
+        return $render instanceof Closure ? $render : null;
     }
 
     protected function resolveDisplay(string $key, Model $record, mixed $fallback = null): ?string

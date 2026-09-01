@@ -594,10 +594,13 @@ $rocket->getPayloads(); // Collection
 ```php
 use Wsmallnews\Support\Facades\Search;
 
-// 搜索名 = 插件 ID；模块是否启用由包的配置决定（未开启则不注册来源，前端也不渲染搜索框）
+// 模块名 = 插件 ID；模块是否启用由包的配置决定（未开启则不注册来源，前端也不渲染搜索框）
 if (Utils::getConfig('search.enabled', true)) {
-    Search::engine(app(CmsPlugin::class)->getId(), Utils::getConfig('search.engine'))   // null 走全局兜底
-        ->registers(app(CmsPlugin::class)->getId(), [
+    Search::config(app(CmsPlugin::class)->getId(), [              // 模块选项：engine、page 等，增量合并
+        'engine' => Utils::getConfig('search.engine'),             // null 走全局兜底
+        // 搜索结果页地址（display = page 时回车跳转目标）：闭包接收搜索关键词，自行返回完整 URL
+        'page' => fn (?string $query) => Utils::route('search', ['q' => $query]),
+    ])->registers(app(CmsPlugin::class)->getId(), [
             [
                 'key' => 'post',
                 'model' => Utils::getPostModel(),      // 支持 morph 别名
@@ -617,17 +620,19 @@ Search::registers('sn-shop', [
 ]);
 
 // 查询：返回 Collection<string $group, Collection<SearchResult>>
-Search::search('关键词');                // 所有已注册模块来源合并（union）
-Search::search('关键词', 'sn-cms');      // 仅指定模块；未知搜索名抛 SupportException
+Search::search(null, '关键词');            // 所有已注册模块来源合并（union）
+Search::search('sn-cms', '关键词');      // 仅指定模块；未知模块名抛 SupportException
 ```
 @endverbatim
 
-- **来源选项**：`key`、`model`（必填）、`group`、`fields`（默认 `resolveKeywordSearchFields()` 并剔除含 `.` 的关联字段）、`limit`、`sort`、`query`（LIKE）、`scout`（Scout 索引过滤，此时 query/scopeable/fields 不生效）、`scopeable`、`title`/`description`/`cover`/`badge`（默认取 `HasSnSubject` 固有数据）、`url`（默认无链接，前端搜索永不产生 panel 地址）、`visible`、`results`（完全自定义结果，绕过引擎）。
-- **引擎（模块级）**：`database`（默认，WHERE LIKE，空白拆词多词 AND、字段间 OR）与 `scout`（`Engines\Engine` 接口扩展）。`Search::engine($search, $engine)` 按模块声明引擎（null 移除声明恢复全局兜底；可链式、与注册顺序无关、后调用覆盖），模块内所有来源统一；未声明的模块查询时走全局兜底 `config('sn-support.search.engine')`。`scout` 需模型 use `Laravel\Scout\Searchable`（PHP trait 无法条件引入，包内模型不 use，项目可通过模型配置替换子类），未安装 scout 时抛带安装指引的 `SupportException`。
-- **启用开关（注册入口门控）**：模块是否启用由各扩展包在 `packageBooted()` 用配置自行判断——未开启则**不调用 engine/registers**（来源不进注册表，前端也不渲染搜索框），如 cms 的 `if (Utils::getConfig('search.enabled', true)) { Search::engine(...)->registers(...); }`，视图侧用同一配置判断是否渲染搜索框。cms 的配置节为 `sn-cms.search.enabled` / `sn-cms.search.engine`。
+- **来源选项**：`key`、`model`（必填）、`group`、`fields`（默认 `resolveKeywordSearchFields()` 并剔除含 `.` 的关联字段）、`limit`、`sort`、`query`（LIKE）、`scout`（Scout 索引过滤，此时 query/scopeable/fields 不生效）、`scopeable`、`title`/`description`/`cover`/`badge`（默认取 `HasSnSubject` 固定数据）、`url`（默认无链接，前端搜索永不产生 panel 地址）、`view`（自定义条目视图，接收 `$result`（含 `->record` 原始模型）、`$query`；高亮用 `text_highlight($text, $query)` 助手）、`render`（自定义条目渲染闭包 `fn ($result, $query)`，优先于 view）、`visible`、`results`（完全自定义结果，绕过引擎）。条目渲染 `render` 闭包优先，否则渲染 `view`（未声明时经 `SearchSource::itemView()` 兜底为默认统一模板，视图层无需判断）；外层链接包裹由 support 统一处理，自定义部分只负责条目内容区。
+- **模块选项（模块级）**：`Search::config($module, $config)` 统一声明（增量合并、同名键后声明覆盖、值为 null 的键恢复全局兜底；可链式、与注册顺序无关），后续新增选项扩展键名即可复用同一通道。已支持：
+  - `engine`：模块搜索引擎（`database` 默认 WHERE LIKE / `scout` 需 `Laravel\Scout\Searchable`，未安装抛 `SupportException` / 引擎类名），未声明走全局兜底 `config('sn-support.search.engine')`；
+  - `page`：搜索结果页地址（display = page 时回车跳转目标）。字符串由 support 统一拼接 `?q=关键词`；闭包 `fn (?string $query) => ...` 接收搜索关键词并自行返回完整 URL，未声明走全局兜底 `config('sn-support.search.page')`。
+- **启用开关（注册入口门控）**：模块是否启用由各扩展包在 `packageBooted()` 用配置自行判断——未开启则**不调用 config/registers**（来源不进注册表，前端也不渲染搜索框），如 cms 的 `if (Utils::getConfig('search.enabled', true)) { Search::config(...)->registers(...); }`，视图侧用同一配置判断是否渲染搜索框。cms 的配置节为 `sn-cms.search.enabled` / `sn-cms.search.engine` / `sn-cms.search.display`。
 - **项目启用 scout 的步骤**：① `composer require laravel/scout`；② 给模型 use `Searchable` —— 包内模型用子类替换：新建 `App\Models\Cms\Post extends \Wsmallnews\Cms\Models\Post`（use `Searchable`）并把 `config('sn-cms.models.post')` 指向它，业务代码全部经 `Utils::getPostModel()` 解析无需改动；③ 把 `config('sn-support.search.engine')` 设为 `'scout'`（注册时未显式指定引擎的来源全部切换）。Meilisearch/Algolia 等外部引擎需先 `scout:import` 建索引，collection/database 驱动无需。
 - **相同 key 重复注册视为覆盖**（应用可借此覆盖包内置来源）。
-- **前端组件**：`<livewire:sn-support-components-search :search-key="app(CmsPlugin::class)->getId()" placeholder="搜索…" :limit="5" />`（`search-key` 绑定模块，null 搜索所有已启用模块），视图 `sn-support::livewire.components.search`，配置在 `config/sn-support.php` 的 `search` 节（`engine`、`results_limit`、`split_terms`、`case_insensitive`、`debounce`）。
+- **前端组件**：`<livewire:sn-support::components.search :module="app(CmsPlugin::class)->getId()" placeholder="搜索…" :limit="5" />`（`module` 绑定模块，null 搜索所有已启用模块），视图 `sn-support::livewire.components.search`，配置在 `config/sn-support.php` 的 `search` 节（`engine`、`display`、`page`、`results_limit`、`split_terms`、`case_insensitive`、`debounce`）。`display` 控制展示方式：`dropdown`（输入即搜浮层，默认）/ `page`（回车跳转搜索结果页，地址取模块 `page` 选项或全局兜底），各扩展包可在自己配置节覆盖（如 `sn-cms.search.display`）；结果页内容区核心组件为 `<livewire:sn-support::components.search-results :module="..." />`，页面路由由调用方定义。
 
 ### Utils 工具类
 
@@ -658,6 +663,7 @@ Search::search('关键词', 'sn-cms');      // 仅指定模块；未知搜索名
 | `href_format($url, $newTab, $spaMode)` | 生成带 wire:navigate 的链接 HTML |
 | `files_url($files, $disk)` | 解析文件 URL（自动判断 http/data 开头 vs 相对路径） |
 | `filter_richeditor($content)` | 去除富文本中包裹图片的 anchor 标签 |
+| `text_highlight($text, $query)` | 文本关键词高亮（逐词、大小写不敏感，返回转义后含 mark 的 HTML；不限于搜索场景） |
 | `frontend_has_tenancy()` | 前端是否有租户（从 request attributes 读取） |
 | `frontend_current_tenant()` | 前端当前租户 Model |
 | `has_tenancy()` | 全局是否有租户（自动判断前端/后台） |

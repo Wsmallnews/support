@@ -2,6 +2,8 @@
 
 namespace Wsmallnews\Support\Features\Search;
 
+use Illuminate\Database\Eloquent\Model;
+
 final class SearchResult
 {
     /**
@@ -13,6 +15,7 @@ final class SearchResult
      * @param  string  $url  跳转链接（由注册方 url 闭包提供，为空时渲染为无链接项）
      * @param  string  $badge  徽标文本
      * @param  string  $morphType  记录的 morph 别名
+     * @param  Model|null  $record  原始模型（自定义条目视图经 ->record 获取任意字段；results 自定义结果可能没有）
      */
     public function __construct(
         public readonly string $key,
@@ -23,6 +26,7 @@ final class SearchResult
         public readonly ?string $url = null,
         public readonly ?string $badge = null,
         public readonly ?string $morphType = null,
+        public readonly ?Model $record = null,
     ) {}
 
     public function toArray(): array
