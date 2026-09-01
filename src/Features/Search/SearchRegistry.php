@@ -215,7 +215,7 @@ class SearchRegistry
         }
 
         return filled($query)
-            ? $page.(str_contains($page, '?') ? '&' : '?').'q='.urlencode((string) $query)
+            ? $page . (str_contains($page, '?') ? '&' : '?') . 'q=' . urlencode((string) $query)
             : $page;
     }
 
