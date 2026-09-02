@@ -373,3 +373,78 @@ if (! function_exists('text_highlight')) {
         return $text;
     }
 }
+
+if (! function_exists('sn_badge_color')) {
+    /**
+     * 前端 sn-badge 徽章颜色解析：把 Filament 语义颜色（预置色名字符串 / Color::Blue 色板数组 / hex 字符串）
+     * 解析为 sn-badge 可用的 class 与 style。
+     *
+     * - $variant：soft（默认浅底）/ outline（描边）/ solid（实底醒目，可用于徽章与醒目 tab 选中态）
+     * - 色名在 sn-badge 六色清单内（primary/danger/success/info/warning/gray）→ 返回对应变体的预置类
+     * - 其余色名（经 Filament 色板注册表解析）或色板数组 → 返回动态类 + --sn-color-* 变量 style（暗色变量一并输出）；
+     *   solid 动态路径按 WCAG 4.5:1 对比度挑选文字色（复刻 Filament ButtonComponent 的结论方向）
+     * - 解析失败 → 回退 gray 预置类
+     *
+     * @param  string  $variant  soft | outline | solid
+     * @param  bool  $asVariables  为 true 时跳过静态类路径，强制输出 --sn-color-* 变量 style
+     *                             （用于无法挂静态类的场景，如 fi-tabs 选中态注入；
+     *                             色名会经 Filament 色板注册表解析，自定义主题色可能与 CSS 端存在偏差）
+     * @return array{class: string, style: string}
+     */
+    function sn_badge_color(string | array | null $color, string $variant = 'soft', bool $asVariables = false): array
+    {
+        $named = ['primary', 'danger', 'success', 'info', 'warning', 'gray'];
+
+        $namedClass = match ($variant) {
+            'outline' => 'sn-badge-outline-{color}',
+            'solid' => 'sn-badge-solid-{color}',
+            default => 'sn-badge-{color}',
+        };
+
+        // 色名 → 预置变体类
+        if (is_string($color) && in_array($color, $named) && ! $asVariables) {
+            return ['class' => str_replace('{color}', $color, $namedClass), 'style' => ''];
+        }
+
+        // 其余输入统一解析为 Filament 色板（Color::Blue 数组原样；色名/hex 走 FilamentColor 注册表）
+        $palette = $color;
+        if (is_string($color) && filled($color)) {
+            $palette = \Filament\Support\Facades\FilamentColor::getColor($color);
+        }
+
+        if (! is_array($palette) || blank($palette['500'] ?? null) || blank($palette['700'] ?? null)) {
+            return ['class' => str_replace('{color}', 'gray', $namedClass), 'style' => ''];
+        }
+
+        // solid：实底取主题正色 500（不深于导航主题色，避免抢重点）+ 白字优先策略：
+        // 对比度 ≥2:1 即用白字（品牌视觉权衡，徽章为短词加粗场景；完全无障碍场景请用 soft/outline），
+        // 仅极浅色（yellow/lime 系，连 2:1 都不到）回退 950 深字
+        if ($variant === 'solid') {
+            $bg = $palette['500'] ?? $palette['600'];
+            $lightText = $palette['50'] ?? '#ffffff';
+            $darkText = $palette['950'] ?? $palette['900'];
+
+            $text = (\Filament\Support\Colors\Color::calculateContrastRatio($bg, $lightText) >= 2.0)
+                ? $lightText
+                : $darkText;
+
+            return [
+                'class' => 'sn-badge-dynamic-solid',
+                'style' => "--sn-color-bg: {$bg}; --sn-color-text: {$text}; --sn-color-dark-bg: {$bg}; --sn-color-dark-text: {$text};",
+            ];
+        }
+
+        // soft / outline：主色透明度路线（变量注入 500/600/700 色值，CSS 端混合保证色相与预置类一致）
+        $class = $variant === 'outline' ? 'sn-badge-dynamic-outline' : 'sn-badge-dynamic';
+        $style = sprintf(
+            '--sn-color-bg: %s; --sn-color-text: %s; --sn-color-ring: %s; --sn-color-dark-bg: %s; --sn-color-dark-text: %s;',
+            $palette['500'],
+            $palette['700'],
+            $palette['600'] ?? $palette['500'],
+            $palette['500'],
+            $palette['400'] ?? $palette['500'],
+        );
+
+        return ['class' => $class, 'style' => $style];
+    }
+}

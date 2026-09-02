@@ -265,6 +265,91 @@ enum PostStatus: string implements HasColor, HasIcon, HasLabel
 <x-sn-support::lightbox class="w-full" :galleries="$galleries" thumb-class="size-20" />
 ```
 
+### 前端 CSS 类体系（sn-*）
+
+所有 `sn-*` 前端自定义类定义在 `addons/support/resources/css/index.css`（Tailwind v4 `@apply` 编译，随 app.css 引入）。通用模式为「**基础类（形状/尺寸）+ 修饰类（颜色/状态）**」组合，各体系见下。
+
+#### 容器体系（使用最广，注意职责边界）
+
+`sn-container` 是**内容区块卡片容器**（亮色白底 / 暗色深底 + ring-1 边框 + rounded-md + 过渡），**不是通用布局 div**——列表、表单、面板等页面区块用它包裹；不需要卡片感的内容区不要加（它自带背景/边框/阴影）。
+
+```blade
+{{-- 基础卡片 --}}
+<div class="sn-container">...</div>
+
+{{-- 可交互卡片：hover 阴影加深 --}}
+<div class="sn-container sn-hover">...</div>
+
+{{-- 整卡片是链接：hover 主题色淡底 --}}
+<a class="sn-container sn-link">...</a>
+
+{{-- 选中态：主题色淡底 --}}
+<div class="sn-container sn-active">...</div>
+```
+
+**状态类的两层语义（AI 高频出错点）**：`sn-hover` / `sn-link` / `sn-active` 在容器上（`&.sn-link`）和容器**内部子元素**上（`.sn-link` 后代选择器）都生效。分类树节点高亮依赖「外层 `sn-container` + 节点自身 `sn-link`/`sn-active`」的组合——**漏掉外层 sn-container，节点高亮样式不会生效**。
+
+其他容器与背景类：
+
+| 类 | 说明 |
+|---|---|
+| `sn-container-primary/danger/success/info/warning/gray` | 彩色浅底容器变体（同款状态类） |
+| `sn-bg` | 纯背景（白/深），无边框阴影 |
+| `sn-primary-bg` | 主题色实底（bg-primary-500 dark:bg-primary-600），导航 / 高亮条使用 |
+| `sn-gray-bg` / `sn-no-bg` | 灰底 / 透明底，均带 sn-hover / sn-active 状态 |
+| `sn-contour(-{color})` | 无背景纯描边（ring）容器 |
+| `sn-contour-only` | border 描边（支持单边，方向由外部指定） |
+| `sn-rounded` | 区块圆角（rounded-md） |
+| `sn-divide-x` / `sn-divide-y` | 容器分隔线（含暗色） |
+
+#### 徽章 sn-badge（三变体 + 尺寸 + 动态色）
+
+组合用法：`sn-badge`（形状 + 默认尺寸）+ 尺寸类（可选）+ 变体色类。色名固定六色：`primary/danger/success/info/warning/gray`。
+
+```blade
+{{-- soft（默认）：主色透明度浅底，内容标注首选 --}}
+<span class="sn-badge sn-badge-primary">分类名</span>
+
+{{-- outline：透明底 + 主色内描边 --}}
+<span class="sn-badge sn-badge-outline-primary">分类名</span>
+
+{{-- solid：正色 500 实底（不深于导航主题色 primary-500，避免抢重点），醒目场景 --}}
+<span class="sn-badge sn-badge-solid-primary">分类名</span>
+
+{{-- 尺寸：sn-badge-xs(10px) / sn-badge-sm(11px) / 默认(12px) / sn-badge-lg(14px) --}}
+<span class="sn-badge sn-badge-sm sn-badge-danger">热门</span>
+```
+
+- solid 文字色采用白字优先策略（对比度 ≥2:1 即白字，品牌视觉权衡：徽章短词加粗场景，实底品牌色配白字是行业惯例；完全无障碍合规场景用 soft/outline），仅极浅色（yellow/lime 系）回退 950 深字
+- 动态色（`Color::Blue` 色板 / hex / 非六色色名）：用 `sn_badge_color($color, $variant)` 助手，返回 `['class' => ..., 'style' => ...]`（动态路径注入 `--sn-color-*` 变量）
+- 醒目 tab 选中态：`sn-tabs-item-vivid` 叠加在 `fi-tabs-item` 上，变量由 `sn_badge_color($color, 'solid', asVariables: true)['style']` 注入
+
+#### 按钮 sn-btn
+
+`sn-btn`（基础：形状 + focus 环 + disabled 态）+ 尺寸（`sn-btn-sm/md/lg`）+ 变体（`sn-btn-primary/secondary/danger/success` 实色、`sn-btn-outline(-primary/danger)`、`sn-btn-ghost(-primary/danger)`）。按钮底色用 600 + hover 提亮 500（交互控件惯例，与徽章正色 500 不同）；`sn-btn-icon` 配合尺寸类使用。
+
+#### 文字体系
+
+- 标题：`sn-h1-text` / `sn-h2-text` / `sn-h3-text`（字号递减，均支持 `sn-hover`（含 group-hover）/ `sn-active` 主题色状态）
+- 正文与辅助：`sn-content-text`（正文）、`sn-descript-text`（描述）、`sn-tip-text`（提示，最小）
+- 颜色：`sn-primary-text` / `sn-secondary-text` / `sn-danger-text` / `sn-success-text` / `sn-info-text` / `sn-warning-text` / `sn-gray-text`
+
+#### 其他组件类
+
+| 类 | 说明 |
+|---|---|
+| `sn-empty` 系列 | 空状态（`sn-empty-title/description/actions`、`sn-empty-icon-bg` + 尺寸 `sm/md/lg/xl/2xl` + 六色、`sn-compact` 紧凑模式） |
+| `sn-skeleton` 系列 | 骨架屏：基础类（动画+底色+md 圆角）+ 修饰类（`sn-skeleton-text` 文本条、`sn-skeleton-circle` 圆形）组合 |
+| `sn-avatar` / `sn-image` 系列 | 头像（圆形）/ 图片占位（圆角方形），尺寸 `sm/lg/xl`；`-group` 叠放组 |
+| `sn-focus-ring` | 可聚焦元素焦点环（含 rounded-sm） |
+| `sn-truncate` / `sn-truncate-2/3/4` | 单行截断 / 多行省略 |
+| `sn-transition` 系列 | 过渡（all/colors/opacity/transform，统一时长缓动） |
+| `sn-overlay` | 全屏遮罩（黑 50%/70%） |
+| `sn-scrollbar` | 细滚动条（亮暗色适配） |
+| `sn-aspect-video/landscape/square/portrait` | 宽高比 16:9 / 4:3 / 1:1 / 3:4 |
+| `sn-motion-scale` | 图片 hover 缩放（自动尊重 prefers-reduced-motion） |
+| `sn-sr-only` | 屏幕阅读器专用 |
+
 ### Scopeable 系统
 
 不使用 Laravel 原生多态，因为 `scope_id` 可以为 `0`（表示该 scope_type 下的全局作用域）。
