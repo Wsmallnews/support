@@ -304,6 +304,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Theme (Design Tokens)
+    |--------------------------------------------------------------------------
+    |
+    | sn-* 设计令牌的运行时覆盖：无需重新构建 CSS，配置后由布局自动渲染 <style> 块。
+    | 键 = 令牌名（去掉 --sn- 前缀），值为 CSS 长度（如 "1rem"、"14px"）；null = 不覆盖。
+    | 带 _lg 后缀的键只覆盖桌面档（>= lg / 64rem），与响应式默认值的结构一一对应。
+    |
+    */
+    'theme' => [
+        'radius_card' => null,
+        'radius_card_lg' => null,
+        'radius_control' => null,
+        'space_page' => null,
+        'space_page_lg' => null,
+        'space_page_y' => null,
+        'space_page_y_lg' => null,
+        'space_page_x' => null,
+        'space_page_x_lg' => null,
+        'space_card' => null,
+        'space_card_lg' => null,
+        'space_row' => null,
+        'space_row_lg' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Search
     |--------------------------------------------------------------------------
     |

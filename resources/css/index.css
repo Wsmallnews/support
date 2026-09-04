@@ -1,6 +1,7 @@
 @source "../views/**/*";
 @source '../../src/Filament/Tables/ColumnComponents.php';
 
+@import './tokens.css';
 @import './content.css';
 
 /* 尊重用户的减少动画偏好 (UI/UX Pro Max - reduced-motion) */
@@ -23,6 +24,22 @@
 .sn-motion-scale {
     @apply transition-transform duration-300 ease-in-out;
     @apply group-hover:scale-110;
+}
+
+/* ========== L2 原子基元（单一职责） ==========
+ * 消费 tokens.css 设计令牌；既可在 HTML 中直接使用（支持 hover:/md: 等变体），
+ * 也可被下方聚合类 @apply 组合。 */
+@utility sn-surface {
+    @apply bg-white dark:bg-gray-900;
+}
+@utility sn-radius-card {
+    @apply rounded-(--sn-radius-card);
+}
+@utility sn-ring-card {
+    @apply ring-1 ring-(--sn-ring-card);
+}
+@utility sn-elevation {
+    @apply ring-1 ring-(--sn-ring-card) shadow-(--sn-shadow-card);
 }
 
 /** ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ 自定义 class ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ **/
@@ -81,77 +98,84 @@
 
 /* 区块轮廓，四边都有 */
 .sn-contour {
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-(--sn-ring-card);
 
     &.sn-hover {
         /** 当前 hover */
-        @apply hover:shadow-lg hover:ring-gray-200 dark:hover:ring-gray-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-(--sn-ring-card-hover);
         @apply transition-shadow duration-300 ease-in-out;
     }
 }
 .sn-contour-primary {
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-primary-200/80 dark:shadow-gray-800/80 dark:ring-primary-800/60;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-primary-200/80 dark:ring-primary-800/60;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-primary-300 dark:hover:ring-primary-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-primary-300 dark:hover:ring-primary-700/80;
         @apply transition-shadow duration-300 ease-in-out;
     }
 }
 .sn-contour-danger {
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-danger-200/80 dark:shadow-gray-800/80 dark:ring-danger-800/60;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-danger-200/80 dark:ring-danger-800/60;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-danger-300 dark:hover:ring-danger-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-danger-300 dark:hover:ring-danger-700/80;
         @apply transition-shadow duration-300 ease-in-out;
     }
 }
 .sn-contour-success {
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-success-200/80 dark:shadow-gray-800/80 dark:ring-success-800/60;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-success-200/80 dark:ring-success-800/60;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-success-300 dark:hover:ring-success-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-success-300 dark:hover:ring-success-700/80;
         @apply transition-shadow duration-300 ease-in-out;
     }
 }
 .sn-contour-info {
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-info-200/80 dark:shadow-gray-800/80 dark:ring-info-800/60;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-info-200/80 dark:ring-info-800/60;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-info-300 dark:hover:ring-info-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-info-300 dark:hover:ring-info-700/80;
         @apply transition-shadow duration-300 ease-in-out;
     }
 }
 .sn-contour-warning {
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-warning-200/80 dark:shadow-gray-800/80 dark:ring-warning-800/60;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-warning-200/80 dark:ring-warning-800/60;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-warning-300 dark:hover:ring-warning-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-warning-300 dark:hover:ring-warning-700/80;
         @apply transition-shadow duration-300 ease-in-out;
     }
 }
 .sn-contour-gray {
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-gray-200/80 dark:ring-gray-800/60;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-gray-300 dark:hover:ring-gray-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-gray-300 dark:hover:ring-gray-700/80;
         @apply transition-shadow duration-300 ease-in-out;
     }
 }
 
 /* 区块轮廓，这里用的是 border ring 不支持设置单条边 需要外面指定那条边存在 */
 .sn-contour-only {
-    @apply border-gray-200/80 shadow-sm shadow-gray-800/20 dark:border-gray-800/60 dark:shadow-gray-800/80;
+    @apply border-gray-200/80 shadow-(--sn-shadow-card) dark:border-gray-800/60;
 
     &.sn-hover {
         /** 当前 hover */
-        @apply hover:border-gray-200 hover:shadow-lg dark:hover:border-gray-700/80;
+        @apply hover:border-gray-200 hover:shadow-(--sn-shadow-card-hover) dark:hover:border-gray-700/80;
         @apply transition-all duration-300 ease-in-out;
     }
 }
 
-/* 区块圆角 */
+/* 区块圆角（响应式：< lg 为 md，≥ lg 为 lg） */
 .sn-rounded {
-    @apply rounded-md;
+    @apply rounded-(--sn-radius-card);
 }
 
 /* 容器分隔线 水平方向 */
@@ -295,15 +319,15 @@
 }
 /** sn 文字 **/
 
-/* 区块样式 */
+/* 区块样式（圆角/阴影/光环走令牌：响应式 + 可主题定制） */
 .sn-container {
     @apply bg-white dark:bg-gray-900;
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
-    @apply rounded-md transition-all duration-300 ease-in-out;
+    @apply sn-elevation;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
 
     &.sn-hover {
         /** 当前 hover */
-        @apply hover:shadow-lg hover:ring-gray-200 dark:hover:ring-gray-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-(--sn-ring-card-hover);
     }
 
     &.sn-link {
@@ -327,11 +351,12 @@
 }
 .sn-container-primary {
     @apply bg-primary-50 dark:bg-primary-950;
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-primary-200/80 dark:shadow-gray-800/80 dark:ring-primary-800/60;
-    @apply rounded-md transition-all duration-300 ease-in-out;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-primary-200/80 dark:ring-primary-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-primary-300 dark:hover:ring-primary-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-primary-300 dark:hover:ring-primary-700/80;
     }
 
     &.sn-link {
@@ -351,11 +376,12 @@
 }
 .sn-container-danger {
     @apply bg-danger-50 dark:bg-danger-950;
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-danger-200/80 dark:shadow-gray-800/80 dark:ring-danger-800/60;
-    @apply rounded-md transition-all duration-300 ease-in-out;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-danger-200/80 dark:ring-danger-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-danger-300 dark:hover:ring-danger-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-danger-300 dark:hover:ring-danger-700/80;
     }
 
     &.sn-link {
@@ -375,11 +401,12 @@
 }
 .sn-container-success {
     @apply bg-success-50 dark:bg-success-950;
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-success-200/80 dark:shadow-gray-800/80 dark:ring-success-800/60;
-    @apply rounded-md transition-all duration-300 ease-in-out;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-success-200/80 dark:ring-success-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-success-300 dark:hover:ring-success-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-success-300 dark:hover:ring-success-700/80;
     }
 
     &.sn-link {
@@ -399,11 +426,12 @@
 }
 .sn-container-info {
     @apply bg-info-50 dark:bg-info-950;
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-info-200/80 dark:shadow-gray-800/80 dark:ring-info-800/60;
-    @apply rounded-md transition-all duration-300 ease-in-out;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-info-200/80 dark:ring-info-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-info-300 dark:hover:ring-info-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-info-300 dark:hover:ring-info-700/80;
     }
 
     &.sn-link {
@@ -423,11 +451,12 @@
 }
 .sn-container-warning {
     @apply bg-warning-50 dark:bg-warning-950;
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-warning-200/80 dark:shadow-gray-800/80 dark:ring-warning-800/60;
-    @apply rounded-md transition-all duration-300 ease-in-out;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-warning-200/80 dark:ring-warning-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-warning-300 dark:hover:ring-warning-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-warning-300 dark:hover:ring-warning-700/80;
     }
 
     &.sn-link {
@@ -447,11 +476,12 @@
 }
 .sn-container-gray {
     @apply bg-gray-50 dark:bg-gray-900;
-    @apply shadow-sm ring-1 shadow-gray-800/20 ring-gray-200/80 dark:shadow-gray-800/80 dark:ring-gray-800/60;
-    @apply rounded-md transition-all duration-300 ease-in-out;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-gray-200/80 dark:ring-gray-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
 
     &.sn-hover {
-        @apply hover:shadow-lg hover:ring-gray-300 dark:hover:ring-gray-700/80;
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-gray-300 dark:hover:ring-gray-700/80;
     }
 
     &.sn-link {
@@ -468,6 +498,48 @@
     .sn-active {
         @apply bg-gray-100 dark:bg-gray-800;
     }
+}
+
+/* ========== 页面骨架与间距（消费 --sn-space-* 令牌，响应式） ========== */
+
+/* 页面骨架：替代手写的 container mx-auto flex flex-col grow gap-4 my-4
+ * 区块间距与页面留白响应式（< lg gap-4/my-4，≥ lg gap-6/my-6）
+ * 左右留白防止视口 ≤ container 时内容贴边；带刘海屏安全区渐进增强 */
+.sn-page {
+    @apply container mx-auto flex flex-col grow;
+    @apply gap-(--sn-space-page) my-(--sn-space-page-y);
+    padding-inline: var(--sn-space-page-x);
+    padding-inline: max(var(--sn-space-page-x), env(safe-area-inset-left)) max(var(--sn-space-page-x), env(safe-area-inset-right));
+}
+
+/* 卡片内边距（响应式：< lg p-4，≥ lg p-6） */
+.sn-padded {
+    @apply p-(--sn-space-card);
+}
+
+/* ========== 列表（卡片内的列表头/行/底栏，配合 sn-container 使用） ========== */
+
+/* 列表头：分隔线 + 响应式水平内边距 */
+.sn-list-header {
+    @apply flex items-center px-(--sn-space-card) py-3;
+    @apply border-b border-gray-200 dark:border-gray-800;
+}
+
+/* 列表行：分隔线 + 响应式内边距，末行自动去分隔线 */
+.sn-list-row {
+    @apply px-(--sn-space-card) py-(--sn-space-row);
+    @apply border-b border-gray-100 dark:border-gray-800/60;
+
+    &:last-child {
+        @apply border-b-0;
+    }
+}
+
+/* 列表底栏（批量操作条等，如需吸底自行追加 sticky bottom-0） */
+.sn-list-footer {
+    @apply flex items-center gap-2 px-(--sn-space-card) py-2;
+    @apply bg-white dark:bg-gray-900;
+    @apply border-t border-gray-200 dark:border-gray-800;
 }
 
 /* "查看更多" 等次级链接统一样式 */
@@ -642,7 +714,7 @@
 
 /* 基础 */
 .sn-btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md font-medium;
+    @apply inline-flex items-center justify-center gap-2 rounded-(--sn-radius-control) font-medium;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900;
     @apply transition-all duration-200 ease-in-out;
     @apply disabled:opacity-50 disabled:cursor-not-allowed;

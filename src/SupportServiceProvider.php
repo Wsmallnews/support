@@ -11,6 +11,7 @@ use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
@@ -57,6 +58,11 @@ class SupportServiceProvider extends PackageServiceProvider
         // 注册通用全局搜索注册器
         $this->app->singleton(SearchRegistry::class, function (): SearchRegistry {
             return new SearchRegistry;
+        });
+
+        // sn-* 设计令牌运行时覆盖（config sn-support.theme），在 layout 中以 @snTheme 输出
+        Blade::directive('snTheme', function (): string {
+            return '<?php echo \Wsmallnews\Support\Support\Theme::styles(); ?>';
         });
     }
 

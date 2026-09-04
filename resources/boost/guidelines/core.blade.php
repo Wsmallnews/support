@@ -269,9 +269,19 @@ enum PostStatus: string implements HasColor, HasIcon, HasLabel
 
 所有 `sn-*` 前端自定义类定义在 `addons/support/resources/css/index.css`（Tailwind v4 `@apply` 编译，随 app.css 引入）。通用模式为「**基础类（形状/尺寸）+ 修饰类（颜色/状态）**」组合，各体系见下。
 
+#### 设计令牌（tokens.css，主题定制唯一入口）
+
+几何样式（圆角/阴影/光环/间距刻度）统一消费 `addons/support/resources/css/tokens.css` 的 `--sn-*` 令牌。**几何令牌在 lg 断点自动翻转**，颜色令牌在 `.dark` 翻转——sn-container、sn-rounded、sn-page 等类自动获得响应式与暗黑适配，HTML 无需断点前缀。
+
+- 令牌清单：`--sn-radius-card`（md→lg）、`--sn-space-page/-y`（gap-4→6）、`--sn-space-card`（p-4→6）、`--sn-shadow-card/-hover`、`--sn-ring-card/-hover`（dark 翻转）、`--sn-radius-control`（恒定）
+- 原子基元（`@utility`，HTML 可直接用）：`sn-surface`、`sn-radius-card`、`sn-ring-card`、`sn-elevation`
+- 页面骨架：`sn-page`（= container mx-auto flex flex-col grow + 响应式 gap/my）；`sn-padded`（响应式卡片内边距）；`sn-list-header/row/footer`（列表三件套）
+- 主题定制：CSS 覆盖（app.css 中 @import 后重声明变量）或 `config/sn-support.php` 的 `theme` 节（`_lg` 后缀键 = 桌面档，layout 中 `@snTheme` 指令输出）
+- 职责边界：sn-* 类管主题性/重复性样式；布局结构（flex/grid、列数、可见性）在 HTML 写 Tailwind 断点前缀；可嵌入组件用容器查询（根 `@container` + `@md:` 前缀）
+
 #### 容器体系（使用最广，注意职责边界）
 
-`sn-container` 是**内容区块卡片容器**（亮色白底 / 暗色深底 + ring-1 边框 + rounded-md + 过渡），**不是通用布局 div**——列表、表单、面板等页面区块用它包裹；不需要卡片感的内容区不要加（它自带背景/边框/阴影）。
+`sn-container` 是**内容区块卡片容器**（亮色白底 / 暗色深底 + ring-1 边框 + 响应式圆角/阴影 + 过渡），**不是通用布局 div**——列表、表单、面板等页面区块用它包裹；不需要卡片感的内容区不要加（它自带背景/边框/阴影）。
 
 ```blade
 {{-- 基础卡片 --}}

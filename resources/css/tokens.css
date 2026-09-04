@@ -1,0 +1,70 @@
+/* ============================================================================
+ * sn-* 设计令牌（Design Tokens）— 主题定制的唯一入口
+ *
+ * 所有 sn-* 组件类的几何样式（圆角 / 阴影 / 光环 / 间距刻度）都消费这里的变量。
+ *
+ * 自定义主题：在你的 CSS 中（@import support 的 index.css 之后）重新声明同名变量即可覆盖。
+ * 例如把卡片圆角全局改成 1rem：
+ *     :root { --sn-radius-card: 1rem; }
+ * 注意：带响应式档位的令牌（<lg / ≥lg 两档），如需覆盖 ≥lg 档，
+ * 需在自己的 media query 中重复声明，否则 ≥lg 时会回落到这里的默认桌面档。
+ *
+ * 翻转规则：
+ *   - 几何令牌（圆角/间距）：仅断点翻转（lg = 64rem，≥lg 一档、<lg 一档）
+ *   - 颜色令牌（光环）：仅暗黑翻转（:root.dark）
+ *   - 阴影令牌：两者都翻转（media 块内含 :root 与 :root.dark 两份）
+ *   - 控件圆角/胶囊圆角：恒定值，不参与翻转
+ * ========================================================================== */
+
+/* ---------- 几何令牌：基础档（< lg） ---------- */
+:root {
+    /* 圆角 */
+    --sn-radius-card: 0.375rem;    /* 区块/卡片容器圆角（md → lg） */
+    --sn-radius-control: 0.375rem; /* 控件圆角（按钮/输入框），恒定不响应式 */
+    --sn-radius-pill: 9999px;      /* 胶囊（徽章/头像） */
+
+    /* 间距刻度 */
+    --sn-space-page: 1rem;         /* 页面区块间距（gap-4 → gap-6） */
+    --sn-space-page-y: 1rem;       /* 页面上下留白（my-4 → my-6） */
+    --sn-space-page-x: 1rem;       /* 页面左右留白（视口 ≤ container 时防贴边，4 → 6） */
+    --sn-space-card: 1rem;         /* 卡片内边距（p-4 → p-6） */
+    --sn-space-row: 0.75rem;       /* 列表行垂直间距（py-3 → py-3.5） */
+
+    /* 阴影（< lg：单层隐约） */
+    --sn-shadow-card: 0 1px 2px 0 rgb(31 41 55 / 0.06);
+    --sn-shadow-card-hover: 0 4px 6px -1px rgb(31 41 55 / 0.07), 0 2px 4px -2px rgb(31 41 55 / 0.05);
+
+    /* 光环（卡片描边 ring） */
+    --sn-ring-card: rgb(229 231 235 / 0.8);       /* gray-200/80 */
+    --sn-ring-card-hover: rgb(229 231 235 / 1);   /* gray-200 */
+}
+
+/* ---------- 颜色令牌：暗黑档（光环 + 阴影） ---------- */
+:root.dark {
+    --sn-ring-card: rgb(31 41 55 / 0.6);          /* gray-800/60 */
+    --sn-ring-card-hover: rgb(55 65 81 / 0.8);    /* gray-700/80 */
+
+    --sn-shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.25);
+    --sn-shadow-card-hover: 0 4px 6px -1px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.25);
+}
+
+/* ---------- 几何令牌：桌面档（≥ lg = 64rem） ---------- */
+@media (min-width: 64rem) {
+    :root {
+        --sn-radius-card: 0.5rem;    /* rounded-lg */
+        --sn-space-page: 1.5rem;     /* gap-6 */
+        --sn-space-page-y: 1.5rem;   /* my-6 */
+        --sn-space-page-x: 1.5rem;   /* px-6 */
+        --sn-space-card: 1.5rem;     /* p-6 */
+        --sn-space-row: 0.875rem;    /* py-3.5 */
+
+        /* 阴影（≥ lg：shadow-sm 级双层，稍强） */
+        --sn-shadow-card: 0 1px 3px 0 rgb(31 41 55 / 0.08), 0 1px 2px -1px rgb(31 41 55 / 0.05);
+        --sn-shadow-card-hover: 0 10px 15px -3px rgb(31 41 55 / 0.08), 0 4px 6px -4px rgb(31 41 55 / 0.05);
+    }
+
+    :root.dark {
+        --sn-shadow-card: 0 1px 3px 0px rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.25);
+        --sn-shadow-card-hover: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+    }
+}
