@@ -2,6 +2,8 @@
 
 use Filament\Facades\Filament;
 use Filament\Panel;
+use Filament\Support\Colors\Color;
+use Filament\Support\Facades\FilamentColor;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
@@ -409,7 +411,7 @@ if (! function_exists('sn_badge_color')) {
         // 其余输入统一解析为 Filament 色板（Color::Blue 数组原样；色名/hex 走 FilamentColor 注册表）
         $palette = $color;
         if (is_string($color) && filled($color)) {
-            $palette = \Filament\Support\Facades\FilamentColor::getColor($color);
+            $palette = FilamentColor::getColor($color);
         }
 
         if (! is_array($palette) || blank($palette['500'] ?? null) || blank($palette['700'] ?? null)) {
@@ -424,7 +426,7 @@ if (! function_exists('sn_badge_color')) {
             $lightText = $palette['50'] ?? '#ffffff';
             $darkText = $palette['950'] ?? $palette['900'];
 
-            $text = (\Filament\Support\Colors\Color::calculateContrastRatio($bg, $lightText) >= 2.0)
+            $text = (Color::calculateContrastRatio($bg, $lightText) >= 2.0)
                 ? $lightText
                 : $darkText;
 
