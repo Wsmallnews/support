@@ -5,6 +5,7 @@ namespace Wsmallnews\Support\Features\Sitemap;
 use Carbon\CarbonInterface;
 use Closure;
 use Filament\Facades\Filament;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\HtmlString;
@@ -308,7 +309,7 @@ class SitemapRegistry
         }
 
         try {
-            return \Illuminate\Support\Carbon::parse($lastmod)->toDateString();
+            return Carbon::parse($lastmod)->toDateString();
         } catch (\Throwable) {
             return null;
         }

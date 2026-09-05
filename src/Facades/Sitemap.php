@@ -5,6 +5,7 @@ namespace Wsmallnews\Support\Facades;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\HtmlString;
+use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
 
 /**
  * @method static static config(string $module, array $config)
@@ -18,12 +19,12 @@ use Illuminate\Support\HtmlString;
  * @method static string renderRobots()
  * @method static static flush()
  *
- * @see \Wsmallnews\Support\Features\Sitemap\SitemapRegistry
+ * @see SitemapRegistry
  */
 class Sitemap extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \Wsmallnews\Support\Features\Sitemap\SitemapRegistry::class;
+        return SitemapRegistry::class;
     }
 }

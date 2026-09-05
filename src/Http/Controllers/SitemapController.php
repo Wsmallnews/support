@@ -3,8 +3,8 @@
 namespace Wsmallnews\Support\Http\Controllers;
 
 use Illuminate\Http\Response;
-use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
 use Wsmallnews\Support\Facades\Sitemap;
+use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
 
 /**
  * 站点级 SEO 端点：sitemap.xml（聚合各模块注册的 URL 来源）与 robots.txt（爬虫规则）。
