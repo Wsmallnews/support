@@ -26,6 +26,7 @@ use Wsmallnews\Support\Commands\RunScheduledTasksCommand;
 use Wsmallnews\Support\Commands\SupportInstallCommand;
 use Wsmallnews\Support\Features\Search\SearchRegistry;
 use Wsmallnews\Support\Features\Seo\Seo;
+use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
 use Wsmallnews\Support\Helpers\ScheduleHelper;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Http\Middleware\InitializeSeo;
@@ -48,6 +49,9 @@ class SupportServiceProvider extends PackageServiceProvider
             ->hasMigrations($this->getMigrations())
             ->hasTranslations()
             ->hasViews(static::$viewNamespace);
+
+        // 包级路由文件（当前承载站点级 SEO 端点；是否注册具体路由由路由文件内的配置决定）
+        $package->hasRoutes($this->getRoutes());
     }
 
     public function packageRegistered(): void
@@ -65,6 +69,11 @@ class SupportServiceProvider extends PackageServiceProvider
         // 注册 SEO 渲染器（页面级链式声明 + 消费方注册的站点默认值 provider）
         $this->app->singleton(Seo::class, function (): Seo {
             return new Seo;
+        });
+
+        // 注册 sitemap 聚合注册表（各扩展包注册 URL 来源，站点路由聚合输出）
+        $this->app->singleton(SitemapRegistry::class, function (): SitemapRegistry {
+            return new SitemapRegistry;
         });
 
         // seo-init:模块名 —— 首屏初始化页面 SEO 上下文（普通中间件，勿加入 Livewire 持久化清单）
@@ -249,7 +258,7 @@ class SupportServiceProvider extends PackageServiceProvider
      */
     protected function getRoutes(): array
     {
-        return [];
+        return ['web'];
     }
 
     /**
