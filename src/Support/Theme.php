@@ -70,14 +70,14 @@ class Theme
         $css = '<style>';
 
         if ($base !== []) {
-            $css .= ':root{'.self::declarations($base).'}';
+            $css .= ':root{' . self::declarations($base) . '}';
         }
 
         if ($desktop !== []) {
-            $css .= '@media (min-width: 64rem){:root{'.self::declarations($desktop).'}}';
+            $css .= '@media (min-width: 64rem){:root{' . self::declarations($desktop) . '}}';
         }
 
-        return $css.'</style>';
+        return $css . '</style>';
     }
 
     private static function isValidKey(string $key): bool
@@ -98,7 +98,7 @@ class Theme
     private static function declarations(array $values): string
     {
         return collect($values)
-            ->map(fn (string $value, string $token) => '--sn-'.str_replace('_', '-', $token).":{$value};")
+            ->map(fn (string $value, string $token) => '--sn-' . str_replace('_', '-', $token) . ":{$value};")
             ->implode('');
     }
 }
