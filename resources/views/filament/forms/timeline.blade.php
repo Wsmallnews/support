@@ -39,7 +39,7 @@
                 @endif
             </div>
 
-            <div class="sn-container flex flex-col gap-4 p-4 mb-4 flex-1 min-w-0">
+            <div class="sn-container flex flex-col gap-4 sn-padded sn-mb flex-1 min-w-0">
                 <div class="w-full flex flex-col gap-2">
                     <div class="flex items-center gap-2">
                         <x-filament::badge :color="$color">
@@ -114,7 +114,7 @@
                         </button>
 
                         <div class="w-full flex flex-col gap-2 @container" x-show="open" x-collapse>
-                            <div class="w-full flex flex-col gap-4">
+                            <div class="w-full flex flex-col sn-gap">
                                 @if($old)
                                     <div class="sn-rounded sn-danger-text w-full min-w-0 flex flex-col divide-y divide-danger-200 border bg-danger-50 border-danger-200">
                                         <div class="w-full p-2">

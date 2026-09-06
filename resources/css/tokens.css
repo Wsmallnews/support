@@ -24,10 +24,9 @@
     --sn-radius-pill: 9999px;      /* 胶囊（徽章/头像） */
 
     /* 间距刻度 */
-    --sn-space-page: 1rem;         /* 页面区块间距（gap-4 → gap-6） */
-    --sn-space-page-y: 1rem;       /* 页面上下留白（my-4 → my-6） */
-    --sn-space-page-x: 1rem;       /* 页面左右留白（视口 ≤ container 时防贴边，4 → 6） */
-    --sn-space-card: 1rem;         /* 卡片内边距（p-4 → p-6） */
+    --sn-space-page: 1rem;         /* 区块间距：sn-gap / sn-margin 家族与 sn-page 的 gap/my（4 → 6） */
+    --sn-space-page-x: 1rem;       /* 防贴边水平留白：sn-page-x（视口 ≤ container 时，4 → 6） */
+    --sn-space-card: 1rem;         /* 卡片内边距：sn-padded 家族（p-4 → p-6） */
     --sn-space-row: 0.75rem;       /* 列表行垂直间距（py-3 → py-3.5） */
 
     /* 阴影（< lg：单层隐约） */
@@ -52,8 +51,7 @@
 @media (min-width: 64rem) {
     :root {
         --sn-radius-card: 0.5rem;    /* rounded-lg */
-        --sn-space-page: 1.5rem;     /* gap-6 */
-        --sn-space-page-y: 1.5rem;   /* my-6 */
+        --sn-space-page: 1.5rem;     /* gap-6 / my-6 */
         --sn-space-page-x: 1.5rem;   /* px-6 */
         --sn-space-card: 1.5rem;     /* p-6 */
         --sn-space-row: 0.875rem;    /* py-3.5 */

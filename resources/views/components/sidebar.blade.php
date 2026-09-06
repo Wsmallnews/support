@@ -11,7 +11,7 @@
 
 <ul
     @class([
-        'sn-container w-full flex flex-col py-4',
+        'sn-container w-full flex flex-col sn-py',
     ])
     role="menu"
 >

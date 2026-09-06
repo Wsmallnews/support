@@ -7,8 +7,8 @@
 @endphp
 
 <x-filament-widgets::widget @class([
-    'sn-container px-4 py-8' => $contained,
-    'w-full flex flex-col gap-4',
+    'sn-container sn-padded' => $contained,
+    'w-full flex flex-col sn-gap',
 ])>
     <div class="flex items-center gap-2">
         <h3 class="sn-h3-text flex items-center gap-2">
@@ -45,7 +45,7 @@
                     @endif
                 </div>
 
-                <div class="sn-container flex flex-col gap-2 p-4 mb-4 flex-1 min-w-0">
+                <div class="sn-container flex flex-col gap-2 sn-padded sn-mb flex-1 min-w-0">
                     <div class="flex items-center gap-2">
                         <x-filament::badge :color="$color">
                             {{ $label }}

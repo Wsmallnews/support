@@ -38,7 +38,7 @@
                 @endif
             </div>
 
-            <div class="sn-container flex flex-col gap-4 p-4 mb-4 flex-1 min-w-0">
+            <div class="sn-container flex flex-col gap-4 sn-padded sn-mb flex-1 min-w-0">
                 <div class="w-full flex flex-col gap-2">
                     <div class="flex items-center gap-2">
                         <x-filament::badge :color="$color">

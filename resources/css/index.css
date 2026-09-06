@@ -41,6 +41,12 @@
 @utility sn-elevation {
     @apply ring-1 ring-(--sn-ring-card) shadow-(--sn-shadow-card);
 }
+/* 页面级水平安全留白：视口 ≤ container 断点时防止内容贴边（4 → 6 响应式），
+ * 带刘海屏安全区渐进增强；页头/导航/页脚等全宽色带内的 container 内容层复用 */
+@utility sn-page-x {
+    padding-inline: var(--sn-space-page-x);
+    padding-inline: max(var(--sn-space-page-x), env(safe-area-inset-left)) max(var(--sn-space-page-x), env(safe-area-inset-right));
+}
 
 /** ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ 自定义 class ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ **/
 
@@ -507,22 +513,78 @@
  * 左右留白防止视口 ≤ container 时内容贴边；带刘海屏安全区渐进增强 */
 .sn-page {
     @apply container mx-auto flex flex-col grow;
-    @apply gap-(--sn-space-page) my-(--sn-space-page-y);
-    padding-inline: var(--sn-space-page-x);
-    padding-inline: max(var(--sn-space-page-x), env(safe-area-inset-left)) max(var(--sn-space-page-x), env(safe-area-inset-right));
+    @apply gap-(--sn-space-page) my-(--sn-space-page) sn-page-x;
 }
 
-/* 卡片内边距（响应式：< lg p-4，≥ lg p-6） */
+/* 卡片内边距家族（< lg *-4，≥ lg *-6，消费 --sn-space-card）：sn-padded = 四边 */
 .sn-padded {
     @apply p-(--sn-space-card);
+}
+.sn-pt {
+    @apply pt-(--sn-space-card);
+}
+.sn-pr {
+    @apply pr-(--sn-space-card);
+}
+.sn-pb {
+    @apply pb-(--sn-space-card);
+}
+.sn-pl {
+    @apply pl-(--sn-space-card);
+}
+.sn-px {
+    @apply px-(--sn-space-card);
+}
+.sn-py {
+    @apply py-(--sn-space-card);
+}
+
+/* 区块间距：主要视觉区块（侧栏、内容卡、banner、轮播、列表卡）之间的兄弟 gap（< lg gap-4，≥ lg gap-6） */
+.sn-gap {
+    @apply gap-(--sn-space-page);
+}
+.sn-gap-x {
+    @apply gap-x-(--sn-space-page);
+}
+.sn-gap-y {
+    @apply gap-y-(--sn-space-page);
+}
+
+/* 区块留白家族（< lg *-4，≥ lg *-6，统一消费 --sn-space-page）：sn-margin = 四边 */
+.sn-margin {
+    @apply m-(--sn-space-page);
+}
+.sn-mt {
+    @apply mt-(--sn-space-page);
+}
+.sn-mr {
+    @apply mr-(--sn-space-page);
+}
+.sn-mb {
+    @apply mb-(--sn-space-page);
+}
+.sn-ml {
+    @apply ml-(--sn-space-page);
+}
+.sn-mx {
+    @apply mx-(--sn-space-page);
+}
+.sn-my {
+    @apply my-(--sn-space-page);
 }
 
 /* ========== 列表（卡片内的列表头/行/底栏，配合 sn-container 使用） ========== */
 
-/* 列表头：分隔线 + 响应式水平内边距 */
+/* 列表头：左右分组两端对齐、窄屏自动换行；垂直行距与列表行共用 --sn-space-row 令牌（py-3 → py-3.5） */
 .sn-list-header {
-    @apply flex items-center px-(--sn-space-card) py-3;
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-2;
+    @apply px-(--sn-space-card) py-(--sn-space-row);
     @apply border-b border-gray-200 dark:border-gray-800;
+}
+
+/* 列表头弱化底色变体（管理模式批量操作条等） */
+.sn-list-header-muted {
+    @apply bg-gray-50/50 dark:bg-gray-800/50;
 }
 
 /* 列表行：分隔线 + 响应式内边距，末行自动去分隔线 */

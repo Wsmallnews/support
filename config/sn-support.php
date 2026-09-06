@@ -318,8 +318,6 @@ return [
         'radius_control' => null,
         'space_page' => null,
         'space_page_lg' => null,
-        'space_page_y' => null,
-        'space_page_y_lg' => null,
         'space_page_x' => null,
         'space_page_x_lg' => null,
         'space_card' => null,

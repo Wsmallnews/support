@@ -24,7 +24,6 @@ class Theme
         'radius_card',
         'radius_control',
         'space_page',
-        'space_page_y',
         'space_page_x',
         'space_card',
         'space_row',

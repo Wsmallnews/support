@@ -273,9 +273,13 @@ enum PostStatus: string implements HasColor, HasIcon, HasLabel
 
 几何样式（圆角/阴影/光环/间距刻度）统一消费 `addons/support/resources/css/tokens.css` 的 `--sn-*` 令牌。**几何令牌在 lg 断点自动翻转**，颜色令牌在 `.dark` 翻转——sn-container、sn-rounded、sn-page 等类自动获得响应式与暗黑适配，HTML 无需断点前缀。
 
-- 令牌清单：`--sn-radius-card`（md→lg）、`--sn-space-page/-y`（gap-4→6）、`--sn-space-card`（p-4→6）、`--sn-shadow-card/-hover`、`--sn-ring-card/-hover`（dark 翻转）、`--sn-radius-control`（恒定）
-- 原子基元（`@utility`，HTML 可直接用）：`sn-surface`、`sn-radius-card`、`sn-ring-card`、`sn-elevation`
-- 页面骨架：`sn-page`（= container mx-auto flex flex-col grow + 响应式 gap/my）；`sn-padded`（响应式卡片内边距）；`sn-list-header/row/footer`（列表三件套）
+- 令牌清单：`--sn-radius-card`（md→lg）、`--sn-space-page`（区块间距：gap/margin 全家族与 sn-page 的 gap/my，4→6）、`--sn-space-page-x`（防贴边水平留白：sn-page-x，4→6）、`--sn-space-card`（卡片内边距：sn-padded 家族，p-4→6）、`--sn-shadow-card/-hover`、`--sn-ring-card/-hover`（dark 翻转）、`--sn-radius-control`（恒定）
+- 原子基元（`@utility`，HTML 可直接用）：`sn-surface`、`sn-radius-card`、`sn-ring-card`、`sn-elevation`、`sn-page-x`
+- 页面骨架：`sn-page`（= container mx-auto flex flex-col grow + 响应式 gap/my + `sn-page-x` 防贴边留白）
+- 间距类家族（均 < lg 4 → ≥ lg 6 自动翻转）：**间距** `sn-gap`/`sn-gap-x`/`sn-gap-y`（区块间 gap，`--sn-space-page`）；**留白** `sn-margin`（四边）+ `sn-mt`/`sn-mr`/`sn-mb`/`sn-ml`/`sn-mx`/`sn-my`（单轴/单边，同 `--sn-space-page`，与 gap 刻度联动）；**内边距** `sn-padded`（四边）+ `sn-pt`/`sn-pr`/`sn-pb`/`sn-pl`/`sn-px`/`sn-py`（单轴/单边，`--sn-space-card`）
+- 列表三件套：`sn-list-header/row/footer`（header 内置左右两端对齐 + 窄屏换行 + gap-x-4 gap-y-2，垂直行距走 `--sn-space-row` 令牌；`sn-list-header-muted` 为弱化底色变体）
+- 防贴边：视口宽度 ≤ `container` 断点时内容会贴浏览器边框。页面内容区用 `sn-page`；页头、导航、页脚等全宽色带内的 `container` 内容层必须加 `sn-page-x`（消费 `--sn-space-page-x`，响应式 px-4→px-6 + 刘海安全区），不要手写 `px-4`/`px-4 sm:px-0`
+- 间距规则（防响应式间距漂移）：**主要视觉区块（侧栏、主内容卡、banner、轮播、列表卡、详情内容节）之间的兄弟 gap 用 `sn-gap`，区块前后的留白用 `sn-margin`/`sn-mt`/`sn-my` 等，卡片及其子区块的内边距用 `sn-padded`/`sn-px` 等**——HTML 中不要写 `gap-4`、`gap-2 lg:gap-4`、`p-4`、`px-4`（卡片级）、`mb-4 lg:mb-6`、`mt-(--sn-space-page)` 这类区块级固定值/间距对/任意值令牌。卡片内部微间距（图标-文字、标题-描述、菜单项 hit-area）和布局驱动的间距（列数出现的 sm 档、页脚带状大间距、移动端给悬浮按钮让位的 pr-16 等）仍可自由写 Tailwind
 - 主题定制：CSS 覆盖（app.css 中 @import 后重声明变量）或 `config/sn-support.php` 的 `theme` 节（`_lg` 后缀键 = 桌面档，layout 中 `@snTheme` 指令输出）
 - 职责边界：sn-* 类管主题性/重复性样式；布局结构（flex/grid、列数、可见性）在 HTML 写 Tailwind 断点前缀；可嵌入组件用容器查询（根 `@container` + `@md:` 前缀）
 
