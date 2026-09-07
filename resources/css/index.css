@@ -4,6 +4,15 @@
 @import './tokens.css';
 @import './content.css';
 
+/*
+ * Alpine x-cloak 兜底：必须在头部阻塞加载的样式表里定义（Filament 的定义随脚本在页尾注入，首绘会闪）。
+ * 所有 x-cloak 元素从第一帧起隐藏，Alpine 初始化后按 x-show 恢复。
+ */
+[x-cloak] {
+    display: none !important;
+}
+
+
 /* 尊重用户的减少动画偏好 (UI/UX Pro Max - reduced-motion) */
 @media (prefers-reduced-motion: reduce) {
     *,
@@ -182,6 +191,39 @@
 /* 区块圆角（响应式：< lg 为 md，≥ lg 为 lg） */
 .sn-rounded {
     @apply rounded-(--sn-radius-card);
+}
+
+/* 区块圆角分角变体：与 sn-rounded 同一套响应式刻度（--sn-radius-card 令牌） */
+.sn-rounded-t {
+    @apply rounded-t-(--sn-radius-card);
+}
+
+.sn-rounded-b {
+    @apply rounded-b-(--sn-radius-card);
+}
+
+.sn-rounded-l {
+    @apply rounded-l-(--sn-radius-card);
+}
+
+.sn-rounded-r {
+    @apply rounded-r-(--sn-radius-card);
+}
+
+.sn-rounded-tl {
+    @apply rounded-tl-(--sn-radius-card);
+}
+
+.sn-rounded-tr {
+    @apply rounded-tr-(--sn-radius-card);
+}
+
+.sn-rounded-bl {
+    @apply rounded-bl-(--sn-radius-card);
+}
+
+.sn-rounded-br {
+    @apply rounded-br-(--sn-radius-card);
 }
 
 /* 容器分隔线 水平方向 */
