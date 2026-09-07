@@ -283,6 +283,32 @@ enum PostStatus: string implements HasColor, HasIcon, HasLabel
 - 主题定制：CSS 覆盖（app.css 中 @import 后重声明变量）或 `config/sn-support.php` 的 `theme` 节（`_lg` 后缀键 = 桌面档，layout 中 `@snTheme` 指令输出）
 - 职责边界：sn-* 类管主题性/重复性样式；布局结构（flex/grid、列数、可见性）在 HTML 写 Tailwind 断点前缀；可嵌入组件用容器查询（根 `@container` + `@md:` 前缀）
 
+#### 侧栏 + 内容比例分栏（全站统一布局模式）
+
+页面左侧（或右侧）有侧栏（用户菜单、分类树、同级导航卡片等）+ 主内容区的布局，**不要写死侧栏宽度（`w-72` 之类）**，统一用 grid 比例分栏：
+
+- 断点 `lg`（1024px）起并排：`lg:grid lg:grid-cols-4 xl:grid-cols-5`（侧栏 1 格、内容 3/4 格，即 lg 1:3、xl 起 1:4）；lg 以下 `flex flex-col` 上下堆叠，侧栏 DOM 在前 = 堆叠时在上
+- 内容列 `lg:col-span-3 xl:col-span-4`；侧栏是条件渲染时，内容列必须兜底占满整行（`lg:col-span-4 xl:col-span-5`），避免 grid 留空轨道
+- 两列都加 `min-w-0`（防内容撑破轨道）；区块间距用 `sn-gap`
+- 右侧栏 = 内容 div 写在前、侧栏 div 写在后（grid 按源顺序自动放置 = 内容左、侧栏右；堆叠时内容在上）
+
+```blade
+<div class="w-full flex flex-col lg:grid lg:grid-cols-4 xl:grid-cols-5 items-start sn-gap">
+    <div class="w-full min-w-0">
+        {{-- 侧栏 --}}
+    </div>
+
+    {{-- 侧栏条件渲染时，内容列兜底占满整行 --}}
+    <div @class([
+        'w-full min-w-0 flex flex-col sn-gap',
+        'lg:col-span-3 xl:col-span-4' => $hasSidebar,
+        'lg:col-span-4 xl:col-span-5' => ! $hasSidebar,
+    ])>
+        {{-- 主内容 --}}
+    </div>
+</div>
+```
+
 #### 容器体系（使用最广，注意职责边界）
 
 `sn-container` 是**内容区块卡片容器**（亮色白底 / 暗色深底 + ring-1 边框 + 响应式圆角/阴影 + 过渡），**不是通用布局 div**——列表、表单、面板等页面区块用它包裹；不需要卡片感的内容区不要加（它自带背景/边框/阴影）。
