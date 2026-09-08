@@ -9,6 +9,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\HtmlString;
+use Wsmallnews\Support\Features\Concerns\MatchesDomain;
+use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
  * 通用 sitemap/robots 注册表：各扩展包在 ServiceProvider::packageBooted() 中注册 URL 来源
@@ -47,6 +49,8 @@ use Illuminate\Support\HtmlString;
  */
 class SitemapRegistry
 {
+    use MatchesDomain;
+
     /**
      * 模块选项：[moduleName => array]（已声明的键；未声明的键走全局兜底）。
      *
@@ -164,7 +168,7 @@ class SitemapRegistry
      */
     public function render(): HtmlString
     {
-        $ttl = config('sn-support.sitemap.cache_ttl', 3600);
+        $ttl = SupportUtils::getConfig('sitemap.cache_ttl', 3600);
         $xml = ($ttl === null || $ttl <= 0)
             ? $this->compile()
             : Cache::remember($this->cacheKey(), $ttl, fn (): string => $this->compile());
@@ -264,35 +268,11 @@ class SitemapRegistry
     }
 
     /**
-     * 模块是否参与当前请求的输出：域名过滤关闭、模块未声明域名、或域名与当前请求匹配时参与。
+     * 模块域名过滤开关的配置参数名（SupportUtils::getConfig 的点号参数名）。
      */
-    protected function moduleMatchesDomain(string $module): bool
+    protected function domainFilterKey(): string
     {
-        if (config('sn-support.sitemap.domain_filter', true) !== true) {
-            return true;
-        }
-
-        $domain = $this->configs->get($module, [])['domain'] ?? null;
-
-        return blank($domain) || $this->hostMatches($domain, request()->getHost());
-    }
-
-    /**
-     * 域名模式匹配：精确匹配，或路由式域名模式（{tenant:slug}.example.com，占位符按「非点号任意段」匹配）。
-     */
-    protected function hostMatches(string $pattern, string $host): bool
-    {
-        if (strcasecmp($pattern, $host) === 0) {
-            return true;
-        }
-
-        if (! str_contains($pattern, '{')) {
-            return false;
-        }
-
-        $regex = str_replace("\x01", '[^.]+', preg_quote(preg_replace('/\{[^}]+\}/', "\x01", $pattern), '/'));
-
-        return (bool) preg_match('/^' . $regex . '$/i', $host);
+        return 'sitemap.domain_filter';
     }
 
     /**

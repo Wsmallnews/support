@@ -37,7 +37,7 @@ class Theme
      */
     public static function styles(): string
     {
-        $theme = config('sn-support.theme', []);
+        $theme = Utils::getConfig('theme', []);
 
         if (! is_array($theme) || $theme === []) {
             return '';

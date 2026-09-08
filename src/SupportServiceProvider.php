@@ -24,6 +24,7 @@ use Spatie\LaravelSettings\Events\SavingSettings;
 use Spatie\LaravelSettings\Models\SettingsProperty;
 use Wsmallnews\Support\Commands\RunScheduledTasksCommand;
 use Wsmallnews\Support\Commands\SupportInstallCommand;
+use Wsmallnews\Support\Features\Feed\FeedRegistry;
 use Wsmallnews\Support\Features\Search\SearchRegistry;
 use Wsmallnews\Support\Features\Seo\Seo;
 use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
@@ -76,6 +77,11 @@ class SupportServiceProvider extends PackageServiceProvider
             return new SitemapRegistry;
         });
 
+        // 注册 RSS feed 注册表（各扩展包注册具名内容流，站点路由聚合输出）
+        $this->app->singleton(FeedRegistry::class, function (): FeedRegistry {
+            return new FeedRegistry;
+        });
+
         // seo-init:模块名 —— 首屏初始化页面 SEO 上下文（普通中间件，勿加入 Livewire 持久化清单）
         $this->app['router']->aliasMiddleware('seo-init', InitializeSeo::class);
 
@@ -87,6 +93,12 @@ class SupportServiceProvider extends PackageServiceProvider
         // 页面 SEO 标签（title/meta/OG/canonical/JSON-LD），layout <head> 中以 @snSeo 输出
         Blade::directive('snSeo', function (): string {
             return '<?php echo app(\Wsmallnews\Support\Features\Seo\Seo::class)->render(); ?>';
+        });
+
+        // 模块 RSS autodiscovery 标签（参数 = 模块 ID，如 @snFeeds('sn-cms')），
+        // layout <head> 中逐流输出一条 <link rel="alternate">（仅该模块的流，模块端点链接）
+        Blade::directive('snFeeds', function (string $expression): string {
+            return "<?php echo app(\Wsmallnews\Support\Features\Feed\FeedRegistry::class)->autodiscoveryTags({$expression}); ?>";
         });
 
         // 统计代码（模块 analytics_code），layout </body> 前以 @snSeoAnalytics 输出
