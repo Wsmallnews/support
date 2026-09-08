@@ -26,14 +26,14 @@ SupportUtils::isTenancyEnabled() && array_unshift($middlewares, IdentifyTenant::
 
 Route::middleware($middlewares)->group(function (): void {
     // sitemap.xml / robots.txt（config sn-support.sitemap.*）
-    if (SupportUtils::getConfig('sitemap.enabled', true) === true) {
-        Route::get(SupportUtils::getConfig('sitemap.sitemap_uri', 'sitemap.xml'), [SitemapController::class, 'sitemap'])->name('sn-support.sitemap');
-        Route::get(SupportUtils::getConfig('sitemap.robots_uri', 'robots.txt'), [SitemapController::class, 'robots'])->name('sn-support.robots');
+    if (SupportUtils::getSitemapConfig('enabled', true) === true) {
+        Route::get(SupportUtils::getSitemapConfig('sitemap_uri', 'sitemap.xml'), [SitemapController::class, 'sitemap'])->name('sn-support.sitemap');
+        Route::get(SupportUtils::getSitemapConfig('robots_uri', 'robots.txt'), [SitemapController::class, 'robots'])->name('sn-support.robots');
     }
 
     // RSS 订阅（config sn-support.feeds.*）：/feed 聚合流 + /feed/{name} 具名流
-    if (SupportUtils::getConfig('feeds.enabled', true) === true) {
-        $uri = trim((string) SupportUtils::getConfig('feeds.uri', 'feed'), '/');
+    if (SupportUtils::getFeedsConfig('enabled', true) === true) {
+        $uri = trim((string) SupportUtils::getFeedsConfig('uri', 'feed'), '/');
 
         Route::get($uri, [FeedController::class, 'index'])->name('sn-support.feed');
         Route::get($uri . '/{name}', [FeedController::class, 'show'])

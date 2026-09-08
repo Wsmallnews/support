@@ -37,7 +37,7 @@ class Theme
      */
     public static function styles(): string
     {
-        $theme = Utils::getConfig('theme', []);
+        $theme = Utils::getThemeConfig();
 
         if (! is_array($theme) || $theme === []) {
             return '';

@@ -158,7 +158,7 @@ class FeedRegistry
      */
     public function routes(string $module): void
     {
-        $uri = trim((string) SupportUtils::getConfig('feeds.uri', 'feed'), '/');
+        $uri = trim((string) SupportUtils::getFeedsConfig('uri', 'feed'), '/');
 
         Route::get($uri, [FeedController::class, 'moduleIndex'])
             ->defaults('feed_module', $module)
@@ -185,7 +185,7 @@ class FeedRegistry
      */
     public function available(): Collection
     {
-        if (SupportUtils::getConfig('feeds.enabled', true) !== true) {
+        if (SupportUtils::getFeedsConfig('enabled', true) !== true) {
             return collect();
         }
 
@@ -200,7 +200,7 @@ class FeedRegistry
      */
     public function moduleFeeds(string $module): Collection
     {
-        if (SupportUtils::getConfig('feeds.enabled', true) !== true) {
+        if (SupportUtils::getFeedsConfig('enabled', true) !== true) {
             return collect();
         }
 
@@ -313,7 +313,7 @@ class FeedRegistry
 
     protected function memoizedRender(?string $name, ?string $module): HtmlString
     {
-        $ttl = SupportUtils::getConfig('feeds.cache_ttl', 3600);
+        $ttl = SupportUtils::getFeedsConfig('cache_ttl', 3600);
         $xml = ($ttl === null || $ttl <= 0)
             ? $this->compile($name, $module)
             : Cache::remember($this->cacheKey($name, $module), $ttl, fn (): string => $this->compile($name, $module));
@@ -322,11 +322,11 @@ class FeedRegistry
     }
 
     /**
-     * 模块域名过滤开关的配置键（SupportUtils::getConfig 的点号参数名）。
+     * 模块域名过滤开关（config sn-support.feeds.domain_filter，默认开启）。
      */
-    protected function domainFilterKey(): string
+    protected function isDomainFilterEnabled(): bool
     {
-        return 'feeds.domain_filter';
+        return SupportUtils::getFeedsConfig('domain_filter', true) === true;
     }
 
     /**
@@ -389,7 +389,7 @@ class FeedRegistry
         // 聚合流按 updated_at 倒序后总量截断（具名流沿用注册方自身的顺序与 limit）
         if ($name === null) {
             usort($items, fn (array $a, array $b): int => $this->timestamp($b['updated_at'] ?? null) <=> $this->timestamp($a['updated_at'] ?? null));
-            $items = array_slice($items, 0, (int) SupportUtils::getConfig('feeds.limit', 50));
+            $items = array_slice($items, 0, (int) SupportUtils::getFeedsConfig('limit', 50));
         }
 
         $lines = [

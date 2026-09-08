@@ -98,6 +98,39 @@ class Utils
     }
 
     /**
+     * Get sitemap configuration (dot notation under "sitemap").
+     *
+     * @param  string|null  $name  Configuration key under sitemap (dot notation)
+     * @param  mixed  $default  Default value if not found
+     */
+    public static function getSitemapConfig(?string $name = null, mixed $default = null): mixed
+    {
+        return self::getConfig('sitemap' . ($name ? '.' . $name : ''), $default);
+    }
+
+    /**
+     * Get feeds configuration (dot notation under "feeds").
+     *
+     * @param  string|null  $name  Configuration key under feeds (dot notation)
+     * @param  mixed  $default  Default value if not found
+     */
+    public static function getFeedsConfig(?string $name = null, mixed $default = null): mixed
+    {
+        return self::getConfig('feeds' . ($name ? '.' . $name : ''), $default);
+    }
+
+    /**
+     * Get theme configuration (dot notation under "theme").
+     *
+     * @param  string|null  $name  Configuration key under theme (dot notation)
+     * @param  mixed  $default  Default value if not found
+     */
+    public static function getThemeConfig(?string $name = null, mixed $default = null): mixed
+    {
+        return self::getConfig('theme' . ($name ? '.' . $name : ''), $default);
+    }
+
+    /**
      * Get the tenant model class.
      */
     public static function getTenantModel(): ?string

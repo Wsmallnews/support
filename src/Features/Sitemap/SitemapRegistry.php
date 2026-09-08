@@ -168,7 +168,7 @@ class SitemapRegistry
      */
     public function render(): HtmlString
     {
-        $ttl = SupportUtils::getConfig('sitemap.cache_ttl', 3600);
+        $ttl = SupportUtils::getSitemapConfig('cache_ttl', 3600);
         $xml = ($ttl === null || $ttl <= 0)
             ? $this->compile()
             : Cache::remember($this->cacheKey(), $ttl, fn (): string => $this->compile());
@@ -268,11 +268,11 @@ class SitemapRegistry
     }
 
     /**
-     * 模块域名过滤开关的配置参数名（SupportUtils::getConfig 的点号参数名）。
+     * 模块域名过滤开关（config sn-support.sitemap.domain_filter，默认开启）。
      */
-    protected function domainFilterKey(): string
+    protected function isDomainFilterEnabled(): bool
     {
-        return 'sitemap.domain_filter';
+        return SupportUtils::getSitemapConfig('domain_filter', true) === true;
     }
 
     /**
