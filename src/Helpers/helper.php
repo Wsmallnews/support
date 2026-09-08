@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 use Wsmallnews\Support\Data\ScopeableContext;
 use Wsmallnews\Support\Features\Currency;
 use Wsmallnews\Support\Helpers\ScopeableHelper;
@@ -373,6 +374,31 @@ if (! function_exists('text_highlight')) {
         }
 
         return $text;
+    }
+}
+
+if (! function_exists('generate_slug')) {
+    /**
+     * 从标题生成 URL slug：
+     * - Str::slug 按应用语言转写（装有 intl 的环境会把中文转写为拼音）
+     * - 超 $limit 字符时按词边界（连字符）截断，避免单词截半或留下尾部连字符（窗口内没有任何连字符的超长单词才硬切）
+     * - 转写结果为空（无 intl 环境的纯中文、纯符号标题等）时兜底 "$fallbackPrefix-随机串"
+     */
+    function generate_slug(?string $value, int $limit = 80, ?string $fallbackPrefix = null): string
+    {
+        $slug = Str::slug(title: (string) $value, language: app()->getLocale());
+
+        if (Str::length($slug) > $limit) {
+            $truncated = substr($slug, 0, $limit);
+            $boundary = strrpos($truncated, '-');
+            $slug = $boundary > 0 ? substr($slug, 0, $boundary) : $truncated;
+        }
+
+        if (blank($slug)) {
+            $slug = trim(($fallbackPrefix ?: 'slug') . '-' . Str::lower(Str::random(8)));
+        }
+
+        return $slug;
     }
 }
 
