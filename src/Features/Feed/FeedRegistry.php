@@ -111,17 +111,17 @@ class FeedRegistry
     public function register(string $module, string $name, array $feed): static
     {
         if (! preg_match('/^[a-z0-9\-]+$/', $name)) {
-            throw new \InvalidArgumentException(sprintf('Feed name 只允许小写字母、数字与连字符（收到 %s）', $name));
+            throw new \InvalidArgumentException(__('sn-support::support.feed.name_invalid', ['name' => $name]));
         }
 
         if (! ($feed['items'] ?? null) instanceof Closure) {
-            throw new \InvalidArgumentException(sprintf('Feed 必须包含 items 闭包（%s.%s）', $module, $name));
+            throw new \InvalidArgumentException(__('sn-support::support.feed.items_missing', ['module' => $module, 'name' => $name]));
         }
 
         if ($this->feeds->has($name)) {
             $owner = $this->feeds->get($name)['module'] ?? '?';
 
-            throw new \InvalidArgumentException(sprintf('Feed name %s 已被模块 %s 注册（feed 名全局唯一）', $name, $owner));
+            throw new \InvalidArgumentException(__('sn-support::support.feed.name_duplicated', ['name' => $name, 'module' => $owner]));
         }
 
         $feed['module'] = $module;

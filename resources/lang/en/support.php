@@ -56,6 +56,11 @@ return [
         'code_incorrect' => 'Verification code is incorrect',
         'send_failed' => 'Failed to send SMS',
     ],
+    'feed' => [
+        'name_invalid' => 'Feed name only allows lowercase letters, digits and hyphens (received :name)',
+        'items_missing' => 'Feed must include an items closure (:module.:name)',
+        'name_duplicated' => 'Feed name :name has already been registered by module :module (feed names are globally unique)',
+    ],
     'table' => [
         'column' => [
             'view_content' => 'View Content',

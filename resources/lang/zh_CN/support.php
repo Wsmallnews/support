@@ -56,6 +56,11 @@ return [
         'code_incorrect' => '验证码不正确',
         'send_failed' => '短信发送失败',
     ],
+    'feed' => [
+        'name_invalid' => 'Feed name 只允许小写字母、数字与连字符（收到 :name）',
+        'items_missing' => 'Feed 必须包含 items 闭包（:module.:name）',
+        'name_duplicated' => 'Feed name :name 已被模块 :module 注册（feed 名全局唯一）',
+    ],
     'table' => [
         'column' => [
             'view_content' => '查看内容',
