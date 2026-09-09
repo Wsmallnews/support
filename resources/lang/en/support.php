@@ -35,7 +35,7 @@ return [
             'label' => 'Status',
         ],
         'order_column' => [
-            'label' => 'Sort',
+            'label' => 'Order',
             'helper' => 'Leave blank to assign to the end automatically',
         ],
     ],

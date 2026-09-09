@@ -167,6 +167,7 @@ return $table
 
 - status 一律 `FormComponents::statusToggleButtons(XxxStatus::class)`（= `ToggleButtons::make('status')->inline()->grouped()->options($enum)->default(枚举第一 case)`）；**禁止** Radio / Select 做状态字段。
 - order_column 一律 `FormComponents::orderColumnInput()`。
+- 两个工厂的 label 已内置通用翻译（「状态」「排序」）：**label 与默认一致时不要再 `->label()` 自定义，也不必新增语言包 key**；仅语义不同时（如「导航状态」）才覆盖。
 
 #### Enum 状态色板与图标
 
