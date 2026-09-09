@@ -31,6 +31,16 @@ return [
             'markdown_placeholder' => 'Please enter content detail (Markdown supported)',
             'preview' => 'Preview',
         ],
+        'status' => [
+            'label' => 'Status',
+        ],
+        'order_column' => [
+            'label' => 'Sort',
+            'helper' => 'Leave blank to assign to the end automatically',
+        ],
+    ],
+    'status_filter' => [
+        'label' => 'Status',
     ],
     'scheduled_task' => [
         'label' => 'Scheduled Tasks',

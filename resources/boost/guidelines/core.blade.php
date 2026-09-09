@@ -95,6 +95,155 @@ ColumnComponents::modelColumn('name', '名称', fn ($record) => $record);
 ColumnComponents::contentColumn('content', '内容');
 ```
 
+### Filament Resource 风格统一
+
+所有基于本包构建的扩展包，其 Filament Resource（Table / Form / 状态枚举 / order_column）遵循以下统一规范。范本：cms 包的 `Filament/Resources/Posts` 与 `.../Links` 资源。
+
+#### order_column 统一处理
+
+| 层 | 规则 |
+|---|---|
+| 迁移 | 新表标准定义：`$table->unsignedInteger('order_column')->nullable()->comment('排序')` + 索引 |
+| 模型 | use `Wsmallnews\Support\Models\Concerns\HasOrderColumn`：`creating` 时 order_column 为空则自动填充 `max(order_column) + 1`；需要按租户等维度隔离序号的模型覆盖 `modifyOrderColumnQuery(Builder $query): Builder` 自由拼接条件（如 `return $query->where('team_id', $this->team_id)`），默认实现返回原 query（全表计数，序号全局单调，组内排序依然正确）。**不要**在 CreatePage 用 id 回填（id 保存前不可得，且与拖拽 1..N 刻度不一致） |
+| 表单 | 用 `FormComponents::orderColumnInput()`（integer + min:0 + helperText「留空自动分配到末尾」）。保留字段供微调，**不隐藏** |
+| 表格 | 必须同时设置：`->reorderable('order_column', direction: <方向>)` + `->defaultSort('order_column', <方向>)`，**两处方向必须一致**。`direction` 参数决定拖拽保存时写入序号的方向（desc 时视觉第一行得最大序号），漏传会导致拖拽后顺序颠倒 |
+
+**默认排序方向按业务域**：
+
+| 业务域 | 方向 | 理由 | 示例 |
+|---|---|---|---|
+| 内容型（新内容优先展示） | `desc` | 与前端 `ordered` scope / Livewire 组件查询（order desc）一致，新记录（max+1）排最前 | posts、links、products |
+| 配置型（顺序稳定敏感） | `asc` | 新记录追加到末尾，不扰动既有顺序 | category_types、navigation_types、tags |
+
+- 想按时间倒序看内容时：order_column desc 即可（自动填充保证新 = 大）；**不要**切到 id / created_at 排序再拖拽——拖拽按当前 defaultSort 列重写序号，混排会乱。
+- 改动 order_column 逻辑时，必须核对前端各 Livewire 组件的排序查询方向是否与后台一致。
+
+#### Table 规范
+
+**方法顺序**（全部资源固化）：
+
+@verbatim
+```php
+return $table
+    ->columns([...])
+    ->reorderable('order_column', direction: '...')   // 仅含 order_column 的表
+    ->defaultSort('...', '...')
+    ->searchPlaceholder(__(...))
+    ->filtersFormWidth(Width::Medium)
+    ->filters([...])
+    ->recordActions([...ActionComponents::recordActions([...])])
+    ->toolbarActions([...ActionComponents::toolbarActions([...])]);
+```
+@endverbatim
+
+**列顺序**：`id` → 主体识别列（标题 / 名称）→ 业务属性列 → 关联 / badge 列 → counter → `order_column` → `status` → `published_at` → `created_at` → `updated_at`。
+
+**列内方法顺序**：`label()` → 业务增强（limit / copyable / badge / formatStateUsing）→ `searchable()` / `sortable()` → `alignCenter()` → `toggleable()`。
+
+**列规范**：
+
+- `id` 列统一 `->label('ID')->searchable()->sortable()->alignCenter()->toggleable()`。
+- **status 列必须 `->badge()`**（状态枚举实现 HasColor / HasIcon 自动带色带图标）；时间列用默认格式，不额外定制。
+- order_column 列 `->alignCenter()->toggleable()`，不加 sortable（排序由 defaultSort 承担）。
+
+**筛选规范**（每个表默认具备）：
+
+- 有状态枚举的表：`FilterComponents::statusFilter(XxxStatus::class)` 放最前；
+- 一律追加 `...FilterComponents::createUpdateRangeFilter()`（created_at + updated_at 时间区间）；
+- 软删除表最后加 `TrashedFilter::make()`。
+- filters 顺序：业务筛选（status / flag / 自定义）→ 时间区间 → Trashed。
+
+#### Form 规范
+
+**布局规则（统一平铺，无例外）**：
+
+- **禁止使用 `Schemas\Components\Flex` 侧边栏布局**（含复杂表单）。
+- **表单所有字段必须在 Section 中**（不裸放 schema 顶层）。
+- **只有一个 Section** 时：order_column、status 等基础字段直接放该 Section 内。
+- **多个 Section** 时：order_column、status 作为基础字段放**最上面的 Section**（业务主体 Section）。
+- Section 用 `->columns(2)->columnSpanFull()`，长内容字段（富文本 / 编辑器 / 上传）`->columnSpanFull()` 或 `->columnSpan(1)` 按宽窄安排。
+
+**组件规范**：
+
+- status 一律 `FormComponents::statusToggleButtons(XxxStatus::class)`（= `ToggleButtons::make('status')->inline()->grouped()->options($enum)->default(枚举第一 case)`）；**禁止** Radio / Select 做状态字段。
+- order_column 一律 `FormComponents::orderColumnInput()`。
+
+#### Enum 状态色板与图标
+
+**色板语义原则**：primary = 默认正常态；success = 流程成功完成态；gray = 隐藏 / 草稿 / 取消（弱化）；warning = 待处理 / 待审核；danger = 禁用 / 拒绝 / 失败；info = 中间通知态（少用）。
+
+| 语义 | 颜色 | 图标（一律 `Heroicon::Outlined*` 枚举常量） |
+|---|---|---|
+| 正常 Normal | `primary` | `OutlinedCheckCircle` |
+| 已发布 Published | `primary` | `OutlinedEye` |
+| 上架 Up | `primary` | `OutlinedArrowUp` |
+| 隐藏 Hidden | `gray` | `OutlinedEyeSlash` |
+| 草稿 Draft | `gray` | `OutlinedClipboardDocumentList` |
+| 禁用 Disabled | `danger` | `OutlinedNoSymbol` |
+| 下架 Down | `danger` | `OutlinedArrowDown` |
+| 未审核 Unaudited | `warning` | `OutlinedDocumentCheck` |
+| 已拒绝 Rejected | `danger` | `OutlinedShieldExclamation` |
+| 已执行 Executed | `success` | 维持现状 |
+| 待执行 Pending / 已取消 Cancelled / 失败 Failed | warning / gray / danger | 维持现状 |
+
+**硬性规则**：
+
+- **相同状态语义 → 相同颜色 + 相同图标**。
+- 图标禁止 solid 常量（`Heroicon::Eye`）与字符串写法（`'heroicon-m-arrow-long-up'`），一律 `Heroicon::Outlined*`。
+- 状态枚举结构照抄：`enum XxxStatus: string implements HasColor, HasIcon, HasLabel` + `use EnumHelper`，match 三件套（getLabel / getColor / getIcon）。
+- 「上架 / 下架」（Up / Down）是货架语义不是「正常 / 禁用」，图标保留 Arrow 体系。
+
+#### scopeable 与翻译等结构惯例
+
+1. **scopeable 按资源性质区分**：公用全局资源（member、user 等，一个站点只有一份）**不需要** scopeable；可能多份存在的资源（post、product、link、navigation 等）模型 use `Wsmallnews\Support\Models\Concerns\Scopeable`，Resource 查询经 `applyScopeableToQuery()` 过滤，且 CreatePage 必须 `mutateFormDataBeforeCreate` 合并 scopeable。
+2. **翻译 key 命名**：`<资源>_table.<field>` / `<资源>_form.<field>` / `<资源>_status.<case>` / `<资源>_table.search_placeholder` / `<资源>_resource.model_label` 等；**禁止硬编码中文 label**。
+
+#### 资源创建规范（五层结构）
+
+> 范本：cms 包 `Filament/Resources/Posts`（含软删除 + ViewPage 增强）与 `.../Links`（无软删除、最小集）。新资源一律按此结构创建。
+
+@verbatim
+```
+Resources/Xxxs/
+├── BaseResource.php        # abstract：本包资源的全部默认值
+├── XxxResource.php         # final：页面路由绑定 + 配置模式入口
+├── Pages/
+│   ├── ListXxxs.php        # ListRecords（header CreateAction）
+│   ├── CreateXxx.php       # CreateRecord（scopeable 资源须合并 scopeable）
+│   ├── EditXxx.php         # EditRecord（软删除表加 ForceDelete/Restore）
+│   └── ViewXxx.php         # 可选，按资源类型增强（见下）
+├── Schemas/XxxForm.php     # 表单（静态 configure，与 Resource 解耦）
+└── Tables/XxxsTable.php    # 表格（静态 configure，与 Resource 解耦）
+```
+@endverbatim
+
+**BaseResource（abstract）—— 默认值层，不定义 `getPages()`**：
+
+- 资源身份：`$navigationIcon` / `$activeNavigationIcon`（Outlined + 实心成对）、`$slug`、`$recordTitleAttribute`、`$navigationSort`；
+- `getModel()` 一律走包 Utils（模型经 `config('包名.models.xxx')` 可替换——这是资源可被其他包复用的前提）；
+- 标签方法用 `static::$xxx ?? 翻译key` 模式（子类可用属性覆盖）；
+- `form()` / `table()` 委托给同目录 `Schemas/XxxForm` / `Tables/XxxsTable` 的静态 `configure()`；
+- `getEloquentQuery()` = `applyScopeableToQuery(parent::getEloquentQuery())`（仅 scopeable 资源）；**表有软删除字段时**才追加 `->withoutGlobalScopes([SoftDeletingScope::class])`，无软删除不加（Links 范本）。
+
+**XxxResource（final）—— 注册与配置层，不定义默认值**：
+
+- 只做三件事：`getPages()` 路由绑定；use `CanBeConfigured` + `$configurationClass = ResourceConfiguration::class`（`form()` / `table()` 先查插件 customProperties 闭包，有则用调用方的，无则回落 parent）；`getEssentialsPlugin()` 返回本包插件实例。
+
+**Pages —— 行为层**：
+
+- 全部 use support 的 `Wsmallnews\Support\Filament\Pages\Concerns\Scopeable`；`$resource` 写死指向 final 类。
+- **「继承即自建 Pages」**：Pages 的 `$resource` 绑定 final 类（Filament generator 惯例），其他包 `extends BaseResource` 自定义资源时**必须自建 Pages**（把 `$resource` 指向自己的类）；不想自建就直接注册 `XxxResource::class` 并用插件 customProperties 闭包覆盖 form / table。
+- **ViewPage + widgets（评论 / 浏览等 footer widget 装配）按资源类型可选**，不属于标准结构必选项。
+
+**软删除条件规则**（仅表有软删除字段时遵守，无则全部省略）：
+
+| 层 | 有软删除 | 无软删除 |
+|---|---|---|
+| BaseResource `getEloquentQuery()` | 追加 `withoutGlobalScopes([SoftDeletingScope])` | 只 `applyScopeableToQuery()` |
+| Table filters | 末尾 `TrashedFilter::make()` | 不加 |
+| EditPage header actions | Delete + ForceDelete + Restore | 只 Delete（或按需） |
+| Table actions | Delete / ForceDelete / Restore + 对应 Bulk | Delete + DeleteBulk |
+
 ### SupportModel 基类
 
 `Wsmallnews\Support\Models\SupportModel` 是所有 support 包模型的基类，提供 scopeable 和多租户感知：
@@ -292,6 +441,7 @@ enum PostStatus: string implements HasColor, HasIcon, HasLabel
 - 两列都加 `min-w-0`（防内容撑破轨道）；区块间距用 `sn-gap`
 - 右侧栏 = 内容 div 写在前、侧栏 div 写在后（grid 按源顺序自动放置 = 内容左、侧栏右；堆叠时内容在上）
 
+@verbatim
 ```blade
 <div class="w-full flex flex-col lg:grid lg:grid-cols-4 xl:grid-cols-5 items-start sn-gap">
     <div class="w-full min-w-0">
@@ -308,6 +458,7 @@ enum PostStatus: string implements HasColor, HasIcon, HasLabel
     </div>
 </div>
 ```
+@endverbatim
 
 #### 容器体系（使用最广，注意职责边界）
 

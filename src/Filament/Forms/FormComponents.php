@@ -4,6 +4,7 @@ namespace Wsmallnews\Support\Filament\Forms;
 
 use Wsmallnews\Support\Filament\Forms\Concerns\HasContentTypeGroup;
 use Wsmallnews\Support\Filament\Forms\Concerns\HasEditorComponents;
+use Wsmallnews\Support\Filament\Forms\Concerns\HasStatusAndOrderComponents;
 use Wsmallnews\Support\Filament\Forms\Concerns\HasUploadComponents;
 
 /**
@@ -15,5 +16,6 @@ class FormComponents
 {
     use HasContentTypeGroup;
     use HasEditorComponents;
+    use HasStatusAndOrderComponents;
     use HasUploadComponents;
 }

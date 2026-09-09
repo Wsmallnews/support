@@ -133,6 +133,20 @@ class FilterComponents
     }
 
     /**
+     * 状态筛选（枚举下拉）
+     *
+     * @param  class-string<\BackedEnum>  $enumClass  状态枚举类名
+     * @param  string  $field  字段名称
+     * @param  string | null  $label  筛选标签，缺省取翻译
+     */
+    public static function statusFilter(string $enumClass, string $field = 'status', ?string $label = null): Tables\Filters\SelectFilter
+    {
+        return Tables\Filters\SelectFilter::make($field)
+            ->label($label ?? __('sn-support::support.status_filter.label'))
+            ->options($enumClass);
+    }
+
+    /**
      * 创建时间，更新时间 筛选
      */
     public static function createUpdateRangeFilter(): array

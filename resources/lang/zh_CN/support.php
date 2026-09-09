@@ -31,6 +31,16 @@ return [
             'markdown_placeholder' => '请输入内容详情（支持Markdown）',
             'preview' => '预览',
         ],
+        'status' => [
+            'label' => '状态',
+        ],
+        'order_column' => [
+            'label' => '排序',
+            'helper' => '留空自动分配到末尾',
+        ],
+    ],
+    'status_filter' => [
+        'label' => '状态',
     ],
     'scheduled_task' => [
         'label' => '定时任务',
