@@ -873,11 +873,11 @@ use Wsmallnews\Support\Facades\Search;
 
 // 模块名 = 插件 ID；模块是否启用由包的配置决定（未开启则不注册来源，前端也不渲染搜索框）
 if (Utils::getConfig('search.enabled', true)) {
-    Search::config(app(CmsPlugin::class)->getId(), [              // 模块选项：engine、page 等，增量合并
-        'engine' => Utils::getConfig('search.engine'),             // null 走全局兜底
-        // 搜索结果页地址（display = page 时回车跳转目标）：闭包接收搜索关键词，自行返回完整 URL
-        'page' => fn (?string $query) => Utils::route('search', ['q' => $query]),
-    ])->registers(app(CmsPlugin::class)->getId(), [
+    // 配置节整节透传（enabled 除外）：想覆盖 sn-support.search.* 的哪个键就写哪个
+    $searchConfig = collect(Utils::getConfig('search', []))->except('enabled')->all();
+    $searchConfig['page'] ??= fn (?string $query) => Utils::route('search', ['q' => $query]);   // 包内结果页兜底
+
+    Search::config(app(CmsPlugin::class)->getId(), $searchConfig)->registers(app(CmsPlugin::class)->getId(), [
             [
                 'key' => 'post',
                 'model' => Utils::getPostModel(),      // 支持 morph 别名
@@ -903,13 +903,16 @@ Search::search('sn-cms', '关键词');      // 仅指定模块；未知模块名
 @endverbatim
 
 - **来源选项**：`key`、`model`（必填）、`group`、`fields`（默认 `resolveKeywordSearchFields()` 并剔除含 `.` 的关联字段）、`limit`、`sort`、`query`（LIKE）、`scout`（Scout 索引过滤，此时 query/scopeable/fields 不生效）、`scopeable`、`title`/`description`/`cover`/`badge`（默认取 `HasSnSubject` 固定数据）、`url`（默认无链接，前端搜索永不产生 panel 地址）、`view`（自定义条目视图，接收 `$result`（含 `->record` 原始模型）、`$query`；高亮用 `text_highlight($text, $query)` 助手）、`render`（自定义条目渲染闭包 `fn ($result, $query)`，优先于 view）、`visible`、`results`（完全自定义结果，绕过引擎）。条目渲染 `render` 闭包优先，否则渲染 `view`（未声明时经 `SearchSource::itemView()` 兜底为默认统一模板，视图层无需判断）；外层链接包裹由 support 统一处理，自定义部分只负责条目内容区。
-- **模块选项（模块级）**：`Search::config($module, $config)` 统一声明（增量合并、同名键后声明覆盖、值为 null 的键恢复全局兜底；可链式、与注册顺序无关），后续新增选项扩展键名即可复用同一通道。已支持：
-  - `engine`：模块搜索引擎（`database` 默认 WHERE LIKE / `scout` 需 `Laravel\Scout\Searchable`，未安装抛 `SupportException` / 引擎类名），未声明走全局兜底 `config('sn-support.search.engine')`；
-  - `page`：搜索结果页地址（display = page 时回车跳转目标）。字符串由 support 统一拼接 `?q=关键词`；闭包 `fn (?string $query) => ...` 接收搜索关键词并自行返回完整 URL，未声明走全局兜底 `config('sn-support.search.page')`。
-- **启用开关（注册入口门控）**：模块是否启用由各扩展包在 `packageBooted()` 用配置自行判断——未开启则**不调用 config/registers**（来源不进注册表，前端也不渲染搜索框），如 cms 的 `if (Utils::getConfig('search.enabled', true)) { Search::config(...)->registers(...); }`，视图侧用同一配置判断是否渲染搜索框。cms 的配置节为 `sn-cms.search.enabled` / `sn-cms.search.engine` / `sn-cms.search.display`。
+- **模块选项（模块级）**：`Search::config($module, $config)` 统一声明（增量合并、同名键后声明覆盖、值为 null 的键恢复全局兜底；可链式、与注册顺序无关）。**`sn-support.search.*` 的任意键都可作为模块声明键**——support 新增配置键无需各包同步接线即天然可覆盖。扩展包推荐整节透传自己的配置节接入：`collect(Utils::getConfig('search'))->except('enabled')`（`enabled` 是各包自己的启用门控，不透传），键名与全局一致，想覆盖哪些就写哪些。解析统一走 `Search::resolveConfig($module, $key, $default)`（模块声明 > 全局 > 默认）。已消费的键：
+  - `engine`：模块搜索引擎（`database` 默认 WHERE LIKE / `scout` 需 `Laravel\Scout\Searchable`，未安装抛 `SupportException` / 引擎类名）；
+  - `page`：搜索结果页地址（display = page 时回车跳转目标）。字符串由 support 统一拼接 `?q=关键词`；闭包 `fn (?string $query) => ...` 接收搜索关键词并自行返回完整 URL。cms 等自带结果页路由的包经 `$config['page'] ??= 闭包` 兜底（模块显式声明优先）；
+  - `display` / `debounce` / `show_search_button`：前端搜索组件的展示方式、防抖时长、一体化搜索按钮（仅 display = page 生效，开启后按钮替代 ↵ Enter 提示；搜索结果页组件 `search-results` 同样读取该配置，不受 display 门控）。结果页搜索触发方式随该开关切换：显示按钮时输入框为 deferred 绑定（`wire:model`），按钮 `wire:click="search"` / 回车 `wire:keydown.enter="search"` 显式触发——Livewire 发请求时会自动合并 deferred 待定值且更新先于 action 应用，无需 form；无按钮时 `wire:model.live.debounce` 自动搜索、回车 `$refresh`。按钮为自定义 HTML（组件 `getSearchButtonHtml()` 返回 HtmlString，视图 `search-button.blade.php`，type 与 wire:click 由调用方传入），经 `x-filament::input.wrapper` 的 `suffix` 属性渲染，按钮模式下 `inline-suffix` 关闭——与输入框之间保留 wrapper 自带的竖向分割线；样式类 `.sn-search-submit` 定义于包 CSS（左侧直角贴分割线、右侧圆角随 wrapper），并用 `.fi-input-wrp-suffix:has(.sn-search-submit)` 让按钮占满整个 suffix 区（满高贴右），优先级均为：组件属性 > 模块声明 > 全局；
+  - `results_limit`：来源默认返回条数（调用方显式 limit > 来源声明 limit > 模块声明 > 全局）；
+  - `split_terms` / `terms_operator` / `case_insensitive`：拆词开关、多词组合方式（`'and'` 默认所有词都命中 / `'or'` 任一词命中即返回）、LIKE 大小写（database 引擎经 `ConfigurableEngine::setSearchConfig()` 接收模块声明，自定义引擎按需实现该接口）。
+- **启用开关（注册入口门控）**：模块是否启用由各扩展包在 `packageBooted()` 用配置自行判断——未开启则**不调用 config/registers**（来源不进注册表，前端也不渲染搜索框），如 cms 的 `if (Utils::getConfig('search.enabled', true)) { Search::config(...)->registers(...); }`，视图侧用同一配置判断是否渲染搜索框。cms 的配置节为 `sn-cms.search`：`enabled` 之外任意键整节透传（想覆盖 `sn-support.search.*` 的哪个键就写哪个，如 `display` / `terms_operator` / `show_search_button`）。
 - **项目启用 scout 的步骤**：① `composer require laravel/scout`；② 给模型 use `Searchable` —— 包内模型用子类替换：新建 `App\Models\Cms\Post extends \Wsmallnews\Cms\Models\Post`（use `Searchable`）并把 `config('sn-cms.models.post')` 指向它，业务代码全部经 `Utils::getPostModel()` 解析无需改动；③ 把 `config('sn-support.search.engine')` 设为 `'scout'`（注册时未显式指定引擎的来源全部切换）。Meilisearch/Algolia 等外部引擎需先 `scout:import` 建索引，collection/database 驱动无需。
 - **相同 key 重复注册视为覆盖**（应用可借此覆盖包内置来源）。
-- **前端组件**：`<livewire:sn-support::components.search :module="app(CmsPlugin::class)->getId()" placeholder="搜索…" :limit="5" />`（`module` 绑定模块，null 搜索所有已启用模块），视图 `sn-support::livewire.components.search`，配置在 `config/sn-support.php` 的 `search` 节（`engine`、`display`、`page`、`results_limit`、`split_terms`、`case_insensitive`、`debounce`）。`display` 控制展示方式：`dropdown`（输入即搜浮层，默认）/ `page`（回车跳转搜索结果页，地址取模块 `page` 选项或全局兜底），各扩展包可在自己配置节覆盖（如 `sn-cms.search.display`）；结果页内容区核心组件为 `<livewire:sn-support::components.search-results :module="..." />`，页面路由由调用方定义。
+- **前端组件**：`<livewire:sn-support::components.search :module="app(CmsPlugin::class)->getId()" placeholder="搜索…" :limit="5" />`（`module` 绑定模块，null 搜索所有已启用模块），视图 `sn-support::livewire.components.search`，配置在 `config/sn-support.php` 的 `search` 节（`engine`、`display`、`page`、`results_limit`、`split_terms`、`terms_operator`、`show_search_button`、`case_insensitive`、`debounce`）。`display` 控制展示方式：`dropdown`（输入即搜浮层，默认）/ `page`（回车跳转搜索结果页，地址取模块 `page` 选项或全局兜底）；`display` / `debounce` / `show_search_button` 均为「组件属性 > 模块声明 > 全局」三级解析；`page` 模式可经 `show_search_button` 渲染一体化搜索按钮（自定义 HTML 经 wrapper `suffix` 渲染，样式 `.sn-search-submit`）；结果页内容区核心组件为 `<livewire:sn-support::components.search-results :module="..." />`，同样读取 `show_search_button` 渲染按钮，页面路由由调用方定义。
 
 ### Utils 工具类
 

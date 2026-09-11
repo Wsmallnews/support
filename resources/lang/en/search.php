@@ -2,6 +2,7 @@
 
 return [
     'placeholder' => 'Search…',
+    'search_button' => 'Search',
     'empty' => 'No results found',
     'empty_tip' => 'Try different keywords',
 

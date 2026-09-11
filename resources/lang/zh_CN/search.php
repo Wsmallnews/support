@@ -2,6 +2,7 @@
 
 return [
     'placeholder' => '搜索…',
+    'search_button' => '搜索',
     'empty' => '没有找到相关内容',
     'empty_tip' => '换个关键词试试',
 

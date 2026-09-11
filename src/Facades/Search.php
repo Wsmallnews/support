@@ -10,6 +10,7 @@ use Wsmallnews\Support\Features\Search\SearchSource;
 /**
  * @method static static config(string $module, array $config)
  * @method static mixed getConfig(string $module, ?string $key = null, mixed $default = null)
+ * @method static mixed resolveConfig(?string $module, string $key, mixed $default = null)
  * @method static ?string resolvePage(?string $module, ?string $query = null)
  * @method static static register(string $module, array|SearchSource $source)
  * @method static static registers(string $module, array $sources)

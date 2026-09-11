@@ -333,7 +333,8 @@ return [
     |
     | 通用全局搜索配置。engine 为全局兜底引擎：'database'（WHERE LIKE，默认）
     | 'scout'（需安装 laravel/scout）或引擎实现类名；各包注册搜索时可用
-    | 搜索级配置覆盖。split_terms 控制是否按空白拆词（多词 AND、字段间 OR）。
+    | 搜索级配置覆盖。split_terms 控制是否按空白拆词，terms_operator 控制
+    | 拆词后多词的组合方式（'and' 所有词都命中 / 'or' 任一词命中）。
     |
     */
     'search' => [
@@ -362,9 +363,24 @@ return [
         'results_limit' => 8,
 
         /**
-         * 是否按空白拆词（多词 AND、字段间 OR）
+         * 是否按空白拆词（字段间 OR）
          */
         'split_terms' => true,
+
+        /**
+         * 拆词后多词的组合方式（split_terms = true 时生效，database 引擎有效）：
+         * - 'and'：所有词都命中才返回（默认，多词 AND、字段间 OR）
+         * - 'or'：任一词命中即返回（多词 OR、字段间 OR）
+         * 各扩展包可在自己的配置节覆盖此值
+         */
+        'terms_operator' => 'and',
+
+        /**
+         * 搜索框内是否渲染一体化搜索按钮（仅 display = page 时生效；
+         * 开启后按钮替代 ↵ Enter 提示，点击与回车等价）
+         * 各扩展包可在自己的配置节覆盖此值
+         */
+        'show_search_button' => false,
 
         /**
          * LIKE 搜索是否大小写不敏感

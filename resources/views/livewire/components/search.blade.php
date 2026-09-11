@@ -21,19 +21,21 @@
     x-data="{ open: false }"
     @click.outside="open = false"
 >
-    {{-- page 模式的 Enter 提示参考 Filament 全局搜索实现：wrapper 的 suffix（inline-suffix，常驻显示），
-        输入框原生清除按钮（type=search 的 ×）保留在前，suffix 在其后 --}}
+    {{-- page 模式默认以 wrapper 的 suffix 常驻显示 ↵ Enter 提示（参考 Filament 全局搜索，inline-suffix），
+        show_search_button 开启时改传自定义按钮 HTML（HtmlString）并以非 inline suffix 渲染：
+        与输入框之间保留 wrapper 的竖向分割线，按钮占满 suffix 区（样式见 .sn-search-submit） --}}
     <x-filament::input.wrapper
+        class="sn-bg"
         inline-prefix
         :prefix-icon="Heroicon::MagnifyingGlass"
-        :suffix="$display === 'page' ? '↵ Enter' : null"
-        inline-suffix
+        :suffix="$showSearchButton ? $this->getSearchButtonHtml() : ($display === 'page' ? '↵ Enter' : null)"
+        :inline-suffix="! $showSearchButton"
     >
-        <x-filament::input 
+        <x-filament::input
             type="search"
             placeholder="{{ $placeholder }}"
             aria-label="{{ $placeholder }}"
-            :attributes="$searchInput" 
+            :attributes="$searchInput"
         />
     </x-filament::input.wrapper>
 
