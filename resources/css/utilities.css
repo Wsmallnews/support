@@ -1,0 +1,1112 @@
+/*
+ * support 公共工具层：sn-* 公共自定义 class（跨扩展包 / 前后台通用）。
+ * 消费 tokens.css 设计令牌；由 index.css 引入（入口负责 @source 扫描与包自有样式）。
+ * 新增公共工具类放这里；support 组件自有样式（如 sn-search-submit）放 index.css。
+ */
+
+@import './tokens.css';
+
+/* 尊重用户的减少动画偏好 (UI/UX Pro Max - reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .sn-motion-scale {
+        transform: none !important;
+    }
+}
+
+/* 图片 hover 缩放 - 自动尊重 reduced-motion */
+.sn-motion-scale {
+    @apply transition-transform duration-300 ease-in-out;
+    @apply group-hover:scale-110;
+}
+
+/* ========== L2 原子基元（单一职责） ==========
+ * 消费 tokens.css 设计令牌；既可在 HTML 中直接使用（支持 hover:/md: 等变体），
+ * 也可被下方聚合类 @apply 组合。 */
+@utility sn-surface {
+    @apply bg-white dark:bg-gray-900;
+}
+@utility sn-radius-card {
+    @apply rounded-(--sn-radius-card);
+}
+@utility sn-ring-card {
+    @apply ring-1 ring-(--sn-ring-card);
+}
+@utility sn-elevation {
+    @apply ring-1 ring-(--sn-ring-card) shadow-(--sn-shadow-card);
+}
+/* 页面级水平安全留白：视口 ≤ container 断点时防止内容贴边（4 → 6 响应式），
+ * 带刘海屏安全区渐进增强；页头/导航/页脚等全宽色带内的 container 内容层复用 */
+@utility sn-page-x {
+    padding-inline: var(--sn-space-page-x);
+    padding-inline: max(var(--sn-space-page-x), env(safe-area-inset-left)) max(var(--sn-space-page-x), env(safe-area-inset-right));
+}
+
+/** ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ 自定义 class ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️ **/
+
+/* 区块背景色，支持暗黑 */
+.sn-bg {
+    @apply bg-white dark:bg-gray-900;
+}
+/** 主要背景色 **/
+.sn-primary-bg {
+    @apply bg-primary-500 dark:bg-primary-600;
+
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:bg-primary-600 dark:hover:bg-primary-700;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply bg-primary-600 dark:bg-primary-700;
+    }
+}
+
+/** 灰色背景 **/
+.sn-gray-bg {
+    @apply bg-gray-100 dark:bg-gray-800;
+
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:bg-gray-200 dark:hover:bg-gray-700;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply bg-gray-200 dark:bg-gray-700;
+    }
+}
+
+/** 没有背景 **/
+.sn-no-bg {
+    @apply bg-transparent;
+
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:bg-gray-100 dark:hover:bg-gray-800;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply bg-gray-100 dark:bg-gray-800;
+    }
+}
+
+/* 区块轮廓，四边都有 */
+.sn-contour {
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-(--sn-ring-card);
+
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-(--sn-ring-card-hover);
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-primary {
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-primary-200/80 dark:ring-primary-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-primary-300 dark:hover:ring-primary-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-danger {
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-danger-200/80 dark:ring-danger-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-danger-300 dark:hover:ring-danger-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-success {
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-success-200/80 dark:ring-success-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-success-300 dark:hover:ring-success-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-info {
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-info-200/80 dark:ring-info-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-info-300 dark:hover:ring-info-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-warning {
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-warning-200/80 dark:ring-warning-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-warning-300 dark:hover:ring-warning-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+.sn-contour-gray {
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-gray-200/80 dark:ring-gray-800/60;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-gray-300 dark:hover:ring-gray-700/80;
+        @apply transition-shadow duration-300 ease-in-out;
+    }
+}
+
+/* 区块轮廓，这里用的是 border ring 不支持设置单条边 需要外面指定那条边存在 */
+.sn-contour-only {
+    @apply border-gray-200/80 shadow-(--sn-shadow-card) dark:border-gray-800/60;
+
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:border-gray-200 hover:shadow-(--sn-shadow-card-hover) dark:hover:border-gray-700/80;
+        @apply transition-all duration-300 ease-in-out;
+    }
+}
+
+/* 区块圆角（响应式：< lg 为 md，≥ lg 为 lg） */
+.sn-rounded {
+    @apply rounded-(--sn-radius-card);
+}
+
+/* 区块圆角分角变体：与 sn-rounded 同一套响应式刻度（--sn-radius-card 令牌） */
+.sn-rounded-t {
+    @apply rounded-t-(--sn-radius-card);
+}
+
+.sn-rounded-b {
+    @apply rounded-b-(--sn-radius-card);
+}
+
+.sn-rounded-l {
+    @apply rounded-l-(--sn-radius-card);
+}
+
+.sn-rounded-r {
+    @apply rounded-r-(--sn-radius-card);
+}
+
+.sn-rounded-tl {
+    @apply rounded-tl-(--sn-radius-card);
+}
+
+.sn-rounded-tr {
+    @apply rounded-tr-(--sn-radius-card);
+}
+
+.sn-rounded-bl {
+    @apply rounded-bl-(--sn-radius-card);
+}
+
+.sn-rounded-br {
+    @apply rounded-br-(--sn-radius-card);
+}
+
+/* 容器分隔线 水平方向 */
+.sn-divide-x {
+    @apply divide-x divide-gray-200 dark:divide-gray-700;
+}
+/* 容器分隔线 垂直方向 */
+.sn-divide-y {
+    @apply divide-y divide-gray-200 dark:divide-gray-700;
+}
+
+/** sn 文字 **/
+.sn-h1-text {
+    @apply text-2xl font-bold text-gray-900 md:text-3xl lg:text-4xl dark:text-gray-100;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-h2-text {
+    @apply text-xl font-semibold text-gray-800 md:text-2xl lg:text-3xl dark:text-gray-200;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-h3-text {
+    @apply text-base font-semibold text-gray-700 md:text-lg dark:text-gray-300;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-h4-text {
+    @apply text-base font-semibold text-gray-700 dark:text-gray-300;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-content-text {
+    @apply text-base leading-relaxed text-gray-600 dark:text-gray-300;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600 font-semibold;
+    }
+}
+.sn-descript-text {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-tip-text {
+    @apply text-xs text-gray-500 dark:text-gray-400;
+
+    &.sn-hover {
+        /** 当前 hover 支持 group */
+        @apply hover:text-primary-500 dark:hover:text-primary-600;
+        @apply group-hover:text-primary-500 dark:group-hover:text-primary-600;
+        @apply transition-colors duration-300 ease-in-out;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply text-primary-500 dark:text-primary-600;
+    }
+}
+.sn-primary-text {
+    @apply text-primary-500 dark:text-primary-600;
+}
+
+/** 文本关键词高亮（text_highlight() 助手生成）。
+ *  文字样式全部继承父级（颜色/字重/字号随父级，hover 变色同步），只改背景色。 */
+.sn-text-highlight {
+    @apply rounded-sm bg-primary-200 px-0.5 text-inherit dark:bg-primary-800/70;
+}
+.sn-danger-text {
+    @apply text-danger-500 dark:text-danger-600;
+}
+.sn-success-text {
+    @apply text-success-500 dark:text-success-600;
+}
+.sn-info-text {
+    @apply text-info-500 dark:text-info-600;
+}
+.sn-warning-text {
+    @apply text-warning-500 dark:text-warning-600;
+}
+.sn-gray-text {
+    @apply text-gray-500 dark:text-gray-400;
+}
+/** sn 文字 **/
+
+/* 区块样式（圆角/阴影/光环走令牌：响应式 + 可主题定制） */
+.sn-container {
+    @apply bg-white dark:bg-gray-900;
+    @apply sn-elevation;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        /** 当前 hover */
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-(--sn-ring-card-hover);
+    }
+
+    &.sn-link {
+        /** 当前 link, 如果当前 容器就是 link ,则增加 hover 背景(posts 列表) */
+        @apply hover:bg-primary-100/50 dark:hover:bg-primary-900/30;
+    }
+
+    .sn-link {
+        /** 内部link，容器内部 链接 样式 (index-posts 列表) */
+        @apply hover:bg-primary-100/50 dark:hover:bg-primary-900/30;
+    }
+
+    &.sn-active {
+        /** 当前 active */
+        @apply bg-primary-100 dark:bg-primary-900;
+    }
+    .sn-active {
+        /** 内部 active */
+        @apply bg-primary-100 dark:bg-primary-900;
+    }
+}
+.sn-container-primary {
+    @apply bg-primary-50 dark:bg-primary-950;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-primary-200/80 dark:ring-primary-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-primary-300 dark:hover:ring-primary-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-primary-100/70 dark:hover:bg-primary-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-primary-100/70 dark:hover:bg-primary-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-primary-100 dark:bg-primary-900;
+    }
+    .sn-active {
+        @apply bg-primary-100 dark:bg-primary-900;
+    }
+}
+.sn-container-danger {
+    @apply bg-danger-50 dark:bg-danger-950;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-danger-200/80 dark:ring-danger-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-danger-300 dark:hover:ring-danger-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-danger-100/70 dark:hover:bg-danger-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-danger-100/70 dark:hover:bg-danger-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-danger-100 dark:bg-danger-900;
+    }
+    .sn-active {
+        @apply bg-danger-100 dark:bg-danger-900;
+    }
+}
+.sn-container-success {
+    @apply bg-success-50 dark:bg-success-950;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-success-200/80 dark:ring-success-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-success-300 dark:hover:ring-success-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-success-100/70 dark:hover:bg-success-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-success-100/70 dark:hover:bg-success-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-success-100 dark:bg-success-900;
+    }
+    .sn-active {
+        @apply bg-success-100 dark:bg-success-900;
+    }
+}
+.sn-container-info {
+    @apply bg-info-50 dark:bg-info-950;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-info-200/80 dark:ring-info-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-info-300 dark:hover:ring-info-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-info-100/70 dark:hover:bg-info-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-info-100/70 dark:hover:bg-info-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-info-100 dark:bg-info-900;
+    }
+    .sn-active {
+        @apply bg-info-100 dark:bg-info-900;
+    }
+}
+.sn-container-warning {
+    @apply bg-warning-50 dark:bg-warning-950;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-warning-200/80 dark:ring-warning-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-warning-300 dark:hover:ring-warning-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-warning-100/70 dark:hover:bg-warning-900/50;
+    }
+
+    .sn-link {
+        @apply hover:bg-warning-100/70 dark:hover:bg-warning-900/50;
+    }
+
+    &.sn-active {
+        @apply bg-warning-100 dark:bg-warning-900;
+    }
+    .sn-active {
+        @apply bg-warning-100 dark:bg-warning-900;
+    }
+}
+.sn-container-gray {
+    @apply bg-gray-50 dark:bg-gray-900;
+    @apply shadow-(--sn-shadow-card);
+    @apply ring-1 ring-gray-200/80 dark:ring-gray-800/60;
+    @apply rounded-(--sn-radius-card) transition-all duration-300 ease-in-out;
+
+    &.sn-hover {
+        @apply hover:shadow-(--sn-shadow-card-hover) hover:ring-gray-300 dark:hover:ring-gray-700/80;
+    }
+
+    &.sn-link {
+        @apply hover:bg-gray-100/70 dark:hover:bg-gray-800/70;
+    }
+
+    .sn-link {
+        @apply hover:bg-gray-100/70 dark:hover:bg-gray-800/70;
+    }
+
+    &.sn-active {
+        @apply bg-gray-100 dark:bg-gray-800;
+    }
+    .sn-active {
+        @apply bg-gray-100 dark:bg-gray-800;
+    }
+}
+
+/* ========== 页面骨架与间距（消费 --sn-space-* 令牌，响应式） ========== */
+
+/* 页面骨架：替代手写的 container mx-auto flex flex-col grow gap-4 my-4
+ * 区块间距与页面留白响应式（< lg gap-4/my-4，≥ lg gap-6/my-6）
+ * 左右留白防止视口 ≤ container 时内容贴边；带刘海屏安全区渐进增强 */
+.sn-page {
+    @apply container mx-auto flex flex-col grow;
+    @apply gap-(--sn-space-page) my-(--sn-space-page) sn-page-x;
+}
+
+/* 卡片内边距家族（< lg *-4，≥ lg *-6，消费 --sn-space-card）：sn-padded = 四边 */
+.sn-padded {
+    @apply p-(--sn-space-card);
+}
+.sn-pt {
+    @apply pt-(--sn-space-card);
+}
+.sn-pr {
+    @apply pr-(--sn-space-card);
+}
+.sn-pb {
+    @apply pb-(--sn-space-card);
+}
+.sn-pl {
+    @apply pl-(--sn-space-card);
+}
+.sn-px {
+    @apply px-(--sn-space-card);
+}
+.sn-py {
+    @apply py-(--sn-space-card);
+}
+
+/* 区块间距：主要视觉区块（侧栏、内容卡、banner、轮播、列表卡）之间的兄弟 gap（< lg gap-4，≥ lg gap-6） */
+.sn-gap {
+    @apply gap-(--sn-space-page);
+}
+.sn-gap-x {
+    @apply gap-x-(--sn-space-page);
+}
+.sn-gap-y {
+    @apply gap-y-(--sn-space-page);
+}
+
+/* 区块留白家族（< lg *-4，≥ lg *-6，统一消费 --sn-space-page）：sn-margin = 四边 */
+.sn-margin {
+    @apply m-(--sn-space-page);
+}
+.sn-mt {
+    @apply mt-(--sn-space-page);
+}
+.sn-mr {
+    @apply mr-(--sn-space-page);
+}
+.sn-mb {
+    @apply mb-(--sn-space-page);
+}
+.sn-ml {
+    @apply ml-(--sn-space-page);
+}
+.sn-mx {
+    @apply mx-(--sn-space-page);
+}
+.sn-my {
+    @apply my-(--sn-space-page);
+}
+
+/* ========== 列表（卡片内的列表头/行/底栏，配合 sn-container 使用） ========== */
+
+/* 列表头：左右分组两端对齐、窄屏自动换行；垂直行距与列表行共用 --sn-space-row 令牌（py-3 → py-3.5） */
+.sn-list-header {
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-2;
+    @apply px-(--sn-space-card) py-(--sn-space-row);
+    @apply border-b border-gray-200 dark:border-gray-800;
+}
+
+/* 列表头弱化底色变体（管理模式批量操作条等） */
+.sn-list-header-muted {
+    @apply bg-gray-50/50 dark:bg-gray-800/50;
+}
+
+/* 列表行：分隔线 + 响应式内边距，末行自动去分隔线 */
+.sn-list-row {
+    @apply px-(--sn-space-card) py-(--sn-space-row);
+    @apply border-b border-gray-100 dark:border-gray-800/60;
+
+    &:last-child {
+        @apply border-b-0;
+    }
+}
+
+/* 列表底栏（批量操作条等，如需吸底自行追加 sticky bottom-0） */
+.sn-list-footer {
+    @apply flex items-center gap-2 px-(--sn-space-card) py-2;
+    @apply bg-white dark:bg-gray-900;
+    @apply border-t border-gray-200 dark:border-gray-800;
+}
+
+/* "查看更多" 等次级链接统一样式 */
+.sn-link-more {
+    @apply inline-flex items-center gap-1 text-sm font-medium;
+    @apply text-primary-600 dark:text-primary-400;
+    @apply hover:text-primary-700 dark:hover:text-primary-300;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 rounded-sm;
+    @apply transition-colors duration-200 ease-in-out;
+}
+
+/* 占位图（无图时显示） - 同时支持暗黑 */
+.sn-image-placeholder {
+    @apply w-full h-full flex items-center justify-center;
+    @apply bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600;
+}
+
+/* 区块标题 - 居中 + 下划线点缀 (用于首页 section title) */
+.sn-section-title {
+    @apply relative inline-block;
+}
+.sn-section-title::after {
+    content: "";
+    @apply absolute left-0 -bottom-2 w-full h-1 rounded-full bg-primary-500 dark:bg-primary-600;
+}
+
+/* ========== 徽章/标签 ==========
+ *
+ * 设计规范对齐 Filament badge（fi-badge）：pill 形态 + 尺寸刻度 + 三种变体（soft / outline / solid）。
+ *
+ * 组合用法：sn-badge（形状 + 默认尺寸）+ 尺寸类（可选）+ 变体色类；动态色（Color::Blue 色板 / hex）
+ * 经 sn_badge_color() 解析，返回 sn-badge-dynamic* 类并注入 --sn-color-* 变量。
+ *
+ * - soft（默认浅底）：主色透明度路线（bg-{c}-500/10）——色相与主题 500 完全一致，避免色阶
+ *   插值导致的发灰感；描边 600 色 10% 混合（同 fi-badge 的 ring 规则）。
+ * - outline（描边）：透明底 + 600 色 30% 内描边。
+ * - solid（实底醒目）：实底取主题正色 500（不深于导航主题色 primary-500，避免大面积徽章
+ *   抢导航的重点）+ 文字采用白字优先策略（对比度 ≥2:1 即白字，品牌视觉权衡：徽章为短词加粗
+ *   场景，实底品牌色配白字是行业惯例；完全无障碍合规场景请用 soft / outline），仅极浅色
+ *   （yellow / lime 系）回退 950 深字。同 sn_badge_color() 的 solid 路径。
+ */
+
+/* 基础（形状 + 默认尺寸 = md：12px 文字，pill 形态；变体色类只负责颜色，形状统一由这里提供） */
+.sn-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+    @apply transition-colors duration-200 ease-in-out;
+}
+
+/* 尺寸刻度：xs(10px) / sm(11px) / 默认 md(12px) / lg(14px) */
+.sn-badge-xs {
+    @apply px-1.5 py-0 text-[10px];
+}
+.sn-badge-sm {
+    @apply px-2 py-0.5 text-[11px];
+}
+.sn-badge-lg {
+    @apply px-3 py-1.5 text-sm;
+}
+
+/* soft 变体（默认）：主色透明度浅底 + 细描边 */
+.sn-badge-primary {
+    @apply bg-primary-500/10 text-primary-700 ring-1 ring-inset ring-primary-600/10 dark:bg-primary-500/20 dark:text-primary-400 dark:ring-primary-400/10;
+}
+.sn-badge-danger {
+    @apply bg-danger-500/10 text-danger-700 ring-1 ring-inset ring-danger-600/10 dark:bg-danger-500/20 dark:text-danger-400 dark:ring-danger-400/10;
+}
+.sn-badge-success {
+    @apply bg-success-500/10 text-success-700 ring-1 ring-inset ring-success-600/10 dark:bg-success-500/20 dark:text-success-400 dark:ring-success-400/10;
+}
+.sn-badge-info {
+    @apply bg-info-500/10 text-info-700 ring-1 ring-inset ring-info-600/10 dark:bg-info-500/20 dark:text-info-400 dark:ring-info-400/10;
+}
+.sn-badge-warning {
+    @apply bg-warning-500/10 text-warning-700 ring-1 ring-inset ring-warning-600/10 dark:bg-warning-500/20 dark:text-warning-400 dark:ring-warning-400/10;
+}
+.sn-badge-gray {
+    @apply bg-gray-500/10 text-gray-700 ring-1 ring-inset ring-gray-600/10 dark:bg-gray-500/20 dark:text-gray-400 dark:ring-gray-400/10;
+}
+
+/* outline 变体：透明底 + 主色内描边 */
+.sn-badge-outline-primary {
+    @apply bg-transparent text-primary-700 ring-1 ring-inset ring-primary-600/30 dark:text-primary-400 dark:ring-primary-400/30;
+}
+.sn-badge-outline-danger {
+    @apply bg-transparent text-danger-700 ring-1 ring-inset ring-danger-600/30 dark:text-danger-400 dark:ring-danger-400/30;
+}
+.sn-badge-outline-success {
+    @apply bg-transparent text-success-700 ring-1 ring-inset ring-success-600/30 dark:text-success-400 dark:ring-success-400/30;
+}
+.sn-badge-outline-info {
+    @apply bg-transparent text-info-700 ring-1 ring-inset ring-info-600/30 dark:text-info-400 dark:ring-info-400/30;
+}
+.sn-badge-outline-warning {
+    @apply bg-transparent text-warning-700 ring-1 ring-inset ring-warning-600/30 dark:text-warning-400 dark:ring-warning-400/30;
+}
+.sn-badge-outline-gray {
+    @apply bg-transparent text-gray-700 ring-1 ring-inset ring-gray-600/30 dark:text-gray-400 dark:ring-gray-400/30;
+}
+
+/* solid 变体：实底醒目（文字色对比度预判见头部注释） */
+.sn-badge-solid-danger {
+    @apply bg-danger-500 text-white;
+}
+.sn-badge-solid-success {
+    @apply bg-success-500 text-white;
+}
+.sn-badge-solid-info {
+    @apply bg-info-500 text-white;
+}
+.sn-badge-solid-warning {
+    @apply bg-warning-500 text-white;
+}
+.sn-badge-solid-primary {
+    @apply bg-primary-500 text-white;
+}
+.sn-badge-solid-gray {
+    @apply bg-gray-500 text-white;
+}
+
+/* 动态 soft（--sn-color-bg 注入 500 色值，透明度混合保证色相与静态 soft 一致） */
+.sn-badge-dynamic {
+    background-color: color-mix(in oklab, var(--sn-color-bg) 10%, transparent);
+    color: var(--sn-color-text);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sn-color-ring) 10%, transparent);
+}
+:root.dark .sn-badge-dynamic {
+    background-color: color-mix(in oklab, var(--sn-color-dark-bg) 15%, transparent);
+    color: var(--sn-color-dark-text);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sn-color-dark-bg) 10%, transparent);
+}
+
+/* 动态 outline */
+.sn-badge-dynamic-outline {
+    background-color: transparent;
+    color: var(--sn-color-text);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sn-color-ring) 30%, transparent);
+}
+:root.dark .sn-badge-dynamic-outline {
+    color: var(--sn-color-dark-text);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sn-color-dark-bg) 30%, transparent);
+}
+
+/* 动态 solid（数组色经 PHP 端按 WCAG 3:1 精确计算文字色，--sn-color-text 已是达标色） */
+.sn-badge-dynamic-solid {
+    background-color: var(--sn-color-bg);
+    color: var(--sn-color-text);
+}
+:root.dark .sn-badge-dynamic-solid {
+    background-color: var(--sn-color-dark-bg);
+    color: var(--sn-color-dark-text);
+}
+
+/* 醒目 tab 选中态：实底 + 对比文字（变量由 sn_badge_color($color, 'solid', asVariables: true) 注入，
+ * 与 solid 徽章共用一套 --sn-color-* 变量；需叠加在 fi-tabs-item 上使用） */
+.sn-tabs-item-vivid {
+    @apply rounded-md;
+}
+.sn-tabs-item-vivid.fi-active {
+    background-color: var(--sn-color-bg);
+}
+.sn-tabs-item-vivid.fi-active .fi-tabs-item-label,
+.sn-tabs-item-vivid.fi-active > .fi-icon {
+    color: var(--sn-color-text);
+}
+:root.dark .sn-tabs-item-vivid.fi-active {
+    background-color: var(--sn-color-dark-bg);
+}
+:root.dark .sn-tabs-item-vivid.fi-active .fi-tabs-item-label,
+:root.dark .sn-tabs-item-vivid.fi-active > .fi-icon {
+    color: var(--sn-color-dark-text);
+}
+
+/* 基础 */
+.sn-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-(--sn-radius-control) font-medium;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900;
+    @apply transition-all duration-200 ease-in-out;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* 尺寸 */
+.sn-btn-sm {
+    @apply px-3 py-1.5 text-xs;
+}
+.sn-btn-md {
+    @apply px-4 py-2 text-sm;
+}
+.sn-btn-lg {
+    @apply px-6 py-3 text-base;
+}
+
+/* 实色变体（按钮是交互控件，沿用 Filament 按钮惯例：底 600 + hover 提亮 500；
+ * 与 sn-badge-solid 的正色 500 底不同——徽章是内容标注，不宜深过导航主题色；
+ * 文字统一白字，primary-600 配白 ≈3.2:1 达标） */
+.sn-btn-primary {
+    @apply bg-primary-600 text-white shadow-sm;
+    @apply hover:bg-primary-500 dark:hover:bg-primary-500;
+}
+.sn-btn-secondary {
+    @apply bg-gray-100 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-200;
+    @apply hover:bg-gray-200 dark:hover:bg-gray-700;
+}
+.sn-btn-danger {
+    @apply bg-danger-600 text-white shadow-sm;
+    @apply hover:bg-danger-500 dark:hover:bg-danger-500;
+}
+.sn-btn-success {
+    @apply bg-success-600 text-white shadow-sm;
+    @apply hover:bg-success-500 dark:hover:bg-success-500;
+}
+
+/* outline 变体 */
+.sn-btn-outline {
+    @apply ring-1 ring-gray-300 dark:ring-gray-600;
+    @apply bg-transparent text-gray-700 dark:text-gray-200;
+    @apply hover:bg-gray-50 dark:hover:bg-gray-800;
+}
+.sn-btn-outline-primary {
+    @apply ring-1 ring-primary-300 dark:ring-primary-700;
+    @apply bg-transparent text-primary-600 dark:text-primary-400;
+    @apply hover:bg-primary-50 dark:hover:bg-primary-900/30;
+}
+.sn-btn-outline-danger {
+    @apply ring-1 ring-danger-300 dark:ring-danger-700;
+    @apply bg-transparent text-danger-600 dark:text-danger-400;
+    @apply hover:bg-danger-50 dark:hover:bg-danger-900/30;
+}
+
+/* ghost 变体 */
+.sn-btn-ghost {
+    @apply bg-transparent text-gray-600 dark:text-gray-300;
+    @apply hover:bg-gray-100 dark:hover:bg-gray-800;
+}
+.sn-btn-ghost-primary {
+    @apply bg-transparent text-primary-600 dark:text-primary-400;
+    @apply hover:bg-primary-50 dark:hover:bg-primary-900/30;
+}
+.sn-btn-ghost-danger {
+    @apply bg-transparent text-danger-600 dark:text-danger-400;
+    @apply hover:bg-danger-50 dark:hover:bg-danger-900/30;
+}
+
+/* 图标按钮 */
+.sn-btn-icon {
+    @apply p-2;
+}
+.sn-btn-icon.sn-btn-sm {
+    @apply p-1.5;
+}
+.sn-btn-icon.sn-btn-lg {
+    @apply p-3;
+}
+
+/* ========== 空状态 ========== */
+
+.sn-empty {
+    @apply flex flex-col items-center justify-center px-4 py-12 text-center;
+}
+.sn-empty-icon {
+    @apply mb-4 text-gray-300 dark:text-gray-600;
+}
+.sn-empty-title {
+    @apply text-base font-semibold text-gray-700 dark:text-gray-300;
+}
+.sn-empty-description {
+    @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
+}
+
+/* 空状态图标背景圆 */
+.sn-empty-icon-bg {
+    @apply mb-4 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800;
+}
+.sn-empty-icon-bg.sn-empty-icon-sm {
+    @apply size-10;
+}
+.sn-empty-icon-bg.sn-empty-icon-md {
+    @apply size-14;
+}
+.sn-empty-icon-bg.sn-empty-icon-lg {
+    @apply size-20;
+}
+.sn-empty-icon-bg.sn-empty-icon-xl {
+    @apply size-24;
+}
+.sn-empty-icon-bg.sn-empty-icon-2xl {
+    @apply size-28;
+}
+
+/* 空状态图标颜色变体（主色透明度路线，同 sn-badge soft 规则） */
+.sn-empty-icon-bg.sn-empty-icon-primary {
+    @apply bg-primary-500/10 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400;
+}
+.sn-empty-icon-bg.sn-empty-icon-danger {
+    @apply bg-danger-500/10 text-danger-600 dark:bg-danger-500/20 dark:text-danger-400;
+}
+.sn-empty-icon-bg.sn-empty-icon-success {
+    @apply bg-success-500/10 text-success-600 dark:bg-success-500/20 dark:text-success-400;
+}
+.sn-empty-icon-bg.sn-empty-icon-info {
+    @apply bg-info-500/10 text-info-600 dark:bg-info-500/20 dark:text-info-400;
+}
+.sn-empty-icon-bg.sn-empty-icon-warning {
+    @apply bg-warning-500/10 text-warning-600 dark:bg-warning-500/20 dark:text-warning-400;
+}
+
+.sn-empty-footer {
+    @apply mt-4 text-sm text-gray-500 dark:text-gray-400;
+}
+
+.sn-empty-actions {
+    @apply mt-4 flex items-center justify-center gap-2;
+}
+
+.sn-empty.sn-compact {
+    @apply px-4 py-8;
+}
+.sn-empty.sn-compact .sn-empty-icon-bg {
+    @apply mb-3;
+}
+
+/* ========== 骨架屏 ==========
+ * 组合用法：sn-skeleton（动画 + 底色 + 默认 md 圆角）+ 修饰类（形状 / 尺寸由工具类或行内给出） */
+
+.sn-skeleton {
+    @apply animate-pulse rounded bg-gray-200 dark:bg-gray-700;
+}
+.sn-skeleton-text {
+    @apply h-4 w-full rounded;
+}
+.sn-skeleton-text:not(:last-child) {
+    @apply mb-2;
+}
+.sn-skeleton-circle {
+    @apply rounded-full;
+}
+
+/* ========== 头像 ========== */
+
+.sn-avatar {
+    @apply inline-flex size-10 items-center justify-center overflow-hidden rounded-full;
+    @apply bg-gray-200 text-sm font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400;
+}
+.sn-avatar-sm {
+    @apply size-8 text-xs;
+}
+.sn-avatar-lg {
+    @apply size-12 text-base;
+}
+.sn-avatar-xl {
+    @apply size-16 text-lg;
+}
+
+/* 头像组 */
+.sn-avatar-group {
+    @apply flex -space-x-2;
+}
+.sn-avatar-group .sn-avatar {
+    @apply ring-2 ring-white dark:ring-gray-900;
+}
+
+/* ========== 图片（非头像，圆角方形） ========== */
+
+.sn-image {
+    @apply inline-flex size-10 items-center justify-center overflow-hidden rounded-md;
+    @apply bg-gray-200 text-sm font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400;
+}
+.sn-image-sm {
+    @apply size-8 text-xs;
+}
+.sn-image-lg {
+    @apply size-12 text-base;
+}
+.sn-image-xl {
+    @apply size-16 text-lg;
+}
+
+/* 图片组 */
+.sn-image-group {
+    @apply flex -space-x-2;
+}
+.sn-image-group .sn-image {
+    @apply ring-2 ring-white dark:ring-gray-900;
+}
+
+/* ========== 焦点环 ========== */
+
+.sn-focus-ring {
+    @apply rounded-sm;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900;
+}
+
+/* ========== 文字截断 ========== */
+
+.sn-truncate {
+    @apply truncate;
+}
+.sn-truncate-2 {
+    @apply line-clamp-2;
+}
+.sn-truncate-3 {
+    @apply line-clamp-3;
+}
+.sn-truncate-4 {
+    @apply line-clamp-4;
+}
+
+/* ========== 通用过渡 ========== */
+
+.sn-transition {
+    @apply transition-all duration-300 ease-in-out;
+}
+.sn-transition-colors {
+    @apply transition-colors duration-200 ease-in-out;
+}
+.sn-transition-opacity {
+    @apply transition-opacity duration-200 ease-in-out;
+}
+.sn-transition-transform {
+    @apply transition-transform duration-300 ease-in-out;
+}
+
+/* ========== 遮罩层 ========== */
+
+.sn-overlay {
+    @apply fixed inset-0 z-40 bg-black/50 dark:bg-black/70;
+    @apply transition-opacity duration-300 ease-in-out;
+}
+
+/* ========== 自定义滚动条 ========== */
+
+.sn-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-300) transparent;
+}
+
+.dark .sn-scrollbar {
+    scrollbar-color: var(--gray-600) transparent;
+}
+
+.sn-scrollbar::-webkit-scrollbar {
+    @apply h-1.5 w-1.5;
+}
+.sn-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+}
+.sn-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-300 dark:bg-gray-600;
+}
+.sn-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* ========== 宽高比 ========== */
+
+.sn-aspect-video {
+    @apply aspect-video;
+}
+.sn-aspect-landscape {
+    @apply aspect-4/3;
+}
+.sn-aspect-square {
+    @apply aspect-square;
+}
+.sn-aspect-portrait {
+    @apply aspect-[3/4];
+}
+
+/* ========== 屏幕阅读器专用 ========== */
+
+.sn-sr-only {
+    @apply sr-only;
+}
+
