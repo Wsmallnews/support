@@ -28,7 +28,7 @@
 <div x-data="{}"
     {{ 
         $attributes->class([
-            'sn-support-alert rounded-md bg-custom-50 p-4 dark:bg-custom-400/10',
+            'sn-support-alert rounded-md bg-custom-50 p-4 dark:bg-custom-400/10 @container',
             'ring-1 ring-custom-100 dark:ring-custom-500/70' => $border,
         ])
     }}
@@ -45,7 +45,7 @@
                 />
             </div>
         @endif
-        <div class="items-center flex-1 md:flex md:justify-between space-y-3 md:space-y-0 md:gap-3">
+        <div class="items-center flex-1 @3xl:flex @3xl:justify-between space-y-3 @3xl:space-y-0 @3xl:gap-3">
             @if($title || $description)
                 <div class="space-y-0.5">
                     @if($title)

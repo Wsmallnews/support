@@ -176,7 +176,7 @@
     {{ $attributes
         ->class([
             'flex overflow-hidden',
-            'gap-2 md:gap-4 lg:gap-6' => $hasThumb,
+            'gap-2 @3xl:gap-4 @5xl:gap-6' => $hasThumb,
             $hasThumb ? match ($thumbPosition) {
                 'left' => 'flex-row-reverse',
                 'right' => 'flex-row',

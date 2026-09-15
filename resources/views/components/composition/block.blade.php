@@ -11,7 +11,7 @@
 
 @php($info = $block['extras']['componentInfo'] ?? [])
 
-<div {{ $attributes->merge(['class' => 'w-full min-w-0 flex flex-col sn-gap']) }}>
+<div {{ $attributes->merge(['class' => 'w-full min-w-0 flex flex-col sn-gap @container']) }}>
     @if (filled($info['label'] ?? null) || filled($info['description'] ?? null))
         <div class="flex flex-col gap-1">
             @if (filled($info['label'] ?? null))
