@@ -24,6 +24,7 @@ use Spatie\LaravelSettings\Events\SavingSettings;
 use Spatie\LaravelSettings\Models\SettingsProperty;
 use Wsmallnews\Support\Commands\RunScheduledTasksCommand;
 use Wsmallnews\Support\Commands\SupportInstallCommand;
+use Wsmallnews\Support\Features\Composition\CompositionRegistry;
 use Wsmallnews\Support\Features\Feed\FeedRegistry;
 use Wsmallnews\Support\Features\Search\SearchRegistry;
 use Wsmallnews\Support\Features\Seo\Seo;
@@ -57,6 +58,11 @@ class SupportServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
+        // 注册内容编排组件注册器（key = 模块标识，如插件 id；消费方经 Facade 注册/读取）
+        $this->app->singleton(CompositionRegistry::class, function (): CompositionRegistry {
+            return new CompositionRegistry;
+        });
+
         // 注册定时调度任务注册器
         $this->app->singleton(ScheduledTaskRegistry::class, function (): ScheduledTaskRegistry {
             return new ScheduledTaskRegistry;
@@ -114,6 +120,7 @@ class SupportServiceProvider extends PackageServiceProvider
             'sn_sms_log' => SupportUtils::getSmsLogModel(),
             'sn_content' => SupportUtils::getContentModel(),
             'sn_scheduled_task' => SupportUtils::getScheduledTaskModel(),
+            'sn_composition' => SupportUtils::getCompositionModel(),
             'activity' => ActivitylogConfig::activityModel(),
             'settings' => SettingsProperty::class,
         ]);
@@ -291,6 +298,7 @@ class SupportServiceProvider extends PackageServiceProvider
             'create_sn_team_settings_table',
             'create_sn_contents_table',
             'create_sn_scheduled_tasks_table',
+            'create_sn_compositions_table',
             'add_teams_fields_to_activity_log_table',
         ];
     }

@@ -76,6 +76,16 @@ class Utils
     }
 
     /**
+     * Get composition model class.
+     *
+     * @return string Models\Composition
+     */
+    public static function getCompositionModel(): string
+    {
+        return self::getModel('composition');
+    }
+
+    /**
      * Get scheduler configuration value.
      *
      * @param  string|null  $name  Configuration key under scheduler (dot notation)

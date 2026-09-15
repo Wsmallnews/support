@@ -1,0 +1,45 @@
+<?php
+
+return [
+    'resource' => [
+        'model_label' => '内容编排',
+        'plural_model_label' => '内容编排',
+        'navigation_label' => '内容编排',
+    ],
+    'status' => [
+        'draft' => '草稿',
+        'published' => '已发布',
+        'hidden' => '隐藏',
+    ],
+    'form' => [
+        'basic_info' => '基础信息',
+        'title' => '标题',
+        'title_placeholder' => '请输入编排标题',
+        'layout_section' => '版块编排',
+        'rows' => '版块（行）',
+        'add_row' => '添加版块',
+        'layout' => '分栏布局',
+        'layout_full' => '通栏',
+        'layout_left_narrow' => '左1 右2',
+        'layout_left_wide' => '左2 右1',
+        'layout_helper' => '大屏（lg 及以上）按所选比例左右分栏；小屏固定单列，按 左栏 → 右栏 顺序堆叠。通栏时仅左栏生效并占满整行',
+        'slot_left' => '左栏（通栏时为内容区）',
+        'slot_right' => '右栏（通栏布局下不渲染）',
+        'add_component' => '添加组件',
+        'component_type' => '组件类型',
+        'component_type_placeholder' => '请选择组件类型',
+        'component_label' => '标题',
+        'component_label_placeholder' => '前台展示于组件区块顶部',
+        'component_description' => '描述',
+        'component_description_placeholder' => '前台展示于标题下方',
+        'component_options' => '组件参数',
+    ],
+    'table' => [
+        'title' => '标题',
+        'order' => '排序',
+        'status' => '状态',
+        'created_at' => '创建时间',
+        'updated_at' => '更新时间',
+        'search_placeholder' => '搜索编排',
+    ],
+];

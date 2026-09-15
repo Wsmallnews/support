@@ -22,6 +22,7 @@ return [
         'content' => Models\Content::class,
         'sms_log' => Models\SmsLog::class,
         'scheduled_task' => Models\ScheduledTask::class,
+        'composition' => Models\Composition::class,
     ],
 
     /*

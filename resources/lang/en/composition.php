@@ -1,0 +1,45 @@
+<?php
+
+return [
+    'resource' => [
+        'model_label' => 'Composition',
+        'plural_model_label' => 'Compositions',
+        'navigation_label' => 'Compositions',
+    ],
+    'status' => [
+        'draft' => 'Draft',
+        'published' => 'Published',
+        'hidden' => 'Hidden',
+    ],
+    'form' => [
+        'basic_info' => 'Basic Info',
+        'title' => 'Title',
+        'title_placeholder' => 'Enter composition title',
+        'layout_section' => 'Section Layout',
+        'rows' => 'Rows',
+        'add_row' => 'Add Row',
+        'layout' => 'Column Layout',
+        'layout_full' => 'Full Width',
+        'layout_left_narrow' => '1 : 2',
+        'layout_left_wide' => '2 : 1',
+        'layout_helper' => 'On large screens (lg+) columns split by the chosen ratio; below lg everything stacks in a single column (left column first). Full width renders only the left column across the whole row',
+        'slot_left' => 'Left Column (content area when full width)',
+        'slot_right' => 'Right Column (not rendered in full width)',
+        'add_component' => 'Add Component',
+        'component_type' => 'Component Type',
+        'component_type_placeholder' => 'Select a component type',
+        'component_label' => 'Title',
+        'component_label_placeholder' => 'Shown above the component block on the frontend',
+        'component_description' => 'Description',
+        'component_description_placeholder' => 'Shown under the title on the frontend',
+        'component_options' => 'Component Options',
+    ],
+    'table' => [
+        'title' => 'Title',
+        'order' => 'Order',
+        'status' => 'Status',
+        'created_at' => 'Created At',
+        'updated_at' => 'Updated At',
+        'search_placeholder' => 'Search compositions',
+    ],
+];

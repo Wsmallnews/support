@@ -1,0 +1,42 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('sn_compositions', function (Blueprint $table) {
+            $table->comment('内容编排');
+            $table->engine = 'InnoDB';
+            $table->id();
+            $table->unsignedBigInteger('team_id')->nullable()->comment('团队ID');
+            $table->string('scope_type', 60)->nullable()->comment('范围类型');
+            $table->unsignedBigInteger('scope_id')->default(0)->comment('范围');
+
+            $table->string('title')->nullable()->comment('标题');
+            $table->json('components')->nullable()->comment('编排组件（行式布局：[{layout, left, right}]）');
+            $table->json('options')->nullable()->comment('选项');
+            $table->string('status')->nullable()->comment('状态');
+            $table->unsignedInteger('order_column')->nullable()->comment('排序');
+            $table->timestamps();
+            $table->softDeletes();
+            $table->index('team_id');
+            $table->index(['scope_type', 'scope_id']);
+            $table->index('order_column');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('sn_compositions');
+    }
+};

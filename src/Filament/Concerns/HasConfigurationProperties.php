@@ -63,6 +63,12 @@ trait HasConfigurationProperties
 
     protected int | Closure | null $scopeId = null;
 
+    /**
+     * 模块标识（插件 id）：资源归属的消费模块，用于模块级注册表（如 CompositionRegistry）寻址。
+     * 与 scopeType 正交——scope 管数据隔离，module 管能力来源
+     */
+    protected string | Closure | null $moduleId = null;
+
     protected array $customProperties = [];
 
     public function navigationGroup(string | UnitEnum | Closure | null $group): static
@@ -395,6 +401,22 @@ trait HasConfigurationProperties
     public function getScopeId(): ?int
     {
         return $this->evaluate($this->scopeId);
+    }
+
+    // ========================================================================
+    // Module setters & getters
+    // ========================================================================
+
+    public function moduleId(string | Closure | null $moduleId): static
+    {
+        $this->moduleId = $moduleId;
+
+        return $this;
+    }
+
+    public function getModuleId(): ?string
+    {
+        return $this->evaluate($this->moduleId);
     }
 
     // ========================================================================

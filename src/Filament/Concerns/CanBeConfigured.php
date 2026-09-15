@@ -157,6 +157,15 @@ trait CanBeConfigured
         return static::getConfigurationValue('scopeId') ?? (static::getCurrentPlugin()?->getScopeId() ?? 0);
     }
 
+    /**
+     * 资源归属的消费模块标识（插件 id）：用于模块级注册表（如 CompositionRegistry）寻址。
+     * 零代码注册路径经配置条目 module_id 显式声明；继承路径自动取所属插件 id，均未声明时为 null
+     */
+    public static function getModuleId(): ?string
+    {
+        return static::getConfigurationValue('moduleId') ?? static::getCurrentPlugin()?->getId();
+    }
+
     // ========================================================================
     // Core resolution
     // ========================================================================
