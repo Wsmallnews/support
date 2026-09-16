@@ -28,6 +28,38 @@
     @apply group-hover:scale-110;
 }
 
+/* 全局键盘焦点环：统一替代浏览器默认黑色 outline（保留 Tab 可见性，只换主题色外观）。
+    仅覆盖元素级选择器，Filament 等组件库自带的 focus 样式（类选择器）优先级更高，不受影响。
+    行式链接（inset ring 不撑布局/不遮挡相邻）；需要显式声明的特殊场景用 .sn-focus */
+@layer base {
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    [tabindex]:focus-visible {
+        @apply outline-none ring-2 ring-inset ring-primary-500;
+    }
+}
+
+/* 可聚焦元素的统一焦点环（inset 版），供非 a/button 的可点击元素（div role="button" 等）显式使用；
+    a/button/[tabindex] 已由上面的 base 规则自动覆盖，sn-link 挂在 a/button 上即自动生效 */
+.sn-focus {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500;
+}
+
+/* 颜色过渡通用配置（200ms + 尊重减少动画偏好）：sn-link 已内置，无需重复手写；
+    非 sn-link 的文字链接等需要颜色过渡的元素显式使用 */
+.sn-motion-colors {
+    @apply transition-colors duration-200 motion-reduce:transition-none;
+}
+
+/* sn-link = 可点击链接行的完整交互样式：hover 背景 + 颜色过渡（此处统一）+ 焦点环（base 层）。
+    hover 背景顶层化——不依赖 sn-container 祖先，无容器（嵌套进外部容器）时行仍有 hover 反馈；
+    彩色容器（sn-container-primary/danger/...）内的主题色 hover 由各自的嵌套规则覆盖（特异性更高） */
+.sn-link {
+    @apply hover:bg-primary-100/50 dark:hover:bg-primary-900/30;
+    @apply transition-colors duration-200 motion-reduce:transition-none;
+}
+
 /* ========== L2 原子基元（单一职责） ==========
  * 消费 tokens.css 设计令牌；既可在 HTML 中直接使用（支持 hover:/md: 等变体），
  * 也可被下方聚合类 @apply 组合。 */

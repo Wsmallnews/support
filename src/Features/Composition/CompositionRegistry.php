@@ -12,6 +12,12 @@ use Illuminate\Support\Collection;
  * key = 模块标识（插件 id，如 sn-cms），与数据 scope 正交——scope 管编排数据隔离
  * （scope_type/scope_id），module 管组件由哪个模块提供；派生 scope（如 sn-cms-footer）
  * 不参与注册表寻址。支持多模块实例（模块名 = 插件 ID，互不污染）。
+ *
+ * typeInfo 可选的上下文元数据（CompositionRenderer 构建期注入，行内左→右流动、跨行隔离）：
+ * - provides => fn (array $extras): array —— 上下文提供者：从自身 extras 计算产物并入行上下文袋
+ *   （如 post-detail 提供 ['post' => PostModel]），供同行后续组件消费；
+ * - context  => ['post', ...] —— 上下文消费者：声明的键在自身 extras 未显式配置时从袋子注入
+ *   （extras 显式配置优先）。页面级种子经 resolveRows(..., $pageContext) 传入，每行可用。
  */
 class CompositionRegistry
 {

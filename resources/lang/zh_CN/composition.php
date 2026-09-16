@@ -32,6 +32,10 @@ return [
         'component_label_placeholder' => '前台展示于组件区块顶部',
         'component_description' => '描述',
         'component_description_placeholder' => '前台展示于标题下方',
+        'show_header' => '显示标题描述',
+        'show_header_helper' => '关闭后前台不渲染块头，标题与描述仅用于后台区分条目',
+        'contained' => '显示外层容器',
+        'contained_helper' => '关闭后组件无卡片背景直接铺开（组件需支持 CanBeContained）',
         'component_options' => '组件参数',
     ],
     'table' => [

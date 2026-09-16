@@ -36,9 +36,10 @@ class CompositionRenderer
      *
      * @param  array|null  $rows  Composition.components
      * @param  string  $module  模块标识（插件 id），CompositionRegistry 注册 key
+     * @param  array  $pageContext  页面级上下文种子（如详情页注入的当前文章），每行可用
      * @return array 可渲染行结构
      */
-    public static function resolveRows(?array $rows, string $module): array
+    public static function resolveRows(?array $rows, string $module, array $pageContext = []): array
     {
         $resolved = [];
 
@@ -46,10 +47,13 @@ class CompositionRenderer
             // 未知布局回退通栏，保证数据异常时仍可渲染
             $layout = in_array($row['layout'] ?? null, self::LAYOUTS, true) ? $row['layout'] : self::LAYOUT_FULL;
 
+            // 行上下文袋：以页面上下文为种子，槽内按序（左→右）流动，行末丢弃（跨行隔离）
+            $context = $pageContext;
+
             $resolved[] = [
                 'layout' => $layout,
-                'left' => self::resolveSlot($row['left'] ?? [], $module),
-                'right' => self::resolveSlot($row['right'] ?? [], $module),
+                'left' => self::resolveSlot($row['left'] ?? [], $module, $context),
+                'right' => self::resolveSlot($row['right'] ?? [], $module, $context),
             ];
         }
 
@@ -57,9 +61,13 @@ class CompositionRenderer
     }
 
     /**
-     * 解析单个槽（left/right）内的组件清单；未注册的组件类型整项跳过
+     * 解析单个槽（left/right）内的组件清单；未注册的组件类型整项跳过。
+     * 槽内按序处理上下文：先消费（声明 context 的条目从袋子注入缺失键，extras 显式配置优先），
+     * 再解析组件，最后提供（声明 provides 的条目把计算结果并入袋子，供后续条目使用）
+     *
+     * @param  array  $context  行上下文袋（引用传递，左槽的提供物会流到右槽）
      */
-    protected static function resolveSlot(array $items, string $module): array
+    protected static function resolveSlot(array $items, string $module, array &$context): array
     {
         $resolved = [];
 
@@ -74,7 +82,21 @@ class CompositionRenderer
                 continue;
             }
 
-            $resolved = array_merge($resolved, self::resolveComponents($typeInfo, $item));
+            // 消费：extras 已显式配置的键不被覆盖
+            $extras = $item['extras'] ?? [];
+            foreach ($typeInfo['context'] ?? [] as $contextKey) {
+                if (! array_key_exists($contextKey, $extras) && array_key_exists($contextKey, $context)) {
+                    $extras[$contextKey] = $context[$contextKey];
+                }
+            }
+
+            $resolved = array_merge($resolved, self::resolveComponents($typeInfo, [...$item, 'extras' => $extras]));
+
+            // 提供：闭包接收注入后的 extras，返回键值数组并入袋子（空数组安全）
+            if (isset($typeInfo['provides'])) {
+                $provided = app()->call($typeInfo['provides'], ['extras' => $extras]) ?? [];
+                $context = array_merge($context, $provided);
+            }
         }
 
         return $resolved;
@@ -93,7 +115,11 @@ class CompositionRenderer
             'type' => $item['type'],
             'label' => $item['label'] ?? null,
             'description' => $item['description'] ?? null,
+            'show_header' => (bool) ($item['show_header'] ?? true),
         ];
+
+        // 外层容器开关：透传给组件的 contained 属性（use CanBeContained 的组件生效，未声明的组件忽略此参数）
+        $extras['contained'] = (bool) ($item['contained'] ?? true);
 
         $mapped = Arr::map($currentComponents, function ($currentComponent, $key) use ($extras) {
             if (is_scalar($currentComponent)) {

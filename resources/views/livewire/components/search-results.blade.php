@@ -36,7 +36,10 @@
         </x-filament::input.wrapper>
     </div>
 
-    <div class="sn-container w-full">
+    <div @class([
+        'w-full',
+        'sn-container' => $contained,
+    ])>
         @if (trim((string) $query) !== '')
             @include('sn-support::livewire.components.search-results-list', ['stickyGroupHeader' => false])
         @else

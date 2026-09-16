@@ -165,7 +165,7 @@ return $table
 
 **组件规范**：
 
-- status 一律 `FormComponents::statusToggleButtons(XxxStatus::class)`（= `ToggleButtons::make('status')->inline()->grouped()->options($enum)->default(枚举第一 case)`）；**禁止** Radio / Select 做状态字段。
+- status 及其他 enum 开关字段一律 `FormComponents::enumsToggleButtons(XxxEnum::class)`（= `ToggleButtons::make($field)->inline()->grouped()->options($enum)->default(枚举第一 case)`，label 默认「状态」）；**禁止** Radio / Select 做状态字段；非 status 语义的 enum（性别、类型等）在外层 `->label()` 覆盖。
 - order_column 一律 `FormComponents::orderColumnInput()`。
 - 两个工厂的 label 已内置通用翻译（「状态」「排序」）：**label 与默认一致时不要再 `->label()` 自定义，也不必新增语言包 key**；仅语义不同时（如「导航状态」）才覆盖。
 

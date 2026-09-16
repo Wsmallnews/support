@@ -373,7 +373,7 @@ class ActionComponents
                         ->label($label)
                         ->options($enumClass)
                         ->disableOptionWhen(fn ($value): bool => $value === $currentValue->value)
-                        ->required()->grouped(),
+                        ->required()->inline()->grouped(),
                 ];
             })
             ->modalWidth(Width::TwoExtraLarge)

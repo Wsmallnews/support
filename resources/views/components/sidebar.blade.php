@@ -28,7 +28,6 @@
             <a @class([
                     'sn-link sn-descript-text sn-hover',
                     'flex w-full min-h-11 py-2 justify-between items-center px-4 gap-2 group',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500',
                     'sn-active' => $isActive,
                 ])
                 role="menuitem"

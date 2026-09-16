@@ -6,6 +6,7 @@ use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Url;
 use Wsmallnews\Support\Facades\Search as SearchFacade;
 use Wsmallnews\Support\Livewire\Base;
+use Wsmallnews\Support\Livewire\Concerns\CanBeContained;
 
 /**
  * 搜索结果页核心组件（sn-support::components.search-results）。
@@ -23,6 +24,8 @@ use Wsmallnews\Support\Livewire\Base;
  */
 class SearchResults extends Base
 {
+    use CanBeContained;
+
     /**
      * 关键词，与地址栏 ?q= 双向同步
      */

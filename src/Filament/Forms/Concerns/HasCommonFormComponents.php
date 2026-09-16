@@ -5,21 +5,23 @@ namespace Wsmallnews\Support\Filament\Forms\Concerns;
 use Filament\Forms;
 
 /**
- * 状态 / 排序基础字段工厂
+ * 公共表单组件工厂
  *
- * 统一状态字段（ToggleButtons）与 order_column 字段（TextInput）的组件形态，
+ * 统一 enum 开关（ToggleButtons）与 order_column 字段（TextInput）的组件形态，
  * 配套规范见 boost guidelines「Filament Resource 风格统一」。
  */
-trait HasStatusAndOrderComponents
+trait HasCommonFormComponents
 {
     /**
-     * 创建状态 ToggleButtons 组件（inline + grouped，options 取枚举，默认第一个 case）
+     * 创建 enum ToggleButtons 组件（inline + grouped，options 取枚举，默认第一个 case）
      *
-     * @param  class-string<\BackedEnum>  $enumClass  状态枚举类名
+     * 主要用于状态字段（label 默认「状态」），其他 enum 场景（性别、类型等）在外层 ->label() 覆盖
+     *
+     * @param  class-string<\BackedEnum>  $enumClass  枚举类名
      * @param  string  $field  字段名称
      * @param  string | null  $label  字段标签，缺省取翻译
      */
-    public static function statusToggleButtons(string $enumClass, string $field = 'status', ?string $label = null): Forms\Components\ToggleButtons
+    public static function enumsToggleButtons(string $enumClass, string $field = 'status', ?string $label = null): Forms\Components\ToggleButtons
     {
         return Forms\Components\ToggleButtons::make($field)
             ->label($label ?? __('sn-support::support.form_components.status.label'))

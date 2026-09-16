@@ -8,7 +8,6 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
-use Illuminate\Support\Str;
 use Livewire\Component;
 use Wsmallnews\Support\Enums\CompositionStatus;
 use Wsmallnews\Support\Facades\CompositionRegistry;
@@ -36,7 +35,7 @@ class CompositionForm
                     ->placeholder(__('sn-support::composition.form.title_placeholder'))
                     ->required(),
                 FormComponents::orderColumnInput(),
-                FormComponents::statusToggleButtons(CompositionStatus::class),
+                FormComponents::enumsToggleButtons(CompositionStatus::class),
             ])->columns(2)->columnSpanFull(),
 
             Schemas\Components\Section::make(__('sn-support::composition.form.layout_section'))
@@ -87,14 +86,14 @@ class CompositionForm
 
             Schemas\Components\Grid::make(3)->schema([
                 static::slotRepeater('left', __('sn-support::composition.form.slot_left'), $moduleId)
-                    ->columnSpan(fn (Get $get) => match ($get('../layout')) {
+                    ->columnSpan(fn (Get $get) => match ($get('layout')) {
                         CompositionRenderer::LAYOUT_LEFT_NARROW => 1,
                         CompositionRenderer::LAYOUT_LEFT_WIDE => 2,
                         default => 'full',
                     }),
 
                 static::slotRepeater('right', __('sn-support::composition.form.slot_right'), $moduleId)
-                    ->columnSpan(fn (Get $get) => match ($get('../layout')) {
+                    ->columnSpan(fn (Get $get) => match ($get('layout')) {
                         CompositionRenderer::LAYOUT_LEFT_NARROW => 2,
                         CompositionRenderer::LAYOUT_LEFT_WIDE => 1,
                         default => 'full',
@@ -127,8 +126,6 @@ class CompositionForm
      */
     protected static function componentItems(?string $moduleId): array
     {
-        $uuid = Str::uuid();
-
         return [
             Forms\Components\Select::make('type')
                 ->label(__('sn-support::composition.form.component_type'))
@@ -136,16 +133,24 @@ class CompositionForm
                 ->options(fn (): array => filled($moduleId) ? CompositionRegistry::getTypesOptions($moduleId) : [])
                 ->live()
                 ->required()
-                ->afterStateUpdated(function (Forms\Components\Select $component, $state, Set $set) use ($uuid, $moduleId) {
+                ->afterStateUpdated(function (Get $get, Set $set, Component $livewire) use ($moduleId) {
                     // 默认设置内容类型 label
-                    $set('label', filled($moduleId) ? (CompositionRegistry::getTypesOptions($moduleId)[$state] ?? '') : '');
+                    $set('label', filled($moduleId) ? (CompositionRegistry::getTypesOptions($moduleId)[$get('type')] ?? '') : '');
 
-                    // 填充组件特定字段
-                    return $state && $component
-                        ->getContainer()
-                        ->getComponent('dynamicExtrasFields_' . $uuid)       // 当 dynamicExtrasFields visible = false, 也就是不可见时， 这里获取的是 null
-                        ?->getChildSchema()
-                        ->fill();
+                    // 官方文档的动态字段模式（live Select + schema 闭包，见 extras Fieldset）在本场景缺一环：
+                    // 注册表字段挂在 statePath('extras') 容器下且嵌于双层 Repeater，切类型/新建条目时 extras 为 null，
+                    // 前端 entangle 无法在 null 上写字段键（实测选中值丢失、保存报 required）。
+                    // 这里按新类型的注册表单显式初始化 extras（字段名为键 + 默认值），同时清除旧类型的残留参数
+                    $fields = filled($moduleId) && filled($get('type'))
+                        ? CompositionRegistry::getTypeForms($moduleId, $get('type'), ['fields' => $livewire->data])
+                        : [];
+                    $extras = [];
+                    foreach ($fields as $field) {
+                        $extras[$field->getName()] = $field->getDefaultState();
+                    }
+                    if ($extras !== []) {
+                        $set('extras', $extras);
+                    }
                 }),
 
             Forms\Components\TextInput::make('label')
@@ -158,6 +163,23 @@ class CompositionForm
                 ->live(onBlur: true)
                 ->placeholder(__('sn-support::composition.form.component_description_placeholder')),
 
+            // 前台显示设置：块头（标题/描述）与外层容器均可按条目关闭（标题/描述保留在后台用于区分条目）
+            Forms\Components\ToggleButtons::make('show_header')
+                ->label(__('sn-support::composition.form.show_header'))
+                ->boolean()
+                ->default(true)
+                ->inline()
+                ->grouped()
+                ->helperText(__('sn-support::composition.form.show_header_helper')),
+
+            Forms\Components\ToggleButtons::make('contained')
+                ->label(__('sn-support::composition.form.contained'))
+                ->boolean()
+                ->default(true)
+                ->inline()
+                ->grouped()
+                ->helperText(__('sn-support::composition.form.contained_helper')),
+
             Schemas\Components\Fieldset::make('extras')
                 ->label(__('sn-support::composition.form.component_options'))
                 ->schema(function (Get $get, Component $livewire) use ($moduleId) {
@@ -168,10 +190,10 @@ class CompositionForm
                     // 选了内容类型，并且内容类型有 form 表单
                     return filled($moduleId) && filled($get('type')) && $hasForms;
                 })
-                ->columns(['md' => 2])
+                ->columns(1)          // 单列：编排槽位有宽有窄（左一右二），管理表单列数无容器查询，两列会把窄槽里的选择器挤成半列
                 ->columnSpanFull()
                 ->statePath('extras')
-                ->key('dynamicExtrasFields_' . $uuid),
+                ->key('dynamicExtrasFields'),    // 固定相对 key：绝对 key 自动拼条目 uuid（跨请求稳定），随机 uuid 会导致下拉往返时 DOM 重建、闪关
         ];
     }
 

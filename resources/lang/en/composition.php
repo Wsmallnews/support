@@ -32,6 +32,10 @@ return [
         'component_label_placeholder' => 'Shown above the component block on the frontend',
         'component_description' => 'Description',
         'component_description_placeholder' => 'Shown under the title on the frontend',
+        'show_header' => 'Show Title and Description',
+        'show_header_helper' => 'When off, the block header is not rendered on the frontend; title and description are only used to identify the item in the panel',
+        'contained' => 'Show Outer Container',
+        'contained_helper' => 'When off, the component renders without the card wrapper (the component must use CanBeContained)',
         'component_options' => 'Component Options',
     ],
     'table' => [
