@@ -42,7 +42,7 @@
         @endforeach
     </div>
 @empty
-    <x-sn-support::empty-state
+    <x-sn-support::empty
         :contained="false"
         icon="heroicon-m-magnifying-glass"
         icon-color="gray"

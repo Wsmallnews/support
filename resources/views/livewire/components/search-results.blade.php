@@ -43,9 +43,7 @@
         @if (trim((string) $query) !== '')
             @include('sn-support::livewire.components.search-results-list', ['stickyGroupHeader' => false])
         @else
-            <div class="px-4 py-16 text-center sn-descript-text">
-                {{ __('sn-support::search.results_tip') }}
-            </div>
+            <x-sn-support::empty :description="__('sn-support::search.results_tip')" :contained="false" />
         @endif
     </div>
 </div>
