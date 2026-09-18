@@ -121,6 +121,9 @@ class CompositionRenderer
         // 外层容器开关：透传给组件的 contained 属性（use CanBeContained 的组件生效，未声明的组件忽略此参数）
         $extras['contained'] = (bool) ($item['contained'] ?? true);
 
+        // 编排块标记：块内组件声明 embedded 属性后可据此让渡页面级职责（如 SEO 归路由页所有）
+        $extras['embedded'] = true;
+
         $mapped = Arr::map($currentComponents, function ($currentComponent, $key) use ($extras) {
             if (is_scalar($currentComponent)) {
                 return [

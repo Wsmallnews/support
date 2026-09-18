@@ -577,10 +577,36 @@
 
 /* 页面骨架：替代手写的 container mx-auto flex flex-col grow gap-4 my-4
  * 区块间距与页面留白响应式（< lg gap-4/my-4，≥ lg gap-6/my-6）
- * 左右留白防止视口 ≤ container 时内容贴边；带刘海屏安全区渐进增强 */
+ * 左右留白防止视口 ≤ container 时内容贴边；带刘海屏安全区渐进增强
+ * sn-page 只由页面骨架渲染（页面级容器，承载 brothers/侧栏分栏）；页面内容用 sn-content */
 .sn-page {
-    @apply container mx-auto flex flex-col grow;
+    /* relative z-1：@container 的 layout containment 会创建 stacking context，把内部浮层
+       （下拉 z-30 等）圈在 sn-page 内；提升自身层级保证整体（含浮层）稳压 DOM 靠后的
+       正常流元素（footer）。普通流中无重叠，不影响既有视觉 */
+    @apply container mx-auto flex flex-col grow @container relative z-1;
     @apply gap-(--sn-space-page) my-(--sn-space-page) sn-page-x;
+}
+
+/* 页面内容容器（sn-page 内的主列/独占内容）：内容间 gap + 纵向撑满，不带宽度对齐与页面留白
+ * （由外层 sn-page 或分栏结构承担）；自带 @container——内容级响应式一律用容器断点（@md:/@lg: 等），
+ * 使有无侧栏（宽度变化）时断点行为一致（视口断点在侧栏场景会提前触发挤压） */
+.sn-content {
+    @apply flex flex-col grow gap-(--sn-space-page) @container;
+}
+
+/* 响应式分栏容器（sn-content 内的侧栏 + 主列布局）：窄容器上下堆叠（flex，侧栏 DOM 在前 = 堆叠时在上），
+ * 宽容器左右分栏（grid 1:3，更宽 1:4）。侧栏列直接 w-full min-w-0，主列用 .sn-split-main。
+ * 断点为容器断点的留白补偿刻度（sn-page-x 留白 3rem 后取标准档，视口 lg/xl 原位触发）：
+ * @4xl(56rem)≈视口 lg、@6xl(72rem)≈视口 xl */
+.sn-split {
+    @apply w-full flex flex-col items-start gap-(--sn-space-page);
+    @apply @4xl:grid @4xl:grid-cols-4 @6xl:grid-cols-5;
+}
+
+/* 分栏主列：窄容器全宽堆叠，宽容器占 3/4 格（@6xl 起 4/5 格） */
+.sn-split-main {
+    @apply w-full min-w-0;
+    @apply @4xl:col-span-3 @6xl:col-span-4;
 }
 
 /* 卡片内边距家族（< lg *-4，≥ lg *-6，消费 --sn-space-card）：sn-padded = 四边 */

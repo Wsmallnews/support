@@ -121,6 +121,7 @@ class SupportServiceProvider extends PackageServiceProvider
             'sn_content' => SupportUtils::getContentModel(),
             'sn_scheduled_task' => SupportUtils::getScheduledTaskModel(),
             'sn_composition' => SupportUtils::getCompositionModel(),
+            'sn_page' => SupportUtils::getPageModel(),
             'activity' => ActivitylogConfig::activityModel(),
             'settings' => SettingsProperty::class,
         ]);
@@ -299,6 +300,7 @@ class SupportServiceProvider extends PackageServiceProvider
             'create_sn_contents_table',
             'create_sn_scheduled_tasks_table',
             'create_sn_compositions_table',
+            'create_sn_pages_table',
             'add_teams_fields_to_activity_log_table',
         ];
     }

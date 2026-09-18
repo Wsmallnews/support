@@ -86,6 +86,16 @@ class Utils
     }
 
     /**
+     * Get page model class.
+     *
+     * @return string Models\Page
+     */
+    public static function getPageModel(): string
+    {
+        return self::getModel('page');
+    }
+
+    /**
      * Get scheduler configuration value.
      *
      * @param  string|null  $name  Configuration key under scheduler (dot notation)

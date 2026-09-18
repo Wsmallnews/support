@@ -23,6 +23,7 @@ return [
         'sms_log' => Models\SmsLog::class,
         'scheduled_task' => Models\ScheduledTask::class,
         'composition' => Models\Composition::class,
+        'page' => Models\Page::class,
     ],
 
     /*
