@@ -6,7 +6,6 @@ use Filament\Forms;
 use Filament\Schemas;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Unique;
 use Livewire\Component;
 use Wsmallnews\Support\Enums\PageStatus;
