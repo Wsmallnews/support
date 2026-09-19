@@ -6,8 +6,7 @@ use Filament\Forms;
 use Filament\Schemas;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rules\Unique;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
 use Wsmallnews\Support\Enums\PageStatus;
 use Wsmallnews\Support\Filament\Forms\FormComponents;
@@ -34,13 +33,16 @@ class PageForm
                 Forms\Components\TextInput::make('slug')->label(__('sn-support::page.form.slug'))
                     ->required()
                     ->maxLength(100)
-                    ->unique(ignoreRecord: true, modifyRuleUsing: fn (Unique $rule) => $rule->whereNull('deleted_at'))
+                    ->scopedUnique(modifyQueryUsing: function (Builder $query, Component $livewire): Builder {
+                        return $query->scopeable($livewire::getScopeType(), $livewire::getScopeId());
+                    })
                     ->helperText(__('sn-support::page.form.slug_helper')),
 
                 FormComponents::orderColumnInput(),
                 FormComponents::enumsToggleButtons(PageStatus::class),
 
-                // 绑定编排（可选高级模式）：前台页面渲染该编排的组件行；未绑定时直接编辑下方页面内容，两者互斥
+                // 绑定编排（可选高级模式）：前台页面渲染该编排的组件行；未绑定时直接编辑下方页面内容，两者互斥。
+                // 仅列通用展示编排（purpose 为空）；槽位专用编排（如 post-sidebar）归用途寻址，不进页面绑定
                 Forms\Components\Select::make('composition_id')->label(__('sn-support::page.form.composition'))
                     ->options(function (Component $livewire): array {
                         // 资源页面（CreatePage/EditPage）均 use Pages\Scopeable，直接读取（与 NavigationForm 同模式）
@@ -49,6 +51,7 @@ class PageForm
                         return SupportUtils::getCompositionModel()::query()
                             ->where('scope_type', $scopeable['scope_type'] ?? null)
                             ->where('scope_id', $scopeable['scope_id'] ?? 0)
+                            ->whereNull('purpose')
                             ->orderBy('order_column')
                             ->pluck('title', 'id')
                             ->all();

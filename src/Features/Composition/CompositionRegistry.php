@@ -28,9 +28,26 @@ class CompositionRegistry
      */
     protected Collection $modules;
 
+    /**
+     * 已注册的编排用途槽位：[module => Collection<purpose, meta>]
+     *
+     * meta 结构（经 normalizePurposeMeta 归一化）：
+     * - label：槽位显示标签（string|Closure，消费时求值），后台 purpose 下拉用
+     * - positions：[位置值 => 标签(string|Closure)]，标准位置（left/right/top/bottom）自动生成
+     *   support 翻译键闭包，自定义位置注册时以 '值' => '标签|翻译键|闭包' 提供
+     * - default：默认位置（未声明时取 positions 首个）
+     * - layout_mode：?string 显式布局模式（未声明按位置语义推导，见 getLayoutMode）
+     * - context：?Closure(array $params, array $scopeable): array<string, mixed> —— pageContext 提供者，
+     *   把调用方路由参数（如 ['slug' => ...]）映射为页面级上下文（供构建期上下文注入）
+     *
+     * @var Collection<string, Collection<string, array>>
+     */
+    protected Collection $purposes;
+
     public function __construct()
     {
         $this->modules = collect();
+        $this->purposes = collect();
     }
 
     /**
@@ -103,6 +120,143 @@ class CompositionRegistry
         return $this->getTypes($module)->mapWithKeys(function ($typeInfo) {
             return [$typeInfo['type'] => $typeInfo['label']];
         })->toArray();
+    }
+
+    /**
+     * 注册模块的编排用途槽位，重复注册：数组形态整体替换、字符串形态仅覆盖标签（保留既有 meta）
+     *
+     * label / 自定义位置标签接受 string | Closure：闭包（fn () => __('...')）在消费时求值，
+     * 推荐写法——与全库「翻译键留在注册处、调用时 __()」的习惯一致且无 boot 顺序竞态。
+     * layout_mode：'stack'（单列堆叠，侧栏类槽位）| 'rows'（行式分栏）——未声明时按位置语义推导
+     * （左/右 = stack，上/下 = rows），自定义位置建议显式声明。
+     *
+     * @param  string  $module  模块标识（插件 id）
+     * @param  array<string, string|array{label: string|Closure, positions?: array, default?: string, layout_mode?: string, context?: Closure}>  $purposes
+     */
+    public function registerPurposes(string $module, array $purposes): static
+    {
+        $metas = $this->getPurposesMeta($module);
+
+        foreach ($purposes as $purpose => $meta) {
+            if (is_string($meta) && ($existing = $metas->get($purpose))) {
+                $metas->put($purpose, [...$existing, 'label' => $meta]);
+
+                continue;
+            }
+
+            $metas->put($purpose, $this->normalizePurposeMeta(is_string($meta) ? ['label' => $meta] : $meta));
+        }
+
+        $this->purposes->put($module, $metas);
+
+        return $this;
+    }
+
+    /**
+     * 获取指定模块的用途槽位选项（值 => 已解析标签），供后台编排表单 purpose 下拉
+     *
+     * @return Collection<string, string>
+     */
+    public function getPurposes(string $module): Collection
+    {
+        return $this->getPurposesMeta($module)->map(fn (array $meta) => $this->resolveLabel($meta['label']));
+    }
+
+    /**
+     * 获取指定模块的指定用途槽位元数据（label/positions 标签均已求值为字符串）
+     *
+     * @return array|null{label: string, positions: array<string, string>, default: ?string, layout_mode: ?string, context: ?Closure} 槽位 meta，未注册返回 null
+     */
+    public function getPurpose(string $module, string $purpose): ?array
+    {
+        $meta = $this->getPurposesMeta($module)->get($purpose);
+
+        if (! $meta) {
+            return null;
+        }
+
+        return [...$meta,
+            'label' => $this->resolveLabel($meta['label']),
+            'positions' => collect($meta['positions'])->map(fn ($spec) => $this->resolveLabel($spec))->all(),
+        ];
+    }
+
+    /**
+     * 槽位的编辑布局模式：meta 显式声明的 layout_mode 优先；未声明时按位置语义推导
+     * （左/右 = 窄栏堆叠，上/下 = 全宽行式）。无槽位（通用编排）不渲染位置字段，恒为行式；
+     * position 为空时回退槽位默认位置（单位置槽位隐藏位置字段）
+     */
+    public function getLayoutMode(string $module, ?string $purpose, ?string $position): string
+    {
+        $meta = filled($purpose) ? $this->getPurpose($module, $purpose) : null;
+
+        if (filled($meta['layout_mode'] ?? null) && in_array($meta['layout_mode'], [CompositionRenderer::LAYOUT_MODE_STACK, CompositionRenderer::LAYOUT_MODE_ROWS], true)) {
+            return $meta['layout_mode'];
+        }
+
+        if (blank($meta)) {
+            return CompositionRenderer::LAYOUT_MODE_ROWS;
+        }
+
+        $position ??= $meta['default'];
+
+        return in_array($position, [CompositionRenderer::POSITION_LEFT, CompositionRenderer::POSITION_RIGHT], true)
+            ? CompositionRenderer::LAYOUT_MODE_STACK
+            : CompositionRenderer::LAYOUT_MODE_ROWS;
+    }
+
+    protected function getPurposesMeta(string $module): Collection
+    {
+        return $this->purposes->get($module, collect());
+    }
+
+    /**
+     * 求值标签：闭包在消费时调用（规避 provider boot 顺序导致的跨包翻译竞态），
+     * 字符串过 __()（翻译键或纯文本均可）
+     */
+    protected function resolveLabel(string | Closure $spec): string
+    {
+        return $spec instanceof Closure ? (string) app()->call($spec) : __($spec);
+    }
+
+    /**
+     * 归一化槽位 meta：positions 支持 ['left', 'right']（标准位置，label 自动生成为 support
+     * 翻译键闭包，注册方无需接触 support 的键）与 ['left', 'spotlight' => '标签|翻译键|闭包']
+     * 混合形态；default 未声明取首个。标签统一存 string|Closure，消费时经 resolveLabel 求值。
+     *
+     * @param  array{label: string|Closure, positions?: array, default?: string, layout_mode?: string, context?: Closure}  $meta
+     * @return array{label: string|Closure, positions: array<string, string|Closure>, default: ?string, layout_mode: ?string, context: ?Closure}
+     */
+    protected function normalizePurposeMeta(array $meta): array
+    {
+        $positions = collect($meta['positions'] ?? [
+            CompositionRenderer::POSITION_LEFT,
+            CompositionRenderer::POSITION_RIGHT,
+        ])
+            ->mapWithKeys(function ($label, $key) {
+                $value = is_int($key) ? $label : $key;
+
+                return [$value => is_int($key) ? $this->standardPositionLabel($value) : $label];
+            })
+            ->all();
+
+        return [
+            'label' => $meta['label'],
+            'positions' => $positions,
+            'default' => $meta['default'] ?? array_key_first($positions),
+            'layout_mode' => $meta['layout_mode'] ?? null,
+            'context' => $meta['context'] ?? null,
+        ];
+    }
+
+    /**
+     * 标准位置标签（闭包形态，消费时按当前 locale 翻译；非标准值回退原值）
+     */
+    protected function standardPositionLabel(string $value): Closure
+    {
+        return in_array($value, CompositionRenderer::POSITIONS, true)
+            ? fn (): string => __("sn-support::composition.position.{$value}")
+            : fn (): string => $value;
     }
 
     /**

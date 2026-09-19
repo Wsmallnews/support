@@ -4,6 +4,7 @@ namespace Wsmallnews\Support\Features\Composition;
 
 use Illuminate\Support\Arr;
 use Wsmallnews\Support\Facades\CompositionRegistry;
+use Wsmallnews\Support\Support\Utils;
 
 /**
  * 内容编排渲染器：把 Composition 的行式布局数据解析为可渲染的组件清单。
@@ -30,6 +31,102 @@ class CompositionRenderer
         self::LAYOUT_LEFT_NARROW,
         self::LAYOUT_LEFT_WIDE,
     ];
+
+    /**
+     * purpose 槽位的侧栏位置（编辑在编排上按槽位选择；调用方据此决定侧栏列的 DOM 位置）
+     */
+    public const POSITION_LEFT = 'left';
+
+    public const POSITION_RIGHT = 'right';
+
+    public const POSITION_TOP = 'top';
+
+    public const POSITION_BOTTOM = 'bottom';
+
+    /**
+     * 标准位置集合（label 走 sn-support::composition.position.{value} 翻译；
+     * 槽位可声明子集，自定义位置经注册时 键=>标签 提供）
+     */
+    public const POSITIONS = [
+        self::POSITION_LEFT,
+        self::POSITION_RIGHT,
+        self::POSITION_TOP,
+        self::POSITION_BOTTOM,
+    ];
+
+    /**
+     * 槽位编辑布局模式：stack = 单列堆叠（侧栏类槽位，隐藏分栏开关，行强制通栏）；
+     * rows = 行式分栏（全宽槽位，通栏/左1右2/左2右1 可选）
+     */
+    public const LAYOUT_MODE_STACK = 'stack';
+
+    public const LAYOUT_MODE_ROWS = 'rows';
+
+    /**
+     * 按用途槽位解析编排（purpose 机制：详情页侧栏等场景）
+     *
+     * 按 purpose + 模块主 scope 查询已发布编排（order_column desc，与后台列表同序，多条命中取最前；
+     * 通用展示编排 purpose=null 不参与匹配）。pageContext 由槽位注册的 context 提供者把调用方
+     * 路由参数（$params，如 ['slug' => ...]）映射而来（provider 未命中键剔除，如文章不存在），
+     * 经构建期上下文流向声明 context 的组件。
+     *
+     * 未命中、或命中编排行解析为空（无组件行）时返回 null，调用方据此回退默认布局（如详情页全宽）。
+     * position 按槽位注册的 positions/default 归一化：非法值回退槽位默认位置。
+     *
+     * @param  string  $purpose  用途槽位（如 post-sidebar）
+     * @param  string  $module  模块标识（插件 id），CompositionRegistry 注册 key
+     * @param  string  $scopeType  模块主 scope 类型
+     * @param  int  $scopeId  模块主 scope ID
+     * @param  array  $params  调用方路由参数（如 ['slug' => ...]），交由槽位 context 提供者解析 pageContext
+     * @return array|null{rows: array, position: string} rows=可渲染行结构；position=槽位位置（归一化后）
+     */
+    public static function resolveForPurpose(string $purpose, string $module, string $scopeType, int $scopeId = 0, array $params = []): ?array
+    {
+        $composition = Utils::getCompositionModel()::query()
+            ->published()
+            ->where('purpose', $purpose)
+            ->snScope($scopeType, $scopeId)
+            ->orderByDesc('order_column')
+            ->first();
+
+        if (! $composition) {
+            return null;
+        }
+
+        $meta = CompositionRegistry::getPurpose($module, $purpose);
+
+        // pageContext：槽位 context 提供者解析路由参数（null 值剔除 = 上下文未命中不注入）
+        $pageContext = [];
+        if (is_callable($meta['context'] ?? null)) {
+            $pageContext = collect(app()->call($meta['context'], [
+                'params' => $params,
+                'scopeable' => ['scope_type' => $scopeType, 'scope_id' => $scopeId],
+            ]) ?? [])->reject(fn ($value) => $value === null)->all();
+        }
+
+        $rows = self::resolveRows($composition->components, $module, $pageContext);
+
+        // 命中但无组件行：等同于未命中，避免侧栏列渲染出永久空白
+        if ($rows === []) {
+            return null;
+        }
+
+        // position 归一化：槽位声明了 positions 时按声明集合校验（非法回退槽位默认），
+        // 未声明时按标准位置集合校验（非法回退 right）
+        $position = $composition->options['position'] ?? null;
+        if (filled($meta['positions'] ?? null)) {
+            $position = in_array($position, array_keys($meta['positions']), true)
+                ? $position
+                : ($meta['default'] ?? array_key_first($meta['positions']));
+        } else {
+            $position = in_array($position, self::POSITIONS, true) ? $position : self::POSITION_RIGHT;
+        }
+
+        return [
+            'rows' => $rows,
+            'position' => $position,
+        ];
+    }
 
     /**
      * 解析编排行数据

@@ -25,7 +25,7 @@ class CompositionForm
     }
 
     /**
-     * @param  string|null  $moduleId  模块标识（插件 id）：组件类型下拉的数据来源（CompositionRegistry 注册 key）
+     * @param  string|null  $moduleId  模块标识（插件 id）：组件类型与用途槽位下拉的数据来源（CompositionRegistry 注册 key）
      */
     public static function forms(?string $moduleId = null): array
     {
@@ -36,6 +36,53 @@ class CompositionForm
                     ->required(),
                 FormComponents::orderColumnInput(),
                 FormComponents::enumsToggleButtons(CompositionStatus::class),
+
+                // purpose 槽位（可选）：空 = 通用展示编排（可被 Page 绑定）；选模块槽位后参与槽位匹配
+                // （同槽位多条已发布编排时渲染 order_column 最前的一条），白名单由各模块经 Registry 注册
+                Forms\Components\Select::make('purpose')
+                    ->label(__('sn-support::composition.form.purpose'))
+                    ->placeholder(__('sn-support::composition.form.purpose_placeholder'))
+                    ->options(fn (): array => filled($moduleId) ? CompositionRegistry::getPurposes($moduleId)->toArray() : [])
+                    ->helperText(__('sn-support::composition.form.purpose_helper'))
+                    ->live()
+                    ->afterStateUpdated(function (Get $get, Set $set) use ($moduleId) {
+                        // 切换槽位：位置重置为新槽位默认位置，并按新模式同步行布局
+                        $meta = filled($moduleId) && filled($get('purpose'))
+                            ? CompositionRegistry::getPurpose($moduleId, $get('purpose'))
+                            : null;
+                        $position = $meta['default'] ?? null;
+                        $set('options.position', $position);
+                        static::syncRowsToLayoutMode($moduleId, $get, $set, $get('purpose'), $position);
+                    }),
+
+                // 槽位位置：选项/默认值读槽位注册的 positions/default（label 为翻译键或纯文本，此处统一 __()；
+                // 标准位置键在 sn-support::composition.position.*，自定义位置键由注册模块提供）。
+                // 槽位只声明一个位置时无需选择，隐藏
+                Forms\Components\ToggleButtons::make('options.position')
+                    ->label(__('sn-support::composition.form.position'))
+                    ->options(function (Get $get) use ($moduleId): array {
+                        $meta = filled($moduleId) && filled($get('purpose'))
+                            ? CompositionRegistry::getPurpose($moduleId, $get('purpose'))
+                            : null;
+
+                        return collect($meta['positions'] ?? [])
+                            ->map(fn (string $label): string => __($label))
+                            ->all();
+                    })
+                    ->live()
+                    ->afterStateUpdated(function (Get $get, Set $set) use ($moduleId) {
+                        // 位置切换改变布局模式（如 上→左）：进入堆叠模式时同步行布局
+                        static::syncRowsToLayoutMode($moduleId, $get, $set, $get('purpose'), $get('options.position'));
+                    })
+                    ->visible(function (Get $get) use ($moduleId): bool {
+                        $meta = filled($moduleId) && filled($get('purpose'))
+                            ? CompositionRegistry::getPurpose($moduleId, $get('purpose'))
+                            : null;
+
+                        return count($meta['positions'] ?? []) > 1;
+                    })
+                    ->inline()
+                    ->grouped(),
             ])->columns(2)->columnSpanFull(),
 
             Schemas\Components\Section::make(__('sn-support::composition.form.layout_section'))
@@ -49,15 +96,18 @@ class CompositionForm
 
     /**
      * 行式布局编排：每个区块（行）选择 lg+ 分栏方式，往对应栏里添加组件；
-     * lg 以下固定单列，按 左栏 → 右栏 顺序堆叠（无需设置）
+     * lg 以下固定单列，按 左栏 → 右栏 顺序堆叠（无需设置）。
+     * 堆叠模式（侧栏类槽位）：隐藏分栏开关，每行强制通栏，按钮文案改为「添加侧栏块」
      */
     protected static function rowsRepeater(?string $moduleId): Forms\Components\Repeater
     {
         return Forms\Components\Repeater::make('rows')
             ->label(__('sn-support::composition.form.rows'))
             ->schema(fn () => static::rowSchema($moduleId))
-            ->itemLabel(fn (array $state): string => static::layoutOptions()[$state['layout']] ?? '')
-            ->addActionLabel(__('sn-support::composition.form.add_row'))
+            ->itemLabel(fn (array $state): string => static::layoutOptions()[$state['layout'] ?? null] ?? '')
+            ->addActionLabel(fn (Component $livewire): string => static::layoutMode($moduleId, $livewire) === CompositionRenderer::LAYOUT_MODE_STACK
+                ? __('sn-support::composition.form.add_sidebar_block')
+                : __('sn-support::composition.form.add_row'))
             ->defaultItems(0)               // 空编排合法（渲染回退空状态），不预置空行
             ->collapsible()
             ->cloneable()
@@ -68,7 +118,8 @@ class CompositionForm
 
     /**
      * 单个区块（行）的 schema：布局选择 + 左右栏组件。
-     * 栏容器为三等分栅格，槽位宽度与前台渲染比例一致（所见即所得）
+     * 栏容器为三等分栅格，槽位宽度与前台渲染比例一致（所见即所得）。
+     * 堆叠模式（侧栏类槽位）下隐藏分栏开关（行恒为通栏），右栏不渲染
      */
     protected static function rowSchema(?string $moduleId): array
     {
@@ -82,6 +133,7 @@ class CompositionForm
                 ->grouped()
                 ->live()
                 ->required()
+                ->visible(fn (Component $livewire): bool => static::layoutMode($moduleId, $livewire) === CompositionRenderer::LAYOUT_MODE_ROWS)
                 ->columnSpanFull(),
 
             Schemas\Components\Grid::make(3)->schema([
@@ -98,6 +150,8 @@ class CompositionForm
                         CompositionRenderer::LAYOUT_LEFT_WIDE => 1,
                         default => 'full',
                     })
+                    // 通栏布局右栏本就不渲染（visibleJs）；堆叠模式（侧栏槽位）服务端兜底隐藏（已有数据保留，切回行式不丢）
+                    ->visible(fn (Component $livewire): bool => static::layoutMode($moduleId, $livewire) === CompositionRenderer::LAYOUT_MODE_ROWS)
                     ->visibleJs(<<<'JS'
                         $get('layout') != 'full'
                     JS),
@@ -195,6 +249,35 @@ class CompositionForm
                 ->statePath('extras')
                 ->key('dynamicExtrasFields'),    // 固定相对 key：绝对 key 自动拼条目 uuid（跨请求稳定），随机 uuid 会导致下拉往返时 DOM 重建、闪关
         ];
+    }
+
+    /**
+     * 当前编辑布局模式（rows 行式分栏 | stack 单列堆叠）。
+     * 经注入的 Livewire 组件读整表根状态（purpose/options.position 在根级，
+     * 行内字段的深层相对路径上溯在双层 Repeater 下不可靠）
+     */
+    protected static function layoutMode(?string $moduleId, Component $livewire): string
+    {
+        $data = $livewire->data ?? [];
+
+        return CompositionRegistry::getLayoutMode($moduleId, $data['purpose'] ?? null, $data['options']['position'] ?? null);
+    }
+
+    /**
+     * 位置/槽位切换后按新模式同步行布局：进入堆叠模式时所有行强制通栏
+     * （侧栏槽位单列；右栏残留数据保留在状态中，切回行式模式不丢）
+     */
+    protected static function syncRowsToLayoutMode(?string $moduleId, Get $get, Set $set, ?string $purpose, ?string $position): void
+    {
+        if (CompositionRegistry::getLayoutMode($moduleId, $purpose, $position) !== CompositionRenderer::LAYOUT_MODE_STACK) {
+            return;
+        }
+
+        $rows = collect($get('components') ?? [])
+            ->map(fn (array $row): array => [...$row, 'layout' => CompositionRenderer::LAYOUT_FULL])
+            ->all();
+
+        $set('components', $rows);
     }
 
     /**

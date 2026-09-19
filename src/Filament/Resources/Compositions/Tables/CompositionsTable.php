@@ -14,6 +14,7 @@ use Filament\Tables;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Wsmallnews\Support\Enums\CompositionStatus;
+use Wsmallnews\Support\Facades\CompositionRegistry;
 use Wsmallnews\Support\Filament\Actions\ActionComponents;
 use Wsmallnews\Support\Filament\Filters\FilterComponents;
 
@@ -32,6 +33,13 @@ class CompositionsTable
                 Tables\Columns\TextColumn::make('title')
                     ->label(__('sn-support::composition.table.title'))
                     ->searchable(),
+                Tables\Columns\TextColumn::make('purpose')
+                    ->label(__('sn-support::composition.table.purpose'))
+                    ->badge()
+                    // null = 通用展示编排（可被 Page 绑定），灰色弱化
+                    ->placeholder(__('sn-support::composition.table.purpose_generic'))
+                    ->color(fn ($state): string => filled($state) ? 'primary' : 'gray')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('order_column')
                     ->label(__('sn-support::composition.table.order'))
                     ->alignCenter()
@@ -55,6 +63,20 @@ class CompositionsTable
             ->filtersFormWidth(Width::Medium)
             ->filters([
                 FilterComponents::statusFilter(CompositionStatus::class),
+                Tables\Filters\SelectFilter::make('purpose')
+                    ->label(__('sn-support::composition.table.purpose'))
+                    ->options(array_merge([
+                        '__generic__' => __('sn-support::composition.table.purpose_generic'),
+                    ], filled($moduleId) ? CompositionRegistry::getPurposes($moduleId)->toArray() : []))
+                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data): \Illuminate\Database\Eloquent\Builder {
+                        $value = $data['value'] ?? null;
+
+                        if ($value === '__generic__') {
+                            return $query->whereNull('purpose');
+                        }
+
+                        return filled($value) ? $query->where('purpose', $value) : $query;
+                    }),
                 ...FilterComponents::createUpdateRangeFilter(),
                 TrashedFilter::make(),
             ])
