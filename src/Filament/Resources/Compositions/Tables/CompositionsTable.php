@@ -13,6 +13,7 @@ use Filament\Support\Enums\Width;
 use Filament\Tables;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Wsmallnews\Support\Enums\CompositionStatus;
 use Wsmallnews\Support\Facades\CompositionRegistry;
 use Wsmallnews\Support\Filament\Actions\ActionComponents;
@@ -68,7 +69,7 @@ class CompositionsTable
                     ->options(array_merge([
                         '__generic__' => __('sn-support::composition.table.purpose_generic'),
                     ], filled($moduleId) ? CompositionRegistry::getPurposes($moduleId)->toArray() : []))
-                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data): \Illuminate\Database\Eloquent\Builder {
+                    ->query(function (Builder $query, array $data): Builder {
                         $value = $data['value'] ?? null;
 
                         if ($value === '__generic__') {
