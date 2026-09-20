@@ -330,7 +330,7 @@ if (! function_exists('scopeable_context')) {
     /**
      * Create a ScopeableContext instance from various inputs.
      *
-     * @param  mixed  $input  Array, ScopeableContext, or config key
+     * @param  mixed  $input  Array or ScopeableContext
      */
     function scopeable_context(mixed $input): ScopeableContext
     {
@@ -343,7 +343,7 @@ if (! function_exists('scopeable_query')) {
      * Apply scope to a query builder.
      *
      * @param  Builder  $query
-     * @param  mixed  $scope  Array, ScopeableContext, or config key
+     * @param  mixed  $scope  Array or ScopeableContext
      * @return Builder
      */
     function scopeable_query($query, mixed $scope)

@@ -3,13 +3,14 @@
 namespace Wsmallnews\Support\Filament\Concerns;
 
 use BackedEnum;
-use Filament\Contracts\Plugin;
 use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Pages\PageConfiguration;
 use Filament\Resources\ResourceConfiguration;
 use Illuminate\Support\Str;
 use UnitEnum;
+use Wsmallnews\Support\Exceptions\InvalidScopeException;
 use Wsmallnews\Support\Helpers\FilamentModelHelper;
+use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 trait CanBeConfigured
 {
@@ -145,25 +146,71 @@ trait CanBeConfigured
     // Scopeable
     // ========================================================================
 
+    /**
+     * 解析当前资源/页面的 scopeable（scope_type + scope_id）
+     *
+     * 优先级：配置实例键（scopeable，经模块 scopeables 解析）→ 显式 pair（scope_type/scope_id）
+     * → 模块 main 实例；module_id 与显式 pair 均缺失时抛异常，
+     * 不再回落 'default'，scope 配置错误必须在开发期暴露。
+     *
+     * @return array{scope_type: string, scope_id: int}
+     *
+     * @throws InvalidScopeException
+     */
+    public static function getScopeable(): array
+    {
+        $instanceKey = static::getConfigurationValue('scopeable');
+
+        if (filled($instanceKey)) {
+            return static::resolveScopeableInstance($instanceKey);
+        }
+
+        $scopeType = static::getConfigurationValue('scopeType');
+
+        if (filled($scopeType)) {
+            return [
+                'scope_type' => $scopeType,
+                'scope_id' => static::getConfigurationValue('scopeId') ?? 0,
+            ];
+        }
+
+        // 未声明实例键 = 使用模块 main 默认实例
+        return static::resolveScopeableInstance('main');
+    }
+
+    /**
+     * 经模块语境（moduleId，即 config root）解析 scopeable 实例
+     *
+     * @throws InvalidScopeException
+     */
+    protected static function resolveScopeableInstance(string $key): array
+    {
+        $configRoot = static::getConfigurationValue('moduleId');
+
+        if (blank($configRoot)) {
+            throw InvalidScopeException::unresolvableScope(static::class, $key);
+        }
+
+        return SupportUtils::getScopeFromInstances("{$configRoot}.scopeables", $key)->toArray();
+    }
+
     public static function getScopeType(): string
     {
-        // 默认 读取 config 中设置的 scopeable 信息
-        return static::getConfigurationValue('scopeType') ?? (static::getCurrentPlugin()?->getScopeType() ?? 'default');
+        return static::getScopeable()['scope_type'];
     }
 
     public static function getScopeId(): int
     {
-        // 默认 读取 config 中设置的 scopeable 信息
-        return static::getConfigurationValue('scopeId') ?? (static::getCurrentPlugin()?->getScopeId() ?? 0);
+        return static::getScopeable()['scope_id'];
     }
 
     /**
      * 资源归属的消费模块标识（插件 id）：用于模块级注册表（如 CompositionRegistry）寻址。
-     * 零代码注册路径经配置条目 module_id 显式声明；继承路径自动取所属插件 id，均未声明时为 null
+     * 注册时由 RegistersConfigurable 自动注入（注册即归属），未注册语境为 null
      */
     public static function getModuleId(): ?string
     {
-        return static::getConfigurationValue('moduleId') ?? static::getCurrentPlugin()?->getId();
+        return static::getConfigurationValue('moduleId');
     }
 
     // ========================================================================
@@ -199,16 +246,6 @@ trait CanBeConfigured
         }
 
         return $default;
-    }
-
-    /**
-     * 获取当前资源所属的插件
-     */
-    protected static function getCurrentPlugin(): ?Plugin
-    {
-        $current = static::class;
-
-        return method_exists($current, 'getEssentialsPlugin') ? $current::getEssentialsPlugin() : null;
     }
 
     /**

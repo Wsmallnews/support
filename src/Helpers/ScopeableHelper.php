@@ -14,7 +14,7 @@ class ScopeableHelper
     /**
      * Create a scope context from various input formats.
      *
-     * @param  mixed  $input  Can be array, ScopeableContext, or config key string
+     * @param  mixed  $input  Can be array or ScopeableContext
      */
     public static function resolve(mixed $input): ScopeableContext
     {
@@ -26,17 +26,13 @@ class ScopeableHelper
             return ScopeableContext::fromArray($input);
         }
 
-        if (is_string($input)) {
-            return ScopeableContext::fromConfig($input);
-        }
-
-        throw new \InvalidArgumentException('Invalid scope input type. Expected array, ScopeableContext, or config key string.');
+        throw new \InvalidArgumentException('Invalid scope input type. Expected array or ScopeableContext.');
     }
 
     /**
      * Get scope attributes for model creation.
      *
-     * @param  ScopeableContext|array|string  $scope
+     * @param  ScopeableContext|array  $scope
      * @return array{scope_type: string, scope_id: int}
      */
     public static function toAttributes(mixed $scope): array
@@ -48,7 +44,7 @@ class ScopeableHelper
      * Apply scope to a query builder.
      *
      * @param  Builder  $query
-     * @param  ScopeableContext|array|string  $scope
+     * @param  ScopeableContext|array  $scope
      * @return Builder
      */
     public static function applyToQuery($query, mixed $scope)
@@ -62,7 +58,7 @@ class ScopeableHelper
      * Check if a model belongs to a specific scope.
      *
      * @param  Model  $model
-     * @param  ScopeableContext|array|string  $scope
+     * @param  ScopeableContext|array  $scope
      */
     public static function modelBelongsToScopeable($model, mixed $scope): bool
     {

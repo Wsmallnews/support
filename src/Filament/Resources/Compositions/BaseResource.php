@@ -64,7 +64,7 @@ abstract class BaseResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        // module_id 由消费方配置声明（或经 CanBeConfigured 插件解析），决定表单可选的组件类型
+        // module_id 注册时由所属插件自动注入（注册即归属），决定表单可选的组件类型
         return CompositionForm::configure($schema, static::getModuleId());
     }
 

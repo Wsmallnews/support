@@ -47,35 +47,6 @@ class ScopeableContext
     }
 
     /**
-     * Create from configuration key.
-     *
-     * @param  string  $configKey  Configuration key (e.g., 'sn-cms.scopeable')
-     *
-     * @throws InvalidScopeException
-     */
-    public static function fromConfig(string $configKey): self
-    {
-        $config = config($configKey);
-
-        if (! is_array($config)) {
-            throw InvalidScopeException::configNotFound($configKey);
-        }
-
-        if (! isset($config['scope_type']) || blank($config['scope_type'])) {
-            throw InvalidScopeException::missingType($configKey);
-        }
-
-        if (! isset($config['scope_id'])) {
-            throw InvalidScopeException::missingId($configKey);
-        }
-
-        return new self(
-            scopeType: $config['scope_type'],
-            scopeId: (int) $config['scope_id']
-        );
-    }
-
-    /**
      * Convert to array format for database queries.
      *
      * @return array{scope_type: string, scope_id: int}

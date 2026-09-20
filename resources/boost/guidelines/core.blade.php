@@ -228,7 +228,7 @@ Resources/Xxxs/
 
 **XxxResource（final）—— 注册与配置层，不定义默认值**：
 
-- 只做三件事：`getPages()` 路由绑定；use `CanBeConfigured` + `$configurationClass = ResourceConfiguration::class`（`form()` / `table()` 先查插件 customProperties 闭包，有则用调用方的，无则回落 parent）；`getEssentialsPlugin()` 返回本包插件实例。
+- 只做两件事：`getPages()` 路由绑定；use `CanBeConfigured` + `$configurationClass = ResourceConfiguration::class`（`form()` / `table()` 先查插件 customProperties 闭包，有则用调用方的，无则回落 parent）。module_id 由注册插件自动注入。
 
 **Pages —— 行为层**：
 
@@ -294,10 +294,7 @@ final class PostResource extends BaseResource
 
     protected static ?string $configurationClass = ResourceConfiguration::class;
 
-    public static function getEssentialsPlugin(): ?CmsPlugin
-    {
-        return CmsPlugin::get();
-    }
+
 }
 ```
 
@@ -582,9 +579,8 @@ use Wsmallnews\Support\Data\ScopeableContext;
 $context = new ScopeableContext('post', 0);
 $context->isGlobal(); // true (scopeId === 0)
 
-// 从数组或配置创建
+// 从数组创建
 ScopeableContext::fromArray(['scope_type' => 'store', 'scope_id' => 5]);
-ScopeableContext::fromConfig('sn-cms.scopeable');
 
 // 辅助函数
 scopeable_context(['scope_type' => 'post', 'scope_id' => 0]);
@@ -927,7 +923,7 @@ Search::search('sn-cms', '关键词');      // 仅指定模块；未知模块名
 | `getScheduledTaskModel()` | 获取 ScheduledTask 模型类名 |
 | `isTenancyEnabled()` | 判断多租户是否启用 |
 | `getFilesystemDisk()` | 获取文件系统磁盘（回退到 Filament 默认盘） |
-| `getScopeFromConfig('sn-cms.scopeable')` | 从配置创建 ScopeableContext |
+| `getScopeFromInstances('sn-cms.scopeables', 'footer')` | 从模块 scopeables 实例配置解析 ScopeableContext（第二参数缺省为 main） |
 | `getSchedulerConfig('key', $default)` | 读取定时调度配置 |
 
 ### 关键辅助函数
@@ -953,7 +949,7 @@ Search::search('sn-cms', '关键词');      // 仅指定模块；未知模块名
 | `tree_to_flatten($tree)` | 递归将树结构扁平化为一维集合 |
 | `sn_route($name, $params, $absolute)` | 租户感知路由，多租户启用时自动添加 tenant 参数 |
 | `remove_query_param_from_url($url, $keys)` | 移除 URL 中的指定 query 参数 |
-| `scopeable_context($input)` | 创建 ScopeableContext（支持数组、实例、配置 key） |
+| `scopeable_context($input)` | 创建 ScopeableContext（支持数组、ScopeableContext） |
 | `scopeable_query($query, $scope)` | 对查询应用 scope 过滤 |
 
 ### 正确命名空间速查

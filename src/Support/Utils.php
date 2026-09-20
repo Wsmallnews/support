@@ -175,15 +175,65 @@ class Utils
     }
 
     /**
-     * Get scope context from configuration.
-     * This is a helper method for packages that store scope in their config.
+     * Get scope context from a module's scopeables instance configuration.
      *
-     * @param  string  $configKey  Full config key (e.g., 'sn-cms.scopeable')
+     * 配置形态（module 即模块标识/插件 id，如 sn-cms）：
+     *   "{$module}.scopeables" => [
+     *       'main'   => ['scope_type' => 'sn-cms', 'scope_id' => 0],   // 默认实例，必须存在
+     *       'footer' => ['scope_type' => 'sn-cms-footer', 'scope_id' => 0],   // 差异实例，按需声明
+     *   ]
+     *
+     * 未引用的实例声明合法（预留）；引用不存在的实例键、缺失 main、
+     * 或多个实例指向同一分区（scope_type + scope_id 重复）都属配置错误，直接抛异常。
+     *
+     * @param  string  $configKey  实例配置键（如 'sn-cms.scopeables'）
+     * @param  string|null  $key  实例键（null = main 默认实例）
      *
      * @throws InvalidScopeException
      */
-    public static function getScopeFromConfig(string $configKey): ScopeableContext
+    public static function getScopeFromInstances(string $configKey, ?string $key = null): ScopeableContext
     {
-        return ScopeableContext::fromConfig($configKey);
+        $key ??= 'main';
+        $instances = config($configKey);
+
+        if (! is_array($instances) || $instances === []) {
+            throw InvalidScopeException::configNotFound($configKey);
+        }
+
+        if (! array_key_exists('main', $instances)) {
+            throw InvalidScopeException::invalidConfiguration($configKey, 'instance [main] is required');
+        }
+
+        if (! array_key_exists($key, $instances)) {
+            throw InvalidScopeException::unknownInstance($configKey, $key);
+        }
+
+        $fingerprints = [];
+        foreach ($instances as $instanceKey => $instance) {
+            $instanceConfigKey = "{$configKey}.{$instanceKey}";
+
+            if (! is_array($instance)) {
+                throw InvalidScopeException::invalidConfiguration($instanceConfigKey, 'instance must be an array with scope_type and scope_id');
+            }
+
+            if (blank($instance['scope_type'] ?? null)) {
+                throw InvalidScopeException::missingType($instanceConfigKey);
+            }
+
+            if (! isset($instance['scope_id'])) {
+                throw InvalidScopeException::missingId($instanceConfigKey);
+            }
+
+            $fingerprint = $instance['scope_type'] . ':' . $instance['scope_id'];
+            if (isset($fingerprints[$fingerprint])) {
+                throw InvalidScopeException::invalidConfiguration(
+                    $configKey,
+                    "instances [{$fingerprints[$fingerprint]}] and [{$instanceKey}] share the same partition ({$fingerprint})"
+                );
+            }
+            $fingerprints[$fingerprint] = $instanceKey;
+        }
+
+        return ScopeableContext::fromArray($instances[$key]);
     }
 }

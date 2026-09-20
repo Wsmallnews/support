@@ -64,8 +64,15 @@ trait HasConfigurationProperties
     protected int | Closure | null $scopeId = null;
 
     /**
-     * 模块标识（插件 id）：资源归属的消费模块，用于模块级注册表（如 CompositionRegistry）寻址。
-     * 与 scopeType 正交——scope 管数据隔离，module 管能力来源
+     * scopeable 实例键：引用所属模块 config scopeables 中声明的实例（如 'footer'），
+     * 缺省回落 main 默认实例；与 scopeType/scopeId 显式 pair 互为替代（实例键优先）
+     */
+    protected string | Closure | null $scopeable = null;
+
+    /**
+     * 模块标识（插件 id）：资源归属的注册模块，用于模块级注册表（如 CompositionRegistry）寻址。
+     * 与 scopeType 正交——scope 管数据隔离，module 管能力来源；
+     * 由 RegistersConfigurable 注册时自动注入（注册即归属），配置条目手工声明会被覆盖
      */
     protected string | Closure | null $moduleId = null;
 
@@ -401,6 +408,22 @@ trait HasConfigurationProperties
     public function getScopeId(): ?int
     {
         return $this->evaluate($this->scopeId);
+    }
+
+    public function scopeable(string | Closure | null $key): static
+    {
+        $this->scopeable = $key;
+
+        return $this;
+    }
+
+    /**
+     * 引用的 scopeable 实例键（注意：这里返回实例键字符串，
+     * 资源/页面侧的 getScopeable() 返回解析后的 scope_type + scope_id 数组）
+     */
+    public function getScopeable(): ?string
+    {
+        return $this->evaluate($this->scopeable);
     }
 
     // ========================================================================

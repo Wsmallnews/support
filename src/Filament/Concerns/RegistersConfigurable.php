@@ -160,6 +160,12 @@ trait RegistersConfigurable
             }
         }
 
+        // 注册即归属：条目注册进哪个模块（由哪个插件的 panel_register 声明），
+        // module_id 就是该插件的 id——自动注入并覆盖任何手工声明，跨模块注册无需（也不应）手工指定
+        if (method_exists($configObj, 'moduleId') && method_exists($this, 'getId')) {
+            $configObj->moduleId($this->getId());
+        }
+
         return $configObj;
     }
 }
