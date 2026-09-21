@@ -26,6 +26,8 @@ use Wsmallnews\Support\Commands\RunScheduledTasksCommand;
 use Wsmallnews\Support\Commands\SupportInstallCommand;
 use Wsmallnews\Support\Features\Composition\CompositionRegistry;
 use Wsmallnews\Support\Features\Feed\FeedRegistry;
+use Wsmallnews\Support\Features\Modules\Module;
+use Wsmallnews\Support\Features\Modules\ModuleRegistry;
 use Wsmallnews\Support\Features\Search\SearchRegistry;
 use Wsmallnews\Support\Features\Seo\Seo;
 use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
@@ -58,6 +60,12 @@ class SupportServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
+        ModuleRegistry::register(new Module(
+            id: static::$name,
+            namespace: 'Wsmallnews\\Support',
+            plugin: null,
+        ));
+
         // 注册内容编排组件注册器（key = 模块标识，如插件 id；消费方经 Facade 注册/读取）
         $this->app->singleton(CompositionRegistry::class, function (): CompositionRegistry {
             return new CompositionRegistry;
