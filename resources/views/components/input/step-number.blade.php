@@ -18,7 +18,7 @@
         <x-slot name="prefix">
             <x-filament::icon-button
                 class="text-gray-600"
-                icon="monoicon-remove"
+                icon="heroicon-m-minus"
                 @click="decrement()"
             />
         </x-slot>
@@ -30,7 +30,7 @@
         <x-slot name="suffix">
             <x-filament::icon-button
                 class="text-gray-600"
-                icon="monoicon-add"
+                icon="heroicon-m-plus"
                 @click="increment()"
             />
         </x-slot>
