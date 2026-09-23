@@ -39,6 +39,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Default Currency
+    |--------------------------------------------------------------------------
+    |
+    | Site default currency (ISO 4217) for money display, MoneyCast fallback
+    | and money package defaults. If the consumer app sets config('app.currency'),
+    | that value takes priority over this one.
+    |
+    */
+
+    'currency' => 'CNY',
+
+    /*
+    |--------------------------------------------------------------------------
     | Filament Action Components
     |--------------------------------------------------------------------------
     |

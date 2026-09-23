@@ -16,6 +16,7 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Wsmallnews\Support\Data\ScopeableContext;
 use Wsmallnews\Support\Features\Currency;
+use Wsmallnews\Support\Features\Money\MoneyManager;
 use Wsmallnews\Support\Helpers\ScopeableHelper;
 use Wsmallnews\Support\Support\Utils;
 
@@ -83,11 +84,26 @@ if (! function_exists('sn_currency')) {
     /**
      * 获取自定义 currency 操作类
      *
+     * @deprecated 改用 sn_money()（Wsmallnews\Support\Features\Money\MoneyManager），
+     *  旧服务随 order 管道改造（阶段 C）一并移除
+     *
      * @return Currency
      */
     function sn_currency()
     {
         return app(Currency::class);
+    }
+}
+
+if (! function_exists('sn_money')) {
+    /**
+     * 货币服务（金额运算、分摊、格式化的唯一规范入口）
+     *
+     * @return MoneyManager
+     */
+    function sn_money()
+    {
+        return app(MoneyManager::class);
     }
 }
 

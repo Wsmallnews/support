@@ -12,7 +12,9 @@ use Money\Money as MoneyMoney;
 use Wsmallnews\Support\Exceptions\SupportException;
 
 /**
- * 这是个残次品，可删除
+ * @deprecated 旧货币服务：输入口径混杂、格式化与运算职责不分。
+ *  新代码一律使用 Wsmallnews\Support\Features\Money\MoneyManager（sn_money()），
+ *  旧调用点（order 管道等）随阶段 C 改造迁移后本类整体删除。
  */
 class Currency
 {

@@ -2,6 +2,7 @@
 
 namespace Wsmallnews\Support;
 
+use Cknow\Money\Money as CknowMoney;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
@@ -187,8 +188,14 @@ class SupportServiceProvider extends PackageServiceProvider
             classNamespace: 'Wsmallnews\Support\Livewire'
         );
 
-        // 暂时先放开
-        Number::macro('symbol', function (string $in = 'USD', ?string $locale = null) {
+        // 数字/货币展示默认值统一对齐（解析链：app.currency 可选覆盖 → sn-support.currency → CNY）
+        $defaultCurrency = sn_money()->defaultCurrency();
+        Number::useLocale(config('app.locale'));
+        Number::useCurrency($defaultCurrency);
+        CknowMoney::setDefaultCurrency($defaultCurrency);
+
+        Number::macro('symbol', function (?string $in = null, ?string $locale = null) {
+            $in = $in ?: Number::defaultCurrency();
             $locale = $locale ?? config('app.locale');
 
             $formatCurrency = Number::currency(0, $in, $locale);
@@ -201,25 +208,6 @@ class SupportServiceProvider extends PackageServiceProvider
 
             return $symbol;
         });
-
-        // \Filament\Tables\Table::$defaultCurrency = 'CNY';
-        // \Filament\Tables\Table::$defaultDateDisplayFormat = 'M j, Y';
-        // \Filament\Tables\Table::$defaultDateTimeDisplayFormat = 'M j, Y H:i:s';
-        // \Filament\Tables\Table::$defaultNumberLocale = null;
-        // \Filament\Tables\Table::$defaultTimeDisplayFormat = 'H:i:s';
-
-        // \Filament\Infolists\Infolist::$defaultCurrency = 'CNY';
-        // \Filament\Infolists\Infolist::$defaultDateDisplayFormat = 'M j, Y';
-        // \Filament\Infolists\Infolist::$defaultDateTimeDisplayFormat = 'M j, Y H:i:s';
-        // \Filament\Infolists\Infolist::$defaultNumberLocale = null;
-        // \Filament\Infolists\Infolist::$defaultTimeDisplayFormat = 'H:i:s';
-
-        // // laravel number 类库
-        // \Illuminate\Support\Number::useLocale(config('app.locale'));
-        // \Illuminate\Support\Number::useCurrency('CNY');
-
-        // // Cknow\Money
-        // \Cknow\Money\Money::setDefaultCurrency('CNY');
 
         // 注册定时调度任务（频率等配置从 sn-support.scheduler 读取）
         if (SupportUtils::getSchedulerConfig('enabled', true)) {

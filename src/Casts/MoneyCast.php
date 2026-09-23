@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 use Money\Currency;
 
+/**
+ * 金额字段 cast：数据库存「最小货币单位的整数」（分），模型属性读出为 Cknow\Money\Money。
+ *
+ * 币种绑定（单据表推荐）：
+ *   protected $casts = ['pay_fee' => MoneyCast::class.':currency'];
+ * 参数为币种所在「列名」时（非 ISO 4217 代码），读取行内 currency 列构造 Money，
+ * 列缺失/为空回落站点默认币种（config('app.currency')）；写入时会同步回填 currency 列。
+ * 不带参数则始终使用站点默认币种（商品/变体等无行内币种的表）。
+ *
+ * 写入契约（与 cknow Money::parse 一致）：
+ *   - Money 对象（Cknow\Money\Money 或 Money\Money）：原样取最小单位；
+ *   - int/float/numeric string：视为十进制主单位（元），如传 100 存 10000 分——
+ *     严禁把「分」以标量形式传入，请先经 sn_money()->fromMinor() 构造 Money。
+ */
 class MoneyCast implements CastsAttributes
 {
     /**
