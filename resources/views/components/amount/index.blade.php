@@ -1,9 +1,18 @@
 @props([
-    'amount',
+    'amount' => null,
+    'color' => 'primary',
+    'symbolSize' => 'text-sm',
+    'amountSize' => 'text-2xl',
+    'currency' => null,
 ])
 
-{{-- 价格金额，高亮主题色 --}}
-<div {{ $attributes->class(['flex items-end']) }}>
-    <span class="text-sm font-bold mr-1 text-primary-600 leading-5">{{ sn_currency()->getSymbol() }}</span>
-    <span class="text-2xl font-bold text-primary-600 leading-6">{{ sn_currency()->format($amount) }}</span>
-</div>
+@php
+    // 着重显示场景的金额组件（小符号 + 大数字）：颜色走 sn_text_color 双通道（色名预置类 / Filament 色板动态变量）
+    $parts = sn_money()->formatParts($amount, $currency);
+    $textColor = sn_text_color($color);
+@endphp
+
+<span {{ $attributes->class(['flex items-baseline font-bold', $textColor['class']]) }} @style($textColor['style'])>
+    <span class="{{ $symbolSize }} mr-0.5 leading-none">{{ $parts['symbol'] }}</span>
+    <span class="{{ $amountSize }} leading-none">{{ $parts['amount'] }}</span>
+</span>

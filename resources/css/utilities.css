@@ -390,6 +390,16 @@
 .sn-gray-text {
     @apply text-gray-500 dark:text-gray-400;
 }
+
+/* 常规正文主色（近黑，信息主体档）：与 sn-gray-text（弱化说明档）构成中性色两档 */
+.sn-neutral-text {
+    @apply text-gray-800 dark:text-gray-200;
+}
+
+/* 动态文字色：sn_text_color() 解析 Filament 色板后注入 --sn-color-text 变量 */
+.sn-text-dynamic {
+    @apply text-[color:var(--sn-color-text)] dark:text-[color:var(--sn-color-dark-text)];
+}
 /** sn 文字 **/
 
 /* 区块样式（圆角/阴影/光环走令牌：响应式 + 可主题定制） */

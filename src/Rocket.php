@@ -5,16 +5,19 @@ namespace Wsmallnews\Support;
 use ArrayAccess;
 use Illuminate\Support\Collection;
 use JsonSerializable;
-use Wsmallnews\Support\Traits\Accessable;
-use Wsmallnews\Support\Traits\Arrayable;
-use Wsmallnews\Support\Traits\Serializable;
 
+/**
+ * 管道数据总线（参考 yansongda/artful 的 Rocket 模式）：三段式数据载体。
+ *
+ * - params：调用方传入的原始参数（只读语义，管道不写回）
+ * - radars：管道处理过程中的中间态（读写自由）
+ * - payloads：阶段产出物（summary/creating 等收尾阶段写入，落单/展示用）
+ *
+ * 注意：radars 可能持有 Eloquent Model 实例（如 relate_items 中的商品），
+ * 队列/缓存场景禁止整体序列化 Rocket——只允许携带标量（如 order id）。
+ */
 class Rocket implements ArrayAccess, JsonSerializable
 {
-    use Accessable;
-    use Arrayable;
-    use Serializable;
-
     /**
      * 传入的数据
      */
@@ -121,7 +124,7 @@ class Rocket implements ArrayAccess, JsonSerializable
 
     public function setPayloads(array $payloads): Rocket
     {
-        $this->payloads = $payloads;
+        $this->payloads = collect($payloads);
 
         return $this;
     }
@@ -134,12 +137,48 @@ class Rocket implements ArrayAccess, JsonSerializable
      */
     public function mergePayloads(array $payloads): Rocket
     {
-        if (empty($this->payloads)) {
-            $this->payloads = new Collection;
-        }
-
-        $this->payloads = $this->payloads->merge($payloads);
+        $this->payloads = $this->payloads
+            ? $this->payloads->merge($payloads)
+            : collect($payloads);
 
         return $this;
+    }
+
+    /**
+     * 数组访问代理到 payloads（管道产物的便捷读取）
+     */
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->payloads?->offsetExists($offset) ?? false;
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->offsetExists($offset) ? $this->payloads->offsetGet($offset) : null;
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->payloads ??= new Collection;
+        $this->payloads->offsetSet($offset, $value);
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        if ($this->payloads?->offsetExists($offset)) {
+            $this->payloads->offsetUnset($offset);
+        }
+    }
+
+    /**
+     * 序列化输出三段数据（调试/日志用）
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'params' => $this->params,
+            'radars' => $this->radars,
+            'payloads' => $this->payloads,
+        ];
     }
 }

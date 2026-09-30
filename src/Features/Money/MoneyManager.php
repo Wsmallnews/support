@@ -262,6 +262,25 @@ class MoneyManager
     }
 
     /**
+     * 拆分格式化：符号与金额一次返回（符号小数字大等拆分展示场景，如 amount 组件）。
+     *
+     * 一次调用保证两部分来自同一币种/locale；金额部分千分位分组、两位小数、不带符号。
+     * 非两位小数币种（JPY 0 位 / KWD 3 位）将来在此处适配，调用方无感。
+     *
+     * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
+     * @return array{symbol: string, amount: string}
+     */
+    public function formatParts($value, ?string $currency = null, ?string $locale = null): array
+    {
+        $money = $this->money($value, $currency);
+
+        return [
+            'symbol' => $this->symbol($money->getCurrency()->getCode(), $locale),
+            'amount' => Number::format($money->formatByDecimal(), precision: 2, locale: $locale),
+        ];
+    }
+
+    /**
      * 货币符号（如 ￥ / $），币种缺省取站点默认。
      */
     public function symbol(?string $currency = null, ?string $locale = null): string

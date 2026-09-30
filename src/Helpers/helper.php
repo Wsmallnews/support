@@ -492,3 +492,52 @@ if (! function_exists('sn_badge_color')) {
         return ['class' => $class, 'style' => $style];
     }
 }
+
+if (! function_exists('sn_text_color')) {
+    /**
+     * 文字颜色解析（色名预置类 + Filament 色板动态变量双通道，同构 sn_badge_color）。
+     *
+     * - 色名在六色清单内（primary/danger/success/info/warning/gray）→ 完整 Tailwind 类（编译期可见）
+     * - 其余输入（hex / Filament 注册色名 / Color::Xxx 色板数组）→ sn-text-dynamic 类
+     *   + --sn-color-text / --sn-color-dark-text 变量（亮色 600 档、暗色 400 档）
+     * - 解析失败 → 回退 primary 预置类
+     *
+     * @return array{class: string, style: string}
+     */
+    function sn_text_color(string | array $color = 'primary'): array
+    {
+        $named = [
+            'primary' => 'text-primary-600 dark:text-primary-400',
+            'danger' => 'text-danger-600 dark:text-danger-400',
+            'success' => 'text-success-600 dark:text-success-400',
+            'info' => 'text-info-600 dark:text-info-400',
+            'warning' => 'text-warning-600 dark:text-warning-400',
+            'gray' => 'text-gray-600 dark:text-gray-400',
+        ];
+
+        if (is_string($color) && isset($named[$color])) {
+            return ['class' => $named[$color], 'style' => ''];
+        }
+
+        // 动态通道：色板数组原样；hex / rgb 串经 Filament 色板生成器；其余色名走 FilamentColor 注册表
+        $palette = $color;
+        if (is_string($color)) {
+            $palette = str_starts_with($color, '#') || str_starts_with($color, 'rgb')
+                ? Color::generateV3Palette($color)
+                : FilamentColor::getColor($color);
+        }
+
+        if (! is_array($palette) || blank($palette['600'] ?? null)) {
+            return ['class' => $named['primary'], 'style' => ''];
+        }
+
+        return [
+            'class' => 'sn-text-dynamic',
+            'style' => sprintf(
+                '--sn-color-text: %s; --sn-color-dark-text: %s;',
+                $palette['600'],
+                $palette['400'] ?? $palette['500'],
+            ),
+        ];
+    }
+}
