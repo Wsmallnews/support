@@ -668,46 +668,10 @@ class Post extends SupportModel implements HasSnSubject
 
 ### 自定义表单字段
 
-@verbatim
-<code-snippet name="BoxRepeater 用法" lang="php">
-use Wsmallnews\Support\Filament\Forms\Fields\BoxRepeater;
+自定义表单字段（BoxRepeater / Arrange / DistrictSelect）已随功能迁移移除：
 
-BoxRepeater::make('items')
-    ->columns(3)
-    ->columnWidths(['name' => '200px', 'price' => '150px'])
-    ->headers(['name' => '商品名称'])
-    ->schema([
-        TextInput::make('name'),
-        TextInput::make('price')->numeric(),
-    ])
-    ->withoutHeader()      // 隐藏表头
-    ->isFusionLayout()     // 融合布局（自动隐藏表头）
-    ->hideLabels();        // 隐藏字段标签
-</code-snippet>
-
-<code-snippet name="Arrange 用法" lang="php">
-use Wsmallnews\Support\Filament\Forms\Fields\Arrange;
-
-Arrange::make('categories')
-    ->relationships([
-        'arranges' => 'categories',       // 一级排列关联
-        'recursions' => 'children',       // 二级递归子关联
-    ])
-    ->tableFields([
-        TextInput::make('name'),
-        TextInput::make('sort')->numeric(),
-    ]);
-// 注意：必须同时设置 relationships() 和 tableFields()，否则无法保存和回显
-</code-snippet>
-
-<code-snippet name="DistrictSelect 用法" lang="php">
-use Wsmallnews\Support\Filament\Forms\Fields\DistrictSelect;
-
-DistrictSelect::make('district')
-    // 自动关联 province_name/id, city_name/id, district_name/id 字段
-    // 确保模型中存在这些字段，否则 state 回显会静默失败
-</code-snippet>
-@endverbatim
+- 区划级联选择由 **profile 包** `RegionCascade` 字段提供（区划数据 + code/名称快照成对存储）
+- 表格式/分组 repeater 场景使用 Filament 原生 `Repeater` + 布局组件组合
 
 ### Activity Logs 资源
 
@@ -991,9 +955,6 @@ Search::search('sn-cms', '关键词');      // 仅指定模块；未知模块名
 ### 常见错误
 
 - **使用 `FormComponents::` 工厂方法时不要再手动设置 disk/visibility 等**——工厂已从 config 读取默认值。
-- **`BoxRepeater` 需要调用 `->columns()` 和 `->columnWidths()`** 才能正确显示表头宽度。
-- **`Arrange` 必须同时设置 `relationships()` 和 `tableFields()`**，缺一不可。
-- **`DistrictSelect` 要求模型中存在 `province_name/id`、`city_name/id`、`district_name/id` 字段**，否则 state 回显会静默失败。
 - **`CanPagination` 已包含 `WithPagination`**，不要再单独 use `WithPagination`。
 - **使用 `scope_id = 0` 时不要用 `where('scope_id', 0)` 直接查询**——用 Model trait 提供的 `scopeScopeId(0)`，它内部使用 `whereIn`。
 - **`Utils` 所有方法都是静态的**——`Utils::getConfig()` 而非 `(new Utils)->getConfig()`。
