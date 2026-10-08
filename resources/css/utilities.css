@@ -75,6 +75,10 @@
 @utility sn-elevation {
     @apply ring-1 ring-(--sn-ring-card) shadow-(--sn-shadow-card);
 }
+/* 图片媒体底色：图片加载期/无图的占位底（中性灰，暗黑自动翻转） */
+@utility sn-media-bg {
+    @apply bg-gray-100 dark:bg-gray-800;
+}
 /* 页面级水平安全留白：视口 ≤ container 断点时防止内容贴边（4 → 6 响应式），
  * 带刘海屏安全区渐进增强；页头/导航/页脚等全宽色带内的 container 内容层复用 */
 @utility sn-page-x {
@@ -719,7 +723,7 @@
 /* 占位图（无图时显示） - 同时支持暗黑 */
 .sn-image-placeholder {
     @apply w-full h-full flex items-center justify-center;
-    @apply bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600;
+    @apply sn-media-bg text-gray-400 dark:text-gray-600;
 }
 
 /* 区块标题 - 居中 + 下划线点缀 (用于首页 section title) */

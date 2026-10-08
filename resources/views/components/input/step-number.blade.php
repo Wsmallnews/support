@@ -46,28 +46,28 @@
             step,
             decimalPoints,
             currentVal: 0,
+            init() {
+                // 从服务端渲染的输入框取初始值（wire:model 经 x-modelable 回填可能晚于 init）
+                const raw = this.$el.querySelector('input')?.value;
+                const num = Number(raw);
+                this.currentVal = this.clamp(raw !== '' && Number.isFinite(num) ? num : this.minVal);
+            },
+            clamp(num) {
+                const clamped = Math.min(this.maxVal, Math.max(this.minVal, num));
+                // toFixed 返回字符串，必须转回 number，否则后续 + 变字符串拼接
+                return Number(clamped.toFixed(this.decimalPoints));
+            },
             updateValue(event) {        // 输入框直接输入时触发
-                // 提取输入值并转换为数字
-                let num = Number(event.target.value);
-                if (isNaN(num)) num = this.minVal;
-
-                // 限制范围
-                if (num < this.minVal) {
-                    num = this.minVal;
-                } else if (num > this.maxVal) {
-                    num = this.maxVal;
-                }
-
-                // 更新 value
-                this.currentVal = num.toFixed(decimalPoints)
-                // 强制更新输入框显示的值（防止显示异常）
+                const num = Number(event.target.value);
+                this.currentVal = this.clamp(Number.isNaN(num) ? this.minVal : num);
+                // 强制更新输入框显示的值（非数字输入回退为钳制后的值）
                 event.target.value = this.currentVal;
             },
             decrement () {
-                this.currentVal = Math.max(this.minVal, this.currentVal - this.step).toFixed(decimalPoints)
+                this.currentVal = this.clamp(Number(this.currentVal) - this.step);
             },
             increment () {
-                this.currentVal = Math.min(this.maxVal, this.currentVal + this.step).toFixed(decimalPoints)
+                this.currentVal = this.clamp(Number(this.currentVal) + this.step);
             }
         }
     }
