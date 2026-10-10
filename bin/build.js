@@ -20,6 +20,9 @@ const defaultOptions = {
     bundle: true,
     mainFields: ['module', 'main'],
     platform: 'neutral',
+    // 必须显式 esm：AlpineComponent 资产经 x-load 的动态 import() 消费，
+    // IIFE 产物命名空间为空 → 组件函数解析为 false → Alpine.data 注册失败（swiper/lightbox 前端静默失效的根因）
+    format: 'esm',
     sourcemap: isDev ? 'inline' : false,
     sourcesContent: isDev,
     treeShaking: true,
