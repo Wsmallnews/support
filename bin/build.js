@@ -55,7 +55,8 @@ compile({
         './resources/js/index.js',
         // './resources/js/forms/arrange.js', 
         './resources/js/components/lightbox.js',
-        './resources/js/components/swiper.js', 
+        './resources/js/components/number-stepper.js',
+        './resources/js/components/swiper.js',
         // './resources/js/components/file-upload.js'
     ],
     outdir: './resources/dist/',

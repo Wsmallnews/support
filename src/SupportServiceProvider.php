@@ -239,6 +239,7 @@ class SupportServiceProvider extends PackageServiceProvider
 
             // AlpineComponent::make('forms-arrange', __DIR__ . '/../resources/dist/forms/arrange.js'),
             AlpineComponent::make('sn-support-components-lightbox', __DIR__ . '/../resources/dist/components/lightbox.js'),
+            AlpineComponent::make('sn-support-components-number-stepper', __DIR__ . '/../resources/dist/components/number-stepper.js'),
             AlpineComponent::make('sn-support-components-swiper', __DIR__ . '/../resources/dist/components/swiper.js'),
             // AlpineComponent::make('components-file-upload', __DIR__ . '/../resources/dist/components/file-upload.js'),
             Css::make('sn-support-components-lightbox', __DIR__ . '/../resources/dist/components/lightbox.css')->loadedOnRequest(),
