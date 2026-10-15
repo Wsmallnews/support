@@ -60,13 +60,14 @@ class ActionComponents
      *
      * @param  string  $name  批量操作名称
      * @param  Closure(BulkAction, Model): void  $process  单条记录的业务逻辑
-     * @param  Closure(Collection|EloquentCollection): void|null  $prepare  可选：批量预处理（如 eager load）
+     * @param  Closure(EloquentCollection<int, Model>): void|null  $prepare  可选：批量预处理（如 eager load），异常导致整批标记失败
      * @return BulkAction 可继续链式设置 UI 属性
      */
     public static function bulkAction(string $name, Closure $process, ?Closure $prepare = null): BulkAction
     {
         return BulkAction::make($name)
             ->requiresConfirmation()
+            ->deselectRecordsAfterCompletion()
             ->successNotificationTitle(__('sn-support::support.action.bulk_success'))
             ->failureNotificationTitle(function (int $successCount, int $totalCount): string {
                 if ($successCount) {
@@ -81,7 +82,7 @@ class ActionComponents
                     'total' => Number::format($totalCount),
                 ]);
             })
-            ->action(function (BulkAction $action, Collection | EloquentCollection $records) use ($process, $prepare): void {
+            ->action(function (BulkAction $action, EloquentCollection $records) use ($process, $prepare): void {
                 static::safeBulkProcess($action, $records, $process, $prepare);
             });
     }
@@ -95,11 +96,11 @@ class ActionComponents
      * - $process 闭包中可手动调用 $action->reportBulkProcessingFailure() 处理非异常失败
      *
      * @param  BulkAction  $action  批量操作实例（用于调用 reportBulkProcessingFailure 等）
-     * @param  Collection|EloquentCollection  $records  待处理的记录集合
+     * @param  EloquentCollection<int, Model>  $records  待处理的记录集合
      * @param  Closure(BulkAction, Model): void  $process  单条记录的业务逻辑
-     * @param  Closure(Collection|EloquentCollection): void|null  $prepare  可选：批量预处理（如 eager load），异常导致整批标记失败
+     * @param  Closure(EloquentCollection<int, Model>): void|null  $prepare  可选：批量预处理（如 eager load），异常导致整批标记失败
      */
-    public static function safeBulkProcess(BulkAction $action, Collection | EloquentCollection $records, Closure $process, ?Closure $prepare = null): void
+    public static function safeBulkProcess(BulkAction $action, EloquentCollection $records, Closure $process, ?Closure $prepare = null): void
     {
         if ($prepare) {
             try {
