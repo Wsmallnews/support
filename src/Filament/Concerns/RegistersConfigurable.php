@@ -35,11 +35,11 @@ trait RegistersConfigurable
     }
 
     /**
-    * Apply resource overrides from the PanelProvider.
-    *
-    * @param  array<ResourceConfiguration>  $configurations
-    * @return $this
-    */
+     * Apply resource overrides from the PanelProvider.
+     *
+     * @param  array<ResourceConfiguration>  $configurations
+     * @return $this
+     */
     public function configurableResources(array $configurations): static
     {
         $this->resourceConfigurations = $configurations;
@@ -81,10 +81,10 @@ trait RegistersConfigurable
     }
 
     /**
-    * Read config entries, merge the shared defaults and build the configuration objects.
-    *
-    * @return array<string, ResourceConfiguration|PageConfiguration>
-    */
+     * Read config entries, merge the shared defaults and build the configuration objects.
+     *
+     * @return array<string, ResourceConfiguration|PageConfiguration>
+     */
     protected function buildConfigurations(string $type): array
     {
         $raw = $this->getPanelRegister($type);
@@ -113,12 +113,12 @@ trait RegistersConfigurable
     }
 
     /**
-    * Build a configuration object from merged config.
-    *
-    * @param  class-string  $class
-    * @param  array<string, mixed>  $config  Keys in snake_case
-    * @param  string  $type  resources or pages
-    */
+     * Build a configuration object from merged config.
+     *
+     * @param  class-string  $class
+     * @param  array<string, mixed>  $config  Keys in snake_case
+     * @param  string  $type  resources or pages
+     */
     protected function buildConfiguration(string $class, array $config, string $type): ResourceConfiguration | PageConfiguration
     {
         $key = $config['key'] ?? 'default';

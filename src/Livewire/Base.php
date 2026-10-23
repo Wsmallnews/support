@@ -13,13 +13,14 @@ class Base extends Component
     use CanUseDatabaseTransactions;
 
     /**
-    * Run the callback in a database transaction when $hasDatabaseTransactions is on. A Halt
-    * exception rolls back or commits as it asks; any other exception rolls back and rethrows.
-    *
-    * @param  Closure  $callback  Work to run inside the transaction
-    * @return mixed The callback result
-    * @throws Throwable When the transaction fails, after rolling back
-    */
+     * Run the callback in a database transaction when $hasDatabaseTransactions is on. A Halt
+     * exception rolls back or commits as it asks; any other exception rolls back and rethrows.
+     *
+     * @param  Closure  $callback  Work to run inside the transaction
+     * @return mixed The callback result
+     *
+     * @throws Throwable When the transaction fails, after rolling back
+     */
     public function transaction(Closure $callback): mixed
     {
         if (! $this->hasDatabaseTransactions()) {
@@ -48,11 +49,12 @@ class Base extends Component
     }
 
     /**
-    * Throw a Halt exception to stop execution, optionally rolling back the transaction.
-    *
-    * @param  bool  $shouldRollbackDatabaseTransaction  Whether to roll back
-    * @throws Halt
-    */
+     * Throw a Halt exception to stop execution, optionally rolling back the transaction.
+     *
+     * @param  bool  $shouldRollbackDatabaseTransaction  Whether to roll back
+     *
+     * @throws Halt
+     */
     protected function halt(bool $shouldRollbackDatabaseTransaction = false): void
     {
         throw (new Halt)->rollBackDatabaseTransaction($shouldRollbackDatabaseTransaction);

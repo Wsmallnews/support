@@ -26,11 +26,11 @@ class FeedController
     }
 
     /**
-    * Module aggregate: merges only that module's visible feeds.
-    *
-    * feed_module is read from the route rather than injected by position: defaults and URI
-    * segments do not line up reliably through positional injection.
-    */
+     * Module aggregate: merges only that module's visible feeds.
+     *
+     * feed_module is read from the route rather than injected by position: defaults and URI
+     * segments do not line up reliably through positional injection.
+     */
     public function moduleIndex(): Response
     {
         $module = (string) request()->route()->parameter('feed_module');

@@ -167,14 +167,15 @@ class Utils
     }
 
     /**
-    * Resolve a scope from a module's scopeables config, e.g. sn-cms.scopeables with a
-    * mandatory main instance and optional variants. A missing instance, a missing main or a
-    * duplicate scope_type/scope_id pair throws InvalidScopeException.
-    *
-    * @param  string  $configKey  Instance config key, e.g. sn-cms.scopeables
-    * @param  string|null  $key  Instance key; null selects main
-    * @throws InvalidScopeException
-    */
+     * Resolve a scope from a module's scopeables config, e.g. sn-cms.scopeables with a
+     * mandatory main instance and optional variants. A missing instance, a missing main or a
+     * duplicate scope_type/scope_id pair throws InvalidScopeException.
+     *
+     * @param  string  $configKey  Instance config key, e.g. sn-cms.scopeables
+     * @param  string|null  $key  Instance key; null selects main
+     *
+     * @throws InvalidScopeException
+     */
     public static function getScopeFromInstances(string $configKey, ?string $key = null): ScopeableContext
     {
         $key ??= 'main';

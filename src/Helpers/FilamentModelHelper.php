@@ -76,10 +76,10 @@ class FilamentModelHelper
     }
 
     /**
-    * Cover or avatar URL of the model.
-    *
-    * @param  ?Model
-    */
+     * Cover or avatar URL of the model.
+     *
+     * @param  ?Model
+     */
     public static function getCoverUrl(?Model $model): ?string
     {
         if (! $model instanceof Model) {
@@ -119,9 +119,9 @@ class FilamentModelHelper
     }
 
     /**
-    * Keyword search fields of a model, in order: the getKeywordSearchFields() static method,
-    * the $keywordSearchFields static property, then the primary key.
-    */
+     * Keyword search fields of a model, in order: the getKeywordSearchFields() static method,
+     * the $keywordSearchFields static property, then the primary key.
+     */
     public static function resolveKeywordSearchFields(string $modelClass): array
     {
         if (! class_exists($modelClass)) {

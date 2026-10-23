@@ -113,10 +113,10 @@ class SeoPage
     }
 
     /**
-    * Render every SEO tag for <head>.
-    *
-    * @param  array{site_name: string, description: ?string, image: ?string, favicon: ?string, analytics_code: ?string}  $defaults  Module defaults resolved by the Seo registry
-    */
+     * Render every SEO tag for <head>.
+     *
+     * @param  array{site_name: string, description: ?string, image: ?string, favicon: ?string, analytics_code: ?string}  $defaults  Module defaults resolved by the Seo registry
+     */
     public function render(array $defaults): HtmlString
     {
         $title = $this->resolveTitle($defaults['site_name']);

@@ -25,8 +25,8 @@ class CompositionForm
     }
 
     /**
-    * @param  string|null  $moduleId  Module id, the CompositionRegistry key behind the type and purpose options
-    */
+     * @param  string|null  $moduleId  Module id, the CompositionRegistry key behind the type and purpose options
+     */
     public static function forms(?string $moduleId = null): array
     {
         return [
@@ -95,9 +95,9 @@ class CompositionForm
     }
 
     /**
-    * Row-based composition: each row picks a split from lg up; below lg everything stacks
-    * single column, left before right. Stack mode hides the split and forces full width.
-    */
+     * Row-based composition: each row picks a split from lg up; below lg everything stacks
+     * single column, left before right. Stack mode hides the split and forces full width.
+     */
     protected static function rowsRepeater(?string $moduleId): Forms\Components\Repeater
     {
         return Forms\Components\Repeater::make('rows')
@@ -116,9 +116,9 @@ class CompositionForm
     }
 
     /**
-    * One row: layout picker plus the left and right slot repeaters. The preview widths match
-    * the frontend ratio; stack mode hides the split and skips the right slot.
-    */
+     * One row: layout picker plus the left and right slot repeaters. The preview widths match
+     * the frontend ratio; stack mode hides the split and skips the right slot.
+     */
     protected static function rowSchema(?string $moduleId): array
     {
         return [
@@ -171,9 +171,9 @@ class CompositionForm
     }
 
     /**
-    * Component entry: type, label, description and the type's own form fields. Registry form
-    * closures need the whole form state, read from the injected Livewire component.
-    */
+     * Component entry: type, label, description and the type's own form fields. Registry form
+     * closures need the whole form state, read from the injected Livewire component.
+     */
     protected static function componentItems(?string $moduleId): array
     {
         return [
@@ -248,9 +248,9 @@ class CompositionForm
     }
 
     /**
-    * Current editing layout mode (rows or stack), read from the injected component because
-    * purpose and options.position live at the root and deep relative paths are unreliable.
-    */
+     * Current editing layout mode (rows or stack), read from the injected component because
+     * purpose and options.position live at the root and deep relative paths are unreliable.
+     */
     protected static function layoutMode(?string $moduleId, Component $livewire): string
     {
         $data = $livewire->data ?? [];
@@ -259,9 +259,9 @@ class CompositionForm
     }
 
     /**
-    * Sync all rows to the new mode after a purpose or position change: stack forces full
-    * width, while right-slot data stays in the state so switching back loses nothing.
-    */
+     * Sync all rows to the new mode after a purpose or position change: stack forces full
+     * width, while right-slot data stays in the state so switching back loses nothing.
+     */
     protected static function syncRowsToLayoutMode(?string $moduleId, Get $get, Set $set, ?string $purpose, ?string $position): void
     {
         if (CompositionRegistry::getLayoutMode($moduleId, $purpose, $position) !== CompositionRenderer::LAYOUT_MODE_STACK) {

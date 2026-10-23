@@ -96,11 +96,11 @@ class Page extends SupportModel implements HasSnSubject
     }
 
     /**
-    * Resolve the composition channel into renderable rows; an invalid binding returns an
-    * empty array so the caller can fall back to content or the empty state.
-    *
-    * @return array CompositionRenderer::resolveRows() output
-    */
+     * Resolve the composition channel into renderable rows; an invalid binding returns an
+     * empty array so the caller can fall back to content or the empty state.
+     *
+     * @return array CompositionRenderer::resolveRows() output
+     */
     public function resolveRows(string $module, array $pageContext = []): array
     {
         $composition = $this->composition_id

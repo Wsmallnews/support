@@ -133,12 +133,12 @@ class FilterComponents
     }
 
     /**
-    * Status filter driven by an enum.
-    *
-    * @param  class-string<\BackedEnum>  $enumClass  Status enum
-    * @param  string  $field  Column name
-    * @param  string | null  $label  Filter label, defaults to the translation
-    */
+     * Status filter driven by an enum.
+     *
+     * @param  class-string<\BackedEnum>  $enumClass  Status enum
+     * @param  string  $field  Column name
+     * @param  string | null  $label  Filter label, defaults to the translation
+     */
     public static function statusFilter(string $enumClass, string $field = 'status', ?string $label = null): Tables\Filters\SelectFilter
     {
         return Tables\Filters\SelectFilter::make($field)
@@ -156,11 +156,11 @@ class FilterComponents
     }
 
     /**
-    * Date range filter for one column.
-    *
-    * @param  string  $field_name
-    * @param  string | null  $label
-    */
+     * Date range filter for one column.
+     *
+     * @param  string  $field_name
+     * @param  string | null  $label
+     */
     public static function dateTimeRangeFilter($field_name, $label = null): Tables\Filters\Filter
     {
         return Tables\Filters\Filter::make($field_name)

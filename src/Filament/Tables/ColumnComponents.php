@@ -58,12 +58,12 @@ class ColumnComponents
     }
 
     /**
-    * Model column: image on the left, title and description on the right, optionally linked.
-    *
-    * @param  string  $name  Column name, e.g. causer.name
-    * @param  string  $label  Column label
-    * @param  Closure  $modelResolver  Resolves the model from the record, e.g. fn ($record) => $record->causer
-    */
+     * Model column: image on the left, title and description on the right, optionally linked.
+     *
+     * @param  string  $name  Column name, e.g. causer.name
+     * @param  string  $label  Column label
+     * @param  Closure  $modelResolver  Resolves the model from the record, e.g. fn ($record) => $record->causer
+     */
     public static function modelColumn(
         string $name,
         string $label,
@@ -82,14 +82,14 @@ class ColumnComponents
     }
 
     /**
-    * Related model column with an optional type badge.
-    *
-    * @param  string  $name  Column name, e.g. causer.name
-    * @param  string  $label  Column label
-    * @param  Closure  $modelResolver  Resolves the model from the record, e.g. fn ($record) => $record->causer
-    * @param  ?Closure  $relationTypeResolver  Relation type, e.g. fn ($record) => 'post'
-    * @param  ?Closure  $relationIdResolver  Relation id, e.g. fn ($record) => $record->post_id
-    */
+     * Related model column with an optional type badge.
+     *
+     * @param  string  $name  Column name, e.g. causer.name
+     * @param  string  $label  Column label
+     * @param  Closure  $modelResolver  Resolves the model from the record, e.g. fn ($record) => $record->causer
+     * @param  ?Closure  $relationTypeResolver  Relation type, e.g. fn ($record) => 'post'
+     * @param  ?Closure  $relationIdResolver  Relation id, e.g. fn ($record) => $record->post_id
+     */
     public static function relationColumn(
         string $name,
         string $label,
@@ -125,14 +125,14 @@ class ColumnComponents
     }
 
     /**
-    * Polymorphic model column.
-    *
-    * @param  string  $name  Column name, e.g. causer.name
-    * @param  string  $label  Column label
-    * @param  Closure  $modelResolver  Resolves the model from the record, e.g. fn ($record) => $record->causer
-    * @param  ?Closure  $morphTypeResolver  Morph type, e.g. fn ($record) => $record->causer_type
-    * @param  ?Closure  $morphIdResolver  Morph id, e.g. fn ($record) => $record->causer_id
-    */
+     * Polymorphic model column.
+     *
+     * @param  string  $name  Column name, e.g. causer.name
+     * @param  string  $label  Column label
+     * @param  Closure  $modelResolver  Resolves the model from the record, e.g. fn ($record) => $record->causer
+     * @param  ?Closure  $morphTypeResolver  Morph type, e.g. fn ($record) => $record->causer_type
+     * @param  ?Closure  $morphIdResolver  Morph id, e.g. fn ($record) => $record->causer_id
+     */
     public static function morphColumn(
         string $name,
         string $label,

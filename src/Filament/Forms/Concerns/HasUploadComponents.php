@@ -15,11 +15,11 @@ trait HasUploadComponents
     // ------------------------- Media library uploads -------------------------
 
     /**
-    * Spatie Media Library image upload.
-    *
-    * @param  string  $name  Column name
-    * @param  string  $collection  Media collection name
-    */
+     * Spatie Media Library image upload.
+     *
+     * @param  string  $name  Column name
+     * @param  string  $collection  Media collection name
+     */
     public static function mediaImageUpload(string $name, string $collection): Forms\Components\SpatieMediaLibraryFileUpload
     {
         $component = Forms\Components\SpatieMediaLibraryFileUpload::make($name)
@@ -30,11 +30,11 @@ trait HasUploadComponents
     }
 
     /**
-    * Spatie Media Library file upload.
-    *
-    * @param  string  $name  Column name
-    * @param  string  $collection  Media collection name
-    */
+     * Spatie Media Library file upload.
+     *
+     * @param  string  $name  Column name
+     * @param  string  $collection  Media collection name
+     */
     public static function mediaFileUpload(string $name, string $collection): Forms\Components\SpatieMediaLibraryFileUpload
     {
         $component = Forms\Components\SpatieMediaLibraryFileUpload::make($name)
@@ -46,10 +46,10 @@ trait HasUploadComponents
     // ------------------------- Plain uploads (no media library) -------------------------
 
     /**
-    * Plain image upload: writes to the disk and keeps the path in the column.
-    *
-    * @param  string  $name  Column name
-    */
+     * Plain image upload: writes to the disk and keeps the path in the column.
+     *
+     * @param  string  $name  Column name
+     */
     public static function plainImageUpload(string $name): Forms\Components\FileUpload
     {
         $component = Forms\Components\FileUpload::make($name)
@@ -59,10 +59,10 @@ trait HasUploadComponents
     }
 
     /**
-    * Plain file upload: writes to the disk and keeps the path in the column.
-    *
-    * @param  string  $name  Column name
-    */
+     * Plain file upload: writes to the disk and keeps the path in the column.
+     *
+     * @param  string  $name  Column name
+     */
     public static function plainFileUpload(string $name): Forms\Components\FileUpload
     {
         $component = Forms\Components\FileUpload::make($name);

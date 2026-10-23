@@ -147,13 +147,14 @@ trait CanBeConfigured
     // ========================================================================
 
     /**
-    * Resolve the scopeable for this resource or page: instance key, then explicit pair,
-    * then the module's main instance. Missing both module and pair throws, because a broken
-    * scope must fail during development instead of silently falling back to 'default'.
-    *
-    * @return array{scope_type: string, scope_id: int}
-    * @throws InvalidScopeException
-    */
+     * Resolve the scopeable for this resource or page: instance key, then explicit pair,
+     * then the module's main instance. Missing both module and pair throws, because a broken
+     * scope must fail during development instead of silently falling back to 'default'.
+     *
+     * @return array{scope_type: string, scope_id: int}
+     *
+     * @throws InvalidScopeException
+     */
     public static function getScopeable(): array
     {
         $instanceKey = static::getConfigurationValue('scopeable');
@@ -176,10 +177,10 @@ trait CanBeConfigured
     }
 
     /**
-    * Resolve a scopeable instance within a module (moduleId is the config root).
-    *
-    * @throws InvalidScopeException
-    */
+     * Resolve a scopeable instance within a module (moduleId is the config root).
+     *
+     * @throws InvalidScopeException
+     */
     protected static function resolveScopeableInstance(string $key): array
     {
         $configRoot = static::getConfigurationValue('moduleId');
@@ -202,9 +203,9 @@ trait CanBeConfigured
     }
 
     /**
-    * Module that owns this resource, used to address module-level registries.
-    * Injected by RegistersConfigurable at registration; null outside that context.
-    */
+     * Module that owns this resource, used to address module-level registries.
+     * Injected by RegistersConfigurable at registration; null outside that context.
+     */
     public static function getModuleId(): ?string
     {
         return static::getConfigurationValue('moduleId');

@@ -16,8 +16,8 @@ use Wsmallnews\Support\Enums\ScheduledTaskStatus;
 class ScheduledTaskRegistry
 {
     /**
-    * @var Collection<string, Collection<string, array>> morphType => (action => info)
-    */
+     * @var Collection<string, Collection<string, array>> morphType => (action => info)
+     */
     protected ?Collection $scopes;
 
     public function __construct()
@@ -26,11 +26,11 @@ class ScheduledTaskRegistry
     }
 
     /**
-    * Register one action.
-    *
-    * @param  string  $morphType  Entity morph alias (e.g. sn_product), which isolates modules
-    * @param  array  $actionInfo  {action, label, forms, handler, visible}
-    */
+     * Register one action.
+     *
+     * @param  string  $morphType  Entity morph alias (e.g. sn_product), which isolates modules
+     * @param  array  $actionInfo  {action, label, forms, handler, visible}
+     */
     public function register(string $morphType, array $actionInfo): static
     {
         $actions = $this->getActions($morphType);
@@ -42,11 +42,11 @@ class ScheduledTaskRegistry
     }
 
     /**
-    * Register several actions.
-    *
-    * @param  string  $morphType  Entity morph alias
-    * @param  array  $actionInfos  Action definitions
-    */
+     * Register several actions.
+     *
+     * @param  string  $morphType  Entity morph alias
+     * @param  array  $actionInfos  Action definitions
+     */
     public function registers(string $morphType, array $actionInfos): static
     {
         foreach ($actionInfos as $actionInfo) {
@@ -57,20 +57,20 @@ class ScheduledTaskRegistry
     }
 
     /**
-    * All actions registered for a morph type.
-    *
-    * @return Collection<string, array>
-    */
+     * All actions registered for a morph type.
+     *
+     * @return Collection<string, array>
+     */
     public function getActions(string $morphType): Collection
     {
         return $this->scopes->get($morphType, collect());
     }
 
     /**
-    * action => label map for select options.
-    *
-    * @return array<string, string>
-    */
+     * action => label map for select options.
+     *
+     * @return array<string, string>
+     */
     public function getActionsOptions(string $morphType): array
     {
         return $this->getActions($morphType)->mapWithKeys(function (array $actionInfo) {
@@ -97,10 +97,10 @@ class ScheduledTaskRegistry
     }
 
     /**
-    * Execution handler of an action.
-    *
-    * @return Closure|null function(ScheduledTask $task, ?array $payload): bool
-    */
+     * Execution handler of an action.
+     *
+     * @return Closure|null function(ScheduledTask $task, ?array $payload): bool
+     */
     public function getHandler(string $morphType, string $action): ?Closure
     {
         $actionInfo = $this->getActions($morphType)->get($action);
@@ -109,10 +109,10 @@ class ScheduledTaskRegistry
     }
 
     /**
-    * Visibility condition of an action, used to filter mutually exclusive states.
-    *
-    * @return Closure|null function(Get $get): bool
-    */
+     * Visibility condition of an action, used to filter mutually exclusive states.
+     *
+     * @return Closure|null function(Get $get): bool
+     */
     public function getActionVisible(string $morphType, string $action): ?Closure
     {
         $actionInfo = $this->getActions($morphType)->get($action);
@@ -121,12 +121,12 @@ class ScheduledTaskRegistry
     }
 
     /**
-    * Build the task repeater over sn_scheduled_tasks. Only pending tasks are loaded, because
-    * executed, failed and cancelled rows are audited from their own columns.
-    *
-    * @param  string  $morphType  Entity morph alias, used to read the action options
-    * @param  string  $relationship  Relation method, defaults to scheduledTasks
-    */
+     * Build the task repeater over sn_scheduled_tasks. Only pending tasks are loaded, because
+     * executed, failed and cancelled rows are audited from their own columns.
+     *
+     * @param  string  $morphType  Entity morph alias, used to read the action options
+     * @param  string  $relationship  Relation method, defaults to scheduledTasks
+     */
     public function scheduleRepeater(string $morphType, string $relationship = 'scheduledTasks'): Repeater
     {
         return Repeater::make($relationship)
@@ -189,11 +189,11 @@ class ScheduledTaskRegistry
     }
 
     /**
-    * Filter the available actions through their visible closures. Each closure receives the
-    * inner repeater Get and decides which field to read; actions without one always show.
-    *
-    * @return array<string, string>
-    */
+     * Filter the available actions through their visible closures. Each closure receives the
+     * inner repeater Get and decides which field to read; actions without one always show.
+     *
+     * @return array<string, string>
+     */
     protected function filterVisibleActions(string $morphType, Get $get): array
     {
         $allOptions = $this->getActionsOptions($morphType);

@@ -48,18 +48,18 @@ class CompositionRenderer
     public const LAYOUT_MODE_ROWS = 'rows';
 
     /**
-    * Resolve a composition bound to a purpose slot, e.g. a detail-page sidebar.
-    *
-    * Returns null when nothing matches, or when the matched composition resolves to no
-    * rows, so callers can fall back to their default layout.
-    *
-    * @param  string  $purpose  Purpose slot, e.g. post-sidebar
-    * @param  string  $module  Module id, the CompositionRegistry key
-    * @param  string  $scopeType  The module's main scope type
-    * @param  int  $scopeId  The module's main scope id
-    * @param  array  $params  Route parameters handed to the slot context provider
-    * @return array|null{rows: array, position: string} Null when unresolved
-    */
+     * Resolve a composition bound to a purpose slot, e.g. a detail-page sidebar.
+     *
+     * Returns null when nothing matches, or when the matched composition resolves to no
+     * rows, so callers can fall back to their default layout.
+     *
+     * @param  string  $purpose  Purpose slot, e.g. post-sidebar
+     * @param  string  $module  Module id, the CompositionRegistry key
+     * @param  string  $scopeType  The module's main scope type
+     * @param  int  $scopeId  The module's main scope id
+     * @param  array  $params  Route parameters handed to the slot context provider
+     * @return array|null{rows: array, position: string} Null when unresolved
+     */
     public static function resolveForPurpose(string $purpose, string $module, string $scopeType, int $scopeId = 0, array $params = []): ?array
     {
         $composition = Utils::getCompositionModel()::query()
@@ -108,13 +108,13 @@ class CompositionRenderer
     }
 
     /**
-    * Resolve every row of a composition.
-    *
-    * @param  array|null  $rows  Composition components
-    * @param  string  $module  Module id, the CompositionRegistry key
-    * @param  array  $pageContext  Page-level context seed available to every row
-    * @return array Resolved rows
-    */
+     * Resolve every row of a composition.
+     *
+     * @param  array|null  $rows  Composition components
+     * @param  string  $module  Module id, the CompositionRegistry key
+     * @param  array  $pageContext  Page-level context seed available to every row
+     * @return array Resolved rows
+     */
     public static function resolveRows(?array $rows, string $module, array $pageContext = []): array
     {
         $resolved = [];
@@ -137,11 +137,11 @@ class CompositionRenderer
     }
 
     /**
-    * Resolve one slot (left/right), skipping unregistered types. Each item consumes context
-    * first, then resolves, then provides so later items in the slot can read the result.
-    *
-    * @param  array  $context  Row context bag, passed by reference so the left slot feeds the right
-    */
+     * Resolve one slot (left/right), skipping unregistered types. Each item consumes context
+     * first, then resolves, then provides so later items in the slot can read the result.
+     *
+     * @param  array  $context  Row context bag, passed by reference so the left slot feeds the right
+     */
     protected static function resolveSlot(array $items, string $module, array &$context): array
     {
         $resolved = [];

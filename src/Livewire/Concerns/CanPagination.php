@@ -30,10 +30,10 @@ trait CanPagination
     public ?string $loadedFingerprint = null;
 
     /**
-    * Pagination links.
-    *
-    * @var string
-    */
+     * Pagination links.
+     *
+     * @var string
+     */
     protected $links = null;
 
     public function pageType(string $pageType)
@@ -56,12 +56,12 @@ trait CanPagination
     }
 
     /**
-    * Run a paginated query.
-    *
-    * @param  Builder  $builder  Eloquent query
-    * @param  string  $fingerprint  Identifies the query conditions; a change resets pagination,
-    *                               so it must cover everything that affects the result set
-    */
+     * Run a paginated query.
+     *
+     * @param  Builder  $builder  Eloquent query
+     * @param  string  $fingerprint  Identifies the query conditions; a change resets pagination,
+     *                               so it must cover everything that affects the result set
+     */
     public function withPagination(Builder $builder, string $fingerprint)
     {
         // Fingerprint changed: full reset (clear cache, back to page one)
