@@ -5,535 +5,695 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/wsmallnews/support/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/wsmallnews/support/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/wsmallnews/support.svg?style=flat-square)](https://packagist.org/packages/wsmallnews/support)
 
-Wsmallnews System Base Support Package. Provides common models, form components, Livewire traits, plugin capabilities, enum types and other underlying capabilities for other packages.
+Base package for the Wsmallnews Filament ecosystem: shared models, component factories, Livewire traits, registries (search, sitemap, feeds, SEO, composition, scheduled tasks, modules), money handling, and the `sn-*` frontend CSS layer.
 
-## Features
+Every other Wsmallnews package builds on this one. Package-specific conventions for AI agents live in [`resources/boost/guidelines/core.blade.php`](resources/boost/guidelines/core.blade.php).
 
-### Base Model Layer
+## Requirements
 
-- **SupportModel**: Base class for all package models, with built-in `Scopeable` trait, automatically supports multi-scope isolation and multi-tenancy
-- **Scopeable Trait**: Provides `scopeType()`, `scopeId()`, `scopeable()`, `snScope()` query scopes for models
-- **Content Model**: Generic polymorphic content storage model, supports three content types: text, rich text, and Markdown
-
-### Filament Form Components
-
-| Component | Description |
-| `FormComponents` | Form component factory, provides unified methods for creating file upload and editor components |
-
-### Livewire Traits
-
-| Trait            | Description                                                                     |
-| ---------------- | ------------------------------------------------------------------------------- |
-| `HasProperties`  | Generic property management, provides `getProperty()` / `setProperty()` methods |
-| `HasContentType` | Content type management, supports Textarea / Richtext / Markdown                |
-| `HasAuth`        | Auth user management, `getAuthUser()` / `hasAuthUser()`                         |
-| `CanPagination`  | Enhanced pagination, supports scroll loading, paginator, and manual modes       |
-| `CanBeContained` | Whether the component has an outer container                                    |
-| `Scopeable`      | Component-level scope management for Livewire                                   |
-
-### Plugin / Resource Traits
-
-> Extension of bezhansalleh/filament-plugin-essentials, providing custom property management functionality
-
-| Trait                            | Description                                                                            |
-| -------------------------------- | -------------------------------------------------------------------------------------- |
-| `HasCustomProperties` (Plugin)   | Plugin-level custom property management, supports multiple Resource contexts           |
-| `HasCustomProperties` (Resource) | Resource-level custom property reading, supports `getCustomProperty()` shortcut method |
-
-### Eloquent Casts
-
-| Cast          | Description                                                                               |
-| ------------- | ----------------------------------------------------------------------------------------- |
-| `CounterCast` | JSON counter field transformation, supports direct access like `->like_num`, `->view_num` |
-| `MoneyCast`   | Currency amount conversion, based on `moneyphp/money`                                     |
-| `ImplodeCast` | Array field concatenation transformation                                                  |
-
-### Other Features
-
-- **Enums**: `ContentType` (textarea / richtext / markdown), `ActivityLogEvent`
-- **Sms**: SMS sending functionality, based on `overtrue/easy-sms`
-- **Tenant Settings**: Multi-tenant configuration storage, database Settings Repository
-- **Observers**: Activity log observer, MediaLibrary observer
-- **Middleware**: Multi-tenant identification middleware `IdentifyTenant`
+- PHP 8.2+
+- Filament 4 or 5 (see `composer.json`)
 
 ## Installation
 
-You can install the package via composer:
-
 ```bash
 composer require wsmallnews/support:^1.0
-```
-
-Installing this package will publish the configuration files and migration files of both the third-party dependency package and the current package:
-
-```bash
 php artisan sn-support:install
 ```
 
-You can publish only the config file individually:
+`sn-support:install` publishes this package's config and migrations, publishes the third-party resources it manages (media-library, laravel-settings, laravel-activitylog), then offers to run `migrate`. Add `--no-deps` to publish only this package.
+
+Individual publish tags:
 
 ```bash
 php artisan vendor:publish --tag="sn-support-config"
-```
-
-Publish and run only the migrations individually:
-
-```bash
 php artisan vendor:publish --tag="sn-support-migrations"
-php artisan migrate
-```
-
-Multi language support, you can publish the language files using:
-
-```bash
 php artisan vendor:publish --tag="sn-support-translations"
-```
-
-Publish the views (optional):
-
-```bash
 php artisan vendor:publish --tag="sn-support-views"
 ```
 
-This is the contents of the published config file `config/sn-support.php`:
+## Configuration
 
-```php
-use Wsmallnews\Support\Models;
+All keys live in `config/sn-support.php`:
 
-return [
-    /*
-    |--------------------------------------------------------------------------
-    | Filesystem Disk
-    |--------------------------------------------------------------------------
-    |
-    | This is a storage disk used for store files. By default, The storage disk set by filament will be used
-    | You can use any disk defined in `config/firesystems.php`.
-    |
-    */
-    'filesystem_disk' => null,
+| Key | Default | Purpose |
+|---|---|---|
+| `filesystem_disk` | `null` | Disk for uploads; `null` falls back to Filament's default disk |
+| `models.content` | `Models\Content::class` | Swappable model class |
+| `models.sms_log` | `Models\SmsLog::class` | Swappable model class |
+| `models.scheduled_task` | `Models\ScheduledTask::class` | Swappable model class |
+| `models.composition` | `Models\Composition::class` | Swappable model class |
+| `models.page` | `Models\Page::class` | Swappable model class |
+| `tenant_model` | `null` | Tenant model; `null` disables tenancy |
+| `currency` | `CNY` | Site currency (ISO 4217), see [Money](#money) |
+| `action_components.table_record_actions.group` | `true` | Wrap record actions in an `ActionGroup` |
+| `action_components.table_record_actions.trigger` | `icon_button` | `icon_button`, `button` or `link` |
+| `action_components.table_record_actions.{icon,label,color,size,outlined,tooltip}` | `null` / `false` | Trigger appearance |
+| `action_components.table_toolbar_actions.group` | `true` | Wrap bulk actions in a `BulkActionGroup` |
+| `action_components.table_toolbar_actions.trigger` | `button` | `button`, `icon_button` or `link` |
+| `action_components.table_toolbar_actions.{icon,label,color,size,outlined,tooltip}` | `null` / `false` | Trigger appearance |
+| `form_components.upload.*` | see file | `visibility`, `downloadable`, `openable`, `reorderable`, `append_files`, `max_files`, `max_size`, `image_preview_height`, `panel_layout` |
+| `form_components.editor.max_length` | `null` | Editor character limit |
+| `form_components.editor.file_attachment.*` | see file | `visibility`, `max_size` |
+| `form_components.editor.markdown.toolbar_buttons` | see file | Markdown toolbar layout |
+| `form_components.editor.richtext.{toolbar_buttons,floating_toolbars,text_colors}` | see file | Rich text toolbar layout |
+| `form_components.content.types` | `null` | Allowed content types; `null` means all |
+| `form_components.content.default_type` | `ContentType::Richtext` | Default content type |
+| `theme.*` | `null` | Runtime overrides for `--sn-*` design tokens |
+| `search.*` | see [Search](#search) | Global search defaults |
+| `sitemap.*` | see [Sitemap](#sitemap) | Sitemap and robots endpoints |
+| `feeds.*` | see [Feed](#feed) | RSS endpoints |
+| `scheduler.*` | see [Scheduled tasks](#scheduled-tasks) | Task runner settings |
 
-    /**
-     * Custom models
-     */
-    'models' => [
-        'content' => Models\Content::class,
-        'sms_log' => Models\SmsLog::class,
-    ],
+## Features
 
-    /*
-    |--------------------------------------------------------------------------
-    | Multi-Tenancy
-    |--------------------------------------------------------------------------
-    |
-    | Firstly, the panel where the current plugin is located should support multi tenancy before you can set this option.
-    | Secondly, The tenant model should be set as a panel model.
-    |
-    */
-    'tenant_model' => null,
+### Base model layer
 
-    /*
-    |--------------------------------------------------------------------------
-    | Filament Form Components
-    |--------------------------------------------------------------------------
-    |
-    | Unified management of default configurations for Filament form components
-    |
-    */
-    'form_components' => [
-        /**
-         * Upload component default configuration
-         */
-        'upload' => [
-            /**
-             * Visibility
-             */
-            'visibility' => 'public',
-            /**
-             * Downloadable
-             */
-            'downloadable' => true,
-            /**
-             * Openable
-             */
-            'openable' => true,
-            /**
-             * Reorderable (valid for multi-file upload)
-             */
-            'reorderable' => true,
-            /**
-             * Append files mode (valid for multi-file upload)
-             */
-            'append_files' => true,
-            /**
-             * Maximum number of files (valid for multi-file upload)
-             */
-            'max_files' => 10,
-            /**
-             * Maximum file size, default 120MB
-             */
-            'max_size' => 122880,
-            /**
-             * Image preview height, default 200px
-             */
-            'image_preview_height' => '200',
-        ],
+- **SupportModel** — base class for every package model, with `Scopeable` and tenant awareness.
+- **Scopeable** — `scopeType()`, `scopeId()`, `scopeable()`, `snScope()` query scopes.
+- **Content** — polymorphic content storage for `textarea`, `richtext`, `markdown` and `images`.
+- **Composition**, **Page**, **Tag**, **ScheduledTask**, **SmsLog**, **Activity** models.
 
-        'editor' => [
-            /**
-             * Maximum content length, default null (unlimited)
-             */
-            'max_length' => null,
-            /**
-             * File upload configuration
-             */
-            'file_attachment' => [
-                /**
-                 * Visibility (richtext only)
-                 */
-                'visibility' => 'public',
-                /**
-                 * Maximum file size, default 120MB
-                 */
-                'max_size' => 122880,
-            ],
-            /**
-             * Markdown editor configuration
-             */
-            'markdown' => [
-                /**
-                 * Toolbar buttons
-                 */
-                'toolbar_buttons' => [
-                    ['bold', 'italic', 'strike', 'link'],
-                    ['heading'],
-                    ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
-                    ['table', 'attachFiles'],
-                    ['undo', 'redo'],
-                ],
-            ],
-            /**
-             * Rich text editor configuration
-             */
-            'richtext' => [
-                /**
-                 * Toolbar buttons
-                 */
-                'toolbar_buttons' => [
-                    ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link', 'textColor'],
-                    ['h2', 'h3'],
-                    ['alignStart', 'alignCenter', 'alignEnd'],
-                    ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
-                    ['table', 'attachFiles'],
-                    ['undo', 'redo'],
-                ],
-                /**
-                 * Floating toolbar buttons
-                 */
-                'floating_toolbars' => [
-                    'paragraph' => [
-                        'bold', 'italic', 'underline', 'strike', 'subscript', 'superscript',
-                    ],
-                    'heading' => [
-                        'h1', 'h2', 'h3',
-                    ],
-                    'table' => [
-                        'tableAddColumnBefore', 'tableAddColumnAfter', 'tableDeleteColumn',
-                        'tableAddRowBefore', 'tableAddRowAfter', 'tableDeleteRow',
-                        'tableMergeCells', 'tableSplitCell',
-                        'tableToggleHeaderRow', 'tableToggleHeaderCell',
-                        'tableDelete',
-                    ],
-                ],
-                /**
-                 * Text color list, effective when textColor is included in toolbar
-                 */
-                'text_colors' => null,
-            ],
-        ],
-    ],
-];
-```
+### Filament component factories
+
+| Factory | Description |
+|---|---|
+| `FormComponents` | Upload, editor, content type group, enum toggles and order column inputs |
+| `FilterComponents` | Status, morph and date range filters |
+| `ActionComponents` | Delete, edit, toggle, switch and error-isolating bulk actions |
+| `ColumnComponents` | Content, model, relation and morph table columns |
+
+Factories apply `config('sn-support.*')` defaults. When you use a factory, do not set disk, visibility or similar defaults by hand.
+
+### Livewire traits
+
+| Trait | Description |
+|---|---|
+| `HasProperties` | `getProperty()` / `setProperty()` over a property bag |
+| `HasContentType` | Content type property (textarea, richtext, markdown, images) |
+| `HasAuth` | Auth user management, `authUser()` / `hasAuthUser()` |
+| `CanPagination` | Scroll, paginator and manual modes; includes `WithPagination` |
+| `CanBeContained` | Whether the component renders its own container |
+| `Scopeable` | `#[Locked]` scope type and id |
+| `HasModuleContext` | Config lookup for a component reused by another module |
+
+### Eloquent casts
+
+| Cast | Description |
+|---|---|
+| `CounterCast` | JSON counters with `0` defaults for missing keys |
+| `MoneyCast` | Integer minor units to `Cknow\Money\Money` |
+| `ImplodeCast` | Comma separated string to array |
+
+### Other capabilities
+
+- **Enums** — `ContentType`, `CompositionStatus`, `PageStatus`, `ScheduledTaskStatus`, `ActivityLogEvent`.
+- **SMS** — `Features\Sms` on top of `overtrue/easy-sms`.
+- **Tenant settings** — a database settings repository for `spatie/laravel-settings`.
+- **Observers** — activity log and media library observers.
+- **Middleware** — `IdentifyTenant` and `InitializeSeo`.
 
 ## Usage
 
-### SupportModel Base Model
-
-All package models should extend `SupportModel` to automatically get multi-scope and multi-tenancy capabilities:
+### SupportModel
 
 ```php
 use Wsmallnews\Support\Models\SupportModel;
 
-class YourModel extends SupportModel
+class Post extends SupportModel
 {
-    protected $table = 'your_table';
-}
-```
-
-Automatically available query scopes:
-
-```php
-// Scope query
-YourModel::scopeable('blog', 1)->get();
-
-// Combined query (scope + tenant), will automatically get current tenant ID
-YourModel::snScope('blog', 1)->get();
-
-// Get scope information for current record
-$model->getScopeType();  // 'blog'
-$model->getScopeId();    // 1
-$model->getScopeable();  // ['scope_type' => 'blog', 'scope_id' => 1]
-```
-
-### HasProperties Trait
-
-Use property management in Livewire components:
-
-```php
-use Wsmallnews\Support\Livewire\Concerns\HasProperties;
-
-class YourComponent extends Component
-{
-    use HasProperties;
-
-    public function mount(): void
-    {
-        $this->setProperties([
-            'emptyLabel' => 'No data',
-            'pageSize' => 20,
-        ]);
-    }
-
-    public function getEmptyLabel(): ?string
-    {
-        return $this->getProperty('emptyLabel', 'Default empty text');
-    }
-}
-```
-
-### HasCustomProperties (Plugin)
-
-Use custom properties in Plugin:
-
-```php
-use Wsmallnews\Support\Concerns\Plugin\HasCustomProperties;
-
-class YourPlugin implements Plugin
-{
-    use HasCustomProperties;
-
-    public function register(Panel $panel): void
-    {
-        // Set custom properties during Panel registration
-    }
+    protected $table = 'posts';
 }
 
-// Usage
-YourPlugin::make()
-    ->customProperties([
-        'pageSize' => 20,
-        'enableSearch' => true,
-    ]);
+Post::scopeable('blog', 1)->get();   // scope filter
+Post::snScope('blog', 1)->get();     // scope plus current tenant
+
+$post->getScopeType();               // 'blog'
+$post->getScopeId();                 // 1
+$post->getScopeable();               // ['scope_type' => 'blog', 'scope_id' => 1]
 ```
 
-### HasCustomProperties (Resource)
+`scope_id` may be `0`, which means "every record of this scope type". Because `0` is a real value, queries must use `scopeScopeId(0)` (internally `whereIn`) rather than `where('scope_id', 0)`.
 
-Read custom properties in Resource/Page:
-
-```php
-use Wsmallnews\Support\Concerns\Resource\HasCustomProperties;
-
-class YourPage extends Page
-{
-    use HasCustomProperties;
-
-    public function getPageSize(): int
-    {
-        return static::getCustomProperty('pageSize', 10);
-    }
-}
-```
-
-### Form Components Factory
-
-Quickly create configured form components using `FormComponents`:
+### Component factories
 
 ```php
 use Wsmallnews\Support\Filament\Forms\FormComponents;
 
-// Media library image upload (Spatie Media Library)
-FormComponents::mediaImageUpload('avatar', 'avatars');
-
-// Media library file upload
+FormComponents::mediaImageUpload('avatar', 'avatars');   // Spatie Media Library
 FormComponents::mediaFileUpload('attachment', 'files');
-
-// Direct storage disk image upload
-FormComponents::plainImageUpload('cover');
-
-// Direct storage file upload
+FormComponents::plainImageUpload('cover');               // stored on the disk, path in the column
 FormComponents::plainFileUpload('document');
-
-// Markdown editor
-FormComponents::markdownEditor('content');
-
-// Rich text editor
-FormComponents::richEditor('description');
+FormComponents::markdownEditor('description');
+FormComponents::richEditor('content');
+FormComponents::enumsToggleButtons(PostStatus::class, 'status');
+FormComponents::orderColumnInput();
+FormComponents::contentTypeGroup(types: null, defaultType: ContentType::Richtext);
 ```
 
-Components will automatically apply default configurations from `sn-support.php`.
+```php
+use Wsmallnews\Support\Filament\Filters\FilterComponents;
+use Wsmallnews\Support\Filament\Actions\ActionComponents;
+use Wsmallnews\Support\Filament\Tables\ColumnComponents;
 
-### CounterCast
+FilterComponents::statusFilter(PostStatus::class);
+FilterComponents::createUpdateRangeFilter();
+FilterComponents::dateTimeRangeFilter('published_at', 'Published');
+
+ActionComponents::toggleAction(PostStatus::class, 'status');    // enum with exactly two cases
+ActionComponents::switchAction(PostStatus::class, 'status');    // enum with more than two cases
+ActionComponents::bulkAction('bulk_publish', fn ($action, $record) => $record->publish());
+
+ColumnComponents::contentColumn('content', 'Content');
+ColumnComponents::morphColumn('causer_type', 'Causer', fn ($r) => $r->causer, fn ($r) => $r->causer_type, fn ($r) => $r->causer_id);
+```
+
+`bulkAction()` wraps the per-record closure in its own try/catch, counts failures and only reports the first exception. Pass a `prepare` closure for batch preflight work such as eager loading; a throw there fails the whole batch.
+
+### Livewire
+
+```php
+use Wsmallnews\Support\Livewire\Base;
+use Wsmallnews\Support\Livewire\Concerns\CanPagination;
+use Wsmallnews\Support\Livewire\Concerns\HasProperties;
+
+class CommentList extends Base
+{
+    use CanPagination;
+    use HasProperties;
+
+    public string $pageType = 'scroll';   // scroll, paginator or manual
+    public int $perPage = 10;
+
+    public function loadComments(): void
+    {
+        $this->comments = $this->withPagination(
+            Comment::query(),
+            fingerprint: implode('|', [$this->search, $this->sort]),
+        );
+    }
+}
+```
+
+`Base::transaction()` respects `Halt`:
+
+```php
+$this->transaction(function (): void {
+    // ...
+});
+
+$this->halt();   // stop and roll back
+```
+
+`withPagination()` caches by page and fingerprint, so pass a fingerprint that covers every condition affecting the result set. Call `resetPagination()` after data changes.
+
+### Scopeable
+
+```php
+use Wsmallnews\Support\Data\ScopeableContext;
+
+$context = new ScopeableContext('post', 0);
+$context->isGlobal();                                            // true
+
+ScopeableContext::fromArray(['scope_type' => 'store', 'scope_id' => 5]);
+scopeable_context(['scope_type' => 'post', 'scope_id' => 0]);
+scopeable_query(Post::query(), ['scope_type' => 'post', 'scope_id' => 0]);
+```
+
+Filament side:
+
+- `Filament\Concerns\HasScopeableProperties` — static `scopeType()` / `scopeId()`.
+- `Filament\Resources\Concerns\Scopeable` — `applyScopeableToQuery()`.
+- `Filament\Pages\Concerns\Scopeable` — page-level scope helpers.
+
+A misconfigured scope throws `InvalidScopeException` instead of falling back to a `default` instance.
+
+### Configuration mode for resources and pages
+
+```php
+use Wsmallnews\Support\Filament\Concerns\CanBeConfigured;
+use Wsmallnews\Support\Filament\Resources\ResourceConfiguration;
+
+final class PostResource extends BaseResource
+{
+    use CanBeConfigured;
+
+    protected static ?string $configurationClass = ResourceConfiguration::class;
+}
+```
+
+```php
+use Wsmallnews\Support\Filament\Concerns\RegistersConfigurable;
+
+class CmsPlugin implements Plugin
+{
+    use RegistersConfigurable;
+
+    public function register(Panel $panel): void
+    {
+        $this->registerConfigurableResources($panel);
+        $this->registerConfigurablePages($panel);
+    }
+}
+```
+
+`module_id` is injected by the registering plugin, so cross-module registration needs no manual declaration.
+
+### Exceptions
+
+Package exceptions extend `SupportException`, so callers can catch the whole family:
+
+```php
+use Wsmallnews\Support\Exceptions\SupportException;
+
+class CmsException extends SupportException {}
+```
+
+`InvalidScopeException` signals a broken scope configuration.
+
+### Enum helper
+
+```php
+use Wsmallnews\Support\Enums\Traits\EnumHelper;
+
+enum PostStatus: string implements HasColor, HasIcon, HasLabel
+{
+    use EnumHelper;
+
+    case Draft = 'draft';
+    case Published = 'published';
+}
+```
+
+### Casts
 
 ```php
 use Wsmallnews\Support\Casts\CounterCast;
+use Wsmallnews\Support\Casts\ImplodeCast;
+use Wsmallnews\Support\Casts\MoneyCast;
 
-class Post extends SupportModel
-{
-    protected $casts = [
-        'counter' => CounterCast::class,
-    ];
-}
+protected $casts = [
+    'counter' => CounterCast::class,               // missing keys read as 0
+    'tags' => ImplodeCast::class,                  // comma separated string <-> array
+    'price' => MoneyCast::class . ':currency',     // binds the row's currency column
+];
 
-// Usage
-$post->counter->like_num;    // 0
-$post->counter->view_num;    // 0
-$post->counter->share_num;   // 0 (non-existent key defaults to 0)
-
-// Update counter
+$post->counter->like_num;                          // 0
 $post->incrementJson('counter->like_num');
-$post->decrementJson('counter->view_num');
 ```
 
-### CanPagination
+### Rocket
+
+`Rocket` is a three-stage pipeline payload: `params` (read-only input), `radars` (mutable intermediates) and `payloads` (final results).
 
 ```php
-use Wsmallnews\Support\Livewire\Concerns\CanPagination;
+$rocket = new Rocket;
+$rocket->setParams(['user_id' => 1]);
+$rocket->setRadar('key', 'value');
+$rocket->setPayloads(['result' => $data]);
 
-class CommentList extends Component
+$rocket->getParam('user_id');
+$rocket->getRadar('key');
+$rocket->getPayloads();   // Collection
+```
+
+Never serialise a whole `Rocket`: radars may hold Eloquent models. Pass scalars such as an id through queues instead.
+
+## Feature registries
+
+All registries key their entries by **module id** (the plugin id, e.g. `sn-cms`). Register in `packageBooted()`.
+
+### Modules
+
+`ModuleRegistry` is the single source of truth for module identity. Register once per package:
+
+```php
+use Wsmallnews\Support\Features\Modules\Module;
+use Wsmallnews\Support\Features\Modules\ModuleRegistry;
+
+ModuleRegistry::register(new Module(
+    id: 'sn-cms',
+    namespace: 'Wsmallnews\\Cms',
+    plugin: CmsPlugin::class,
+));
+```
+
+- `moduleOf($class)` resolves the owning module by longest namespace prefix. `HasModuleContext` uses it as the default, so components need no manual owner.
+- `require($id)` throws when a module is missing, which catches typos in registries at boot instead of silently dropping registrations.
+- `ModuleRegistry::flush()` resets the registry in tests.
+
+### Search
+
+`SearchRegistry` (facade `Search`) collects searchable sources per module.
+
+```php
+use Wsmallnews\Support\Facades\Search;
+
+Search::config('sn-cms', [
+    'display' => 'page',
+    'page' => fn (?string $query) => route('cms.search', ['q' => $query]),
+])->registers('sn-cms', [
+    [
+        'key' => 'post',
+        'model' => Post::class,
+        'group' => 'Posts',
+        'query' => fn ($query) => $query->published(),
+        'scopeable' => ['scope_type' => 'sn-cms', 'scope_id' => 0],
+        'url' => fn ($record) => route('cms.posts.show', $record),
+    ],
+]);
+
+Search::search(null, 'keyword');      // every registered module, grouped by label
+Search::search('sn-cms', 'keyword');  // one module; an unknown module throws
+```
+
+Source options:
+
+| Option | Description |
+|---|---|
+| `key` | Source identifier; defaults to the morph alias or class basename |
+| `model` | Model class or morph alias (**required**) |
+| `group` | Group label; defaults to the model label |
+| `fields` | LIKE columns; defaults to the model's keyword fields minus dotted relation paths |
+| `limit` | Results per source |
+| `sort` | Source order, ascending |
+| `query` | LIKE engine query modifier |
+| `scout` | Scout index modifier; overrides `query`, `scopeable` and `fields` |
+| `scopeable` | Scope filter for the LIKE engine |
+| `title` / `description` / `cover` / `badge` | Display resolvers; default to `HasSnSubject` data |
+| `url` | Link resolver; **only** the registrant can provide it, otherwise items are unlinked |
+| `view` | Custom item view; falls back to `SearchSource::DEFAULT_ITEM_VIEW` |
+| `render` | `fn ($result, $query)` renderer, wins over `view` |
+| `visible` | Closure deciding whether the source takes part |
+| `results` | Fully custom results, bypassing the engine |
+
+Module options (`Search::config()`) accept **any** key from `sn-support.search`. Resolution order everywhere is component property → module declaration → global config. Passing `null` restores the global fallback. Re-registering a key overrides the previous source, which lets an app replace a package source.
+
+Engines: `database` (default, `WHERE ... LIKE`), `scout` (requires `laravel/scout` and `Searchable` on the model), or a class implementing `Engines\Engine`. Engines implementing `ConfigurableEngine` receive the module options.
+
+Search config keys:
+
+| Key | Default | Purpose |
+|---|---|---|
+| `engine` | `database` | Fallback engine |
+| `display` | `dropdown` | `dropdown` or `page` |
+| `page` | `null` | Results page: string gets `?q=` appended, closure builds the URL |
+| `results_limit` | `8` | Results per source |
+| `split_terms` | `true` | Split the query on whitespace |
+| `terms_operator` | `and` | `and` or `or` for the split terms |
+| `show_search_button` | `false` | Render a submit button (page mode only) |
+| `case_insensitive` | `true` | Case-insensitive LIKE |
+| `debounce` | `300ms` | Frontend input debounce |
+
+Components:
+
+```blade
+<livewire:sn-support::components.search :module="'sn-cms'" placeholder="Search…" :limit="5" />
+<livewire:sn-support::components.search-results module="sn-cms" :limit="10" />
+```
+
+`components.search` renders a dropdown or a search field; `components.search-results` renders the result area of a dedicated page and keeps `?q=` in sync.
+
+### Sitemap
+
+`SitemapRegistry` (facade `Sitemap`) aggregates URL sources and robots rules. support exposes `/sitemap.xml` and `/robots.txt` at the root, so they work on every bound domain.
+
+```php
+use Wsmallnews\Support\Facades\Sitemap;
+
+Sitemap::config('sn-cms', ['domain' => 'cms.example.com'])
+    ->registers('sn-cms', [
+        [
+            'key' => 'posts',
+            'urls' => fn () => Post::query()->published()->get()->map(fn ($post) => [
+                'loc' => route('cms.posts.show', $post),
+                'lastmod' => $post->updated_at,
+            ]),
+        ],
+    ])
+    ->robots('sn-cms', ['disallow' => ['cms/search']]);
+```
+
+- `robots.txt` always contains the Filament panel paths, the registered disallow rules and a `Sitemap:` line for the current host.
+- Modules declaring a `domain` that does not match the request are skipped, including their robots rules. Route patterns such as `{tenant:slug}.example.com` are supported.
+- The rendered sitemap is cached as a whole; call `Sitemap::flush()` after content changes.
+
+Config keys: `enabled`, `sitemap_uri`, `robots_uri`, `cache_ttl` (`null` or `0` disables), `domain_filter`.
+
+### Feed
+
+`FeedRegistry` (facade `Feed`) publishes RSS 2.0 streams. Unlike the sitemap, a site can expose several named streams, so readers subscribe to what they care about.
+
+```php
+use Wsmallnews\Support\Facades\Feed;
+
+Feed::config('sn-cms', ['domain' => 'cms.example.com'])
+    ->register('sn-cms', 'posts', [
+        'title' => fn () => config('app.name') . ' - Posts',
+        'label' => fn () => __('Posts'),
+        'description' => fn () => null,
+        'link' => fn () => url('/'),
+        'limit' => 50,
+        'items' => fn () => Post::query()->published()->get()->map(fn ($post) => [
+            'title' => $post->title,
+            'url' => route('cms.posts.show', $post),
+            'description' => $post->description,
+            'updated_at' => $post->published_at,
+        ]),
+    ]);
+```
+
+- `items` is required and must be a closure; every entry needs a `url`.
+- Feed names are URL segments and must be **globally unique**; duplicates throw at registration.
+- `/feed` merges every visible stream, newest first, truncated by `feeds.limit`; `/feed/{name}` serves one stream.
+- Register module-scoped endpoints inside the module route group with `Feed::routes('sn-cms')`, which adds `{prefix}/feed` and `{prefix}/feed/{name}`. Call it before catch-all segments such as `navigation/{slug}`.
+- `Feed::autodiscoveryTags($module)` returns the `<link rel="alternate">` tags for the layout head.
+- Call `Feed::flush()` after content changes.
+
+Config keys: `enabled`, `uri`, `limit`, `cache_ttl`, `domain_filter`.
+
+### Seo
+
+`Seo` holds per-module site defaults and the current page context.
+
+```php
+use Wsmallnews\Support\Facades\Seo;
+
+// Site defaults, once per module in packageBooted()
+Seo::config('sn-cms', [
+    'site_name' => fn () => config('app.name'),
+    'description' => fn () => null,
+    'image' => fn () => null,
+    'favicon' => fn () => '/favicon.ico',
+    'analytics_code' => fn () => null,
+]);
+
+// Per page, in the routed page
+Seo::init('sn-cms')
+    ->title($post->title)
+    ->description($post->description)
+    ->article(['datePublished' => $post->published_at?->toIso8601String()]);
+```
+
+Render in the layout: `@snSeo` in `<head>`, `@snSeoAnalytics` before `</body>`, `@snFeeds('sn-cms')` for autodiscovery links.
+
+- `init()` runs in the `seo-init:{module}` route middleware on first render only. Livewire update requests do not re-render the layout, so they need no re-initialisation.
+- `article()` assembles an Article JSON-LD node from the page data and switches `og:type` to `article`; `website()` emits the WebSite node; `jsonLd()` appends raw nodes.
+- Relative image and canonical URLs are made absolute at render time.
+
+### Composition
+
+`CompositionRegistry` stores the component types a module can compose, plus optional purpose slots (for example a detail-page sidebar).
+
+```php
+use Wsmallnews\Support\Facades\CompositionRegistry;
+
+CompositionRegistry::registerPurposes('sn-cms', [
+    'post-sidebar' => [
+        'label' => fn () => __('Post sidebar'),
+        'positions' => ['left', 'right'],
+    ],
+])->registers('sn-cms', [
+    [
+        'type' => 'post-detail',
+        'label' => fn () => __('Post detail'),
+        'component' => \Wsmallnews\Cms\Livewire\PostDetail::class,
+        'forms' => fn () => [/* Filament fields */],
+        'provides' => fn (array $extras) => ['post' => $extras['post'] ?? null],
+    ],
+]);
+```
+
+- `component` / `components` map one type to one or more Livewire components; `forms` returns the admin form.
+- `provides` seeds the row context for later components; `context` declares which keys an item consumes. Context flows left to right inside a row and never crosses rows.
+- Rows resolve through `CompositionRenderer::resolveRows()`; `resolveForPurpose()` returns `null` when nothing matches so callers can fall back to their default layout.
+
+### Money
+
+Store money as **integer minor units** in the database, never as floats.
+
+- `sn_money()` returns the `MoneyManager`: `money()`, `minor()`, `decimal()`, `add()`, `subtract()`, `multiply()`, `sum()`, `allocate()`, `format()`, `formatParts()`, `symbol()`, `jsonFields()`, `jsonSum()`, `jsonFormat()`.
+- Scalar input is read as **decimal major units**; `int` input is read as **minor units**. Never pass a float result of your own arithmetic — go through the manager.
+- Split amounts with `allocate()`; it distributes the remainder so the total is preserved.
+- Currency resolution: `config('app.currency')` → `sn-support.currency` → `CNY`.
+- `MoneyCast::class . ':currency'` binds a per-row currency column; plain `MoneyCast::class` always uses the site currency.
+
+```php
+sn_money()->format(1999);                              // ￥19.99
+sn_money()->minor('19.99');                            // 1999
+sn_money()->allocate(10000, [1, 1, 1]);                // [3334, 3333, 3333]
+sn_money()->jsonSum(['shipping' => 500, 'tax' => 120]);
+```
+
+`Features\Currency` and `sn_currency()` are deprecated; `MoneyManager` replaces them.
+
+### Scheduled tasks
+
+`ScheduledTaskRegistry` (facade `ScheduledTask`) maps a morph type to the actions that can be scheduled for it.
+
+```php
+use Wsmallnews\Support\Facades\ScheduledTask;
+
+ScheduledTask::registers('sn_post', [
+    'publish' => ['label' => __('Publish'), 'handler' => PublishHandler::class],
+    'unpublish' => ['label' => __('Unpublish'), 'handler' => UnpublishHandler::class],
+]);
+
+// In a form
+ScheduledTask::scheduleRepeater('sn_post');
+```
+
+Action options: `action`, `label`, `forms` (extra payload fields), `handler` (a closure receiving the task and payload), `visible` (closure receiving the repeater `Get`, used for mutually exclusive states). Actions without `forms` hide the payload fieldset.
+
+The repeater only loads `pending` tasks; executed, cancelled and failed rows stay in the table for auditing.
+
+Run due tasks with:
+
+```bash
+php artisan sn-support:run-scheduled-tasks
+```
+
+Schedule that command in `routes/console.php` or the console kernel. Config keys: `scheduler.enabled`, `scheduler.frequency` (`everyMinute`, `everyFiveMinutes`, `dailyAt:13:00`, ...), `scheduler.batch_size`, `scheduler.without_overlapping`, `scheduler.overlapping_expire_minutes`.
+
+Filament resources:
+
+- `Filament\Resources\ScheduledTasks\BaseResource` — list and view pages, table and infolist.
+- `ScheduledTasks\Widgets\ScheduledTasks` — footer or header widget for a detail page.
+- `ScheduledTasks\Concerns\ViewScheduledTasksAction` — row action opening the record's tasks in a slide-over.
+
+### Activity logs and tags
+
+- `Filament\Resources\ActivityLogs\BaseResource` — list, view, export and timeline. `getEloquentQuery()` filters by the default `log_name`. Models may implement `Contracts\HasModelLabel` to customise their label in the type filter.
+- `Filament\Resources\Tags\BaseResource` — extend it and override `getTagType()` to scope a tag resource to one tag type.
+
+### Multi-tenancy
+
+Set `sn-support.tenant_model` to enable. `IdentifyTenant` is registered as a global Livewire persistent middleware and resolves the tenant from the route's `tenant` parameter by `slug`.
+
+```php
+has_tenancy();               // whether a tenant is active
+current_tenant();            // panel or frontend tenant model
+frontend_has_tenancy();
+frontend_current_tenant();
+is_in_panel();
+sn_route('page.show');       // adds the tenant parameter when needed
+```
+
+Tenant settings use `Tenant\Settings\Repositories\DatabaseSettingsRepository` with the `sn_team_settings` table. Register it in `config/settings.php`:
+
+```php
+'repositories' => [
+    'team_database' => [
+        'type' => Wsmallnews\Support\Tenant\Settings\Repositories\DatabaseSettingsRepository::class,
+        'model' => null,
+        'table' => 'sn_team_settings',
+        'connection' => null,
+    ],
+],
+```
+
+For activity log, point `activity_model` at `Wsmallnews\Support\Models\Activity`. For media library, point `media_observer` at `Wsmallnews\Support\Observers\MediaLibrary\MediaObserver`; the default observer deletes files along with the media record, which breaks order items that still reference them.
+
+## Install commands
+
+`PackageInstallCommand` is the base command for extension packages:
+
+```php
+use Wsmallnews\Support\Commands\PackageInstallCommand;
+
+class CmsInstallCommand extends PackageInstallCommand
 {
-    use CanPagination;
+    protected string $packageName = 'sn-cms';
 
-    public string $pageType = 'scroll';     // scroll / paginator / manual
-    public string $pageName = 'page';
-    public int $perPage = 10;
-
-    public function loadComments()
+    protected function afterPublish(): void
     {
-        $query = Comment::query();
-        $this->comments = $this->withPagination($query);
-        // $this->pageInfo contains pagination status
-        // $this->links contains pagination link HTML
-    }
-
-
-    public function render()
-    {
-        return view('comment-list', [
-            'paginatorLink' => $this->links,        // paginator HTML when using paginator mode
-        ]);
+        // package-specific publish steps
     }
 }
 ```
 
-### Multi-Tenancy Support
+What it does:
 
-If your panel uses multi-tenancy, you should set the tenant model.
+1. `InstallPlanner` builds the dependency plan by reading the `wsmallnews/*` requires of the target package and its dependencies from `vendor`, then ordering them topologically. Only packages exposing an `{sn-xxx}:install` command are planned.
+2. Dependencies are installed silently (`--as-dependency`): publish only, no prompts.
+3. The package publishes its own config and migrations, then runs `afterPublish()`.
+4. A single `migrate` prompt runs every pending migration.
+5. Only the package being installed is asked to star its repository.
 
-```php
-return [
-    /*
-    |--------------------------------------------------------------------------
-    | Multi-Tenancy
-    |--------------------------------------------------------------------------
-    |
-    | Firstly, the panel where the current plugin is located should support multi tenancy before you can set this option.
-    | Secondly, The tenant model should be set as a panel model.
-    |
-    */
-    'tenant_model' => \App\Models\Team::class,
-]
-```
+Options: `--no-deps` skips dependency installation; `--as-dependency` is internal and performs no interaction.
 
-#### laravel-settings Multi-Tenancy Support
+## Frontend styles
 
-Publish the laravel-settings config file:
+Include `resources/css/index.css` from your app stylesheet:
 
-```bash
-php artisan vendor:publish --provider="Spatie\LaravelSettings\LaravelSettingsServiceProvider" --tag="config"
-```
+- `tokens.css` — design tokens; the only entry point for theming. Geometric tokens flip at `lg`, colour tokens in `.dark`.
+- `utilities.css` — shared `sn-*` utilities (containers, badges, buttons, text, empty states, skeletons).
+- `content.css` — `sn-prose` typography for rendered content.
+- `filament.css` — `sn-filament-*` overrides that depend on Filament internals, available only to packages that inherit support.
 
-Add the `team_database` configuration in `settings.php`, specifying the `sn_team_settings` table:
+Conventions:
 
-```php
-return [
-    /*
-     * Settings will be stored and loaded from these repositories.
-     */
-    'repositories' => [
-        'database' => [
-            // ...
-        ],
-        'team_database' => [
-            'type' => Wsmallnews\Support\Tenant\Settings\Repositories\DatabaseSettingsRepository::class,
-            'model' => null,
-            'table' => 'sn_team_settings',
-            'connection' => null,
-        ],
-        // ...
-    ],
-]
-```
+- Compose a base class (shape and size) with a modifier class (colour or state), e.g. `sn-badge sn-badge-sm sn-badge-danger`.
+- Use `sn-gap`, `sn-margin` and `sn-padded` for block-level spacing instead of fixed `gap-4` / `p-4`.
+- `sn-page` is the page skeleton, `sn-content` the content column, `sn-page-x` the horizontal safe padding inside full-width bands.
+- `sn-container` is a content card (background, border, shadow), not a generic layout wrapper.
+- `sn-hover` / `sn-link` / `sn-active` only style descendants when the outer element is a `sn-container`.
+- For dynamic colours use `sn_badge_color()` / `sn_text_color()`, which return `['class' => ..., 'style' => ...]`.
 
-The event listener will be automatically registered in the `boot` method of `SupportServiceProvider`, which initializes tenant settings in the database.
+## Utility API
 
-#### laravel-activitylog Multi-Tenancy Support
+| Method | Purpose |
+|---|---|
+| `Utils::getConfig($key, $default)` | Read `sn-support` config with dot notation |
+| `Utils::getModel($name, $throw = true)` | Resolve a configured model class; `false` allows `null` |
+| `Utils::getContentModel()` / `getCompositionModel()` / `getPageModel()` / `getScheduledTaskModel()` / `getSmsLogModel()` | Configured model classes |
+| `Utils::getFilesystemDisk()` | Upload disk, falling back to Filament's default |
+| `Utils::getScopeFromInstances($configKey, $key = null)` | Resolve a `ScopeableContext` from a module's scopeables |
+| `Utils::isTenancyEnabled()` / `getTenantModel()` | Tenancy state and model |
+| `generate_slug()` | Slug with word-boundary truncation and a random fallback |
+| `text_highlight($text, $query)` | Escaped keyword highlighting with `<mark>` |
+| `sn_badge_color()` / `sn_text_color()` | Semantic colour to class and style |
+| `href_format($url, $newTab, $spaMode)` | `href` / `target` / `wire:navigate` attributes |
+| `files_url($files, $disk)` | File URL resolution |
+| `exception_log($e, $name, $message)` | Structured exception logging |
+| `through_cache($key, $callback, $store, $force, $ttl)` | Cache-through reads |
+| `tree_to_flatten($tree)` | Flatten a tree collection |
+| `remove_query_param_from_url($url, $keys)` | Strip query parameters |
+| `scopeable_context()` / `scopeable_query()` | Build and apply scopes |
 
-Publish the laravel-activitylog config file:
+## Testing
 
 ```bash
-php artisan vendor:publish --provider="Spatie\Activitylog\ActivitylogServiceProvider" --tag="activitylog-config"
-```
-
-Set the `activity_model` to `\Wsmallnews\Support\Models\Activity`:
-
-```php
-return [
-    // ...
-
-    /*
-     * This model will be used to log activity.
-     * It should implement the Spatie\Activitylog\Contracts\Activity interface
-     * and extend Illuminate\Database\Eloquent\Model.
-     */
-    'activity_model' => \Wsmallnews\Support\Models\Activity::class,
-]
-```
-
-### media-library
-
-Publish the laravel-medialibrary config file:
-
-```bash
-php artisan vendor:publish --provider="Spatie\MediaLibrary\MediaLibraryServiceProvider" --tag="medialibrary-config"
-```
-
-Change the media observer to `\Wsmallnews\Support\Tenant\MediaLibrary\Observers\MediaObserver` in media-library, otherwise files in the filesystem will be deleted when media is deleted.
-
-```php
-return [
-    /*
-     * The fully qualified class name of the media observer.
-     */
-    'media_observer' => \Wsmallnews\Support\Tenant\MediaLibrary\Observers\MediaObserver::class,
-]
+composer test
 ```
 
 ## Changelog
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+See [CHANGELOG](CHANGELOG.md).
 
 ## Contributing
 
-Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
+See [CONTRIBUTING](.github/CONTRIBUTING.md).
 
 ## Security Vulnerabilities
 
@@ -554,4 +714,4 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+The MIT License (MIT). See [License File](LICENSE.md).

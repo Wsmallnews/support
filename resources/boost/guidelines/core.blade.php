@@ -1,128 +1,95 @@
 ## Support Package（wsmallnews/support）
 
-`wsmallnews/support` 是 Wsmallnews 生态的基础 Filament 插件包，为其他扩展包（cms、user、category、comment 等）提供可复用的基类、工厂方法和工具。命名空间根为 `Wsmallnews\Support`，Blade 视图前缀为 `sn-support`，配置文件为 `config/sn-support.php`。
+`wsmallnews/support` 是 Wsmallnews 生态的基础 Filament 插件包，为 cms、shop、user 等扩展包提供基类、工厂方法与注册表。命名空间根 `Wsmallnews\Support`，视图前缀 `sn-support`，配置 `config/sn-support.php`。
+
+本文件只写**契约与速查**。用法与配置项见包内 `README.md`。
+
+### 不能违反的硬性契约
+
+1. **模型继承 `SupportModel`**，不要直接继承 `Illuminate\Database\Eloquent\Model`。
+2. **组件优先用工厂方法**（`FormComponents` / `FilterComponents` / `ActionComponents` / `ColumnComponents`），工厂已应用配置；用了工厂就不要再手写 `disk()` / `visibility()` 等默认值。
+3. **scopeable 资源**：模型 `use Models\Concerns\Scopeable`；Resource 查询经 `applyScopeableToQuery()`；CreatePage 必须 `mutateFormDataBeforeCreate` 合并 scope。
+4. **scope_id 可以为 0**（表示该 scope_type 下的全局作用域），因此查询一律用 `scopeScopeId()`，**禁止** `where('scope_id', 0)`。
+5. **枚举状态字段统一 `FormComponents::enumsToggleButtons()`**，禁止 Radio / Select 做状态字段；状态枚举必须实现 `HasColor` / `HasIcon` / `HasLabel` + `use EnumHelper`。
+6. **hardcode 中文 label 禁止**：一律走翻译 key（`<资源>_table.<field>` / `<资源>_form.<field>` / `<资源>_status.<case>`）。
+7. **`CanPagination` 已包含 `WithPagination`**，不要再单独 use `WithPagination`。
+8. **模块级注册表都用模块 id 作为 key**（= 插件 id，如 `sn-cms`）；同一 id 重复注册视为覆盖。
 
 ### 组件工厂
-
-项目提供了三类工厂类，封装了通用配置，后续会持续扩充。**优先使用工厂方法而非手动实例化 Filament 组件**，工厂会自动应用 `config('sn-support.form_components')` 中的默认配置。
 
 #### FormComponents
 
 ```php
 use Wsmallnews\Support\Filament\Forms\FormComponents;
 
-// Spatie Media Library 图片/文件上传
-FormComponents::mediaImageUpload('avatar', 'avatars');
-FormComponents::mediaFileUpload('attachment', 'documents');
-
-// 直接存储到 disk 图片/文件上传
-FormComponents::plainImageUpload('cover');
-FormComponents::plainFileUpload('report');
-
-// Markdown / 富文本编辑器
+FormComponents::mediaImageUpload('avatar', 'avatars');   // Spatie Media Library
+FormComponents::mediaFileUpload('attachment', 'files');
+FormComponents::plainImageUpload('cover');               // 直接存 disk，路径进字段
+FormComponents::plainFileUpload('document');
 FormComponents::markdownEditor('description');
 FormComponents::richEditor('content');
+
+FormComponents::enumsToggleButtons(XxxStatus::class, 'status');  // 状态字段
+FormComponents::orderColumnInput();                              // 排序字段
+FormComponents::contentTypeGroup(types: [...], defaultType: ...); // 多态 content 关联
 ```
 
-所有上传组件自动应用：`disk`（取自 `filesystem_disk` 或 Filament 默认盘）、`visibility`、`downloadable`、`openable`、`reorderable`、`appendFiles`、`maxFiles`、`maxSize`、`imagePreviewHeight`。
-
-编辑器组件自动应用：`fileAttachmentsDisk`、`fileAttachmentsVisibility`、`fileAttachmentsMaxSize`、`maxLength`，以及 Markdown/RichText 各自的 `toolbarButtons` 等。
+- 上传组件自动应用 `form_components.upload`（disk、visibility、maxFiles、maxSize、imagePreviewHeight、panelLayout 等）。
+- 编辑器组件自动应用 `form_components.editor`（maxLength、附件盘/可见性/大小、toolbar、浮动工具栏、textColors）。
+- `contentTypeGroup()` 内部完成 content 关联的读写，Create/Edit 页面无需任何 content 处理代码；`images` 类型存 JSON 路径数组。
 
 #### FilterComponents
 
 ```php
-use Wsmallnews\Support\Filament\Filters\FilterComponents;
-
-// 获取 created_at + updated_at 时间区间筛选器
-FilterComponents::createUpdateRangeFilter();
-
-// 单个时间区间筛选器
+FilterComponents::statusFilter(XxxStatus::class);        // 枚举下拉
+FilterComponents::morphFilter(...);                      // 多态 + 关键词
+FilterComponents::createUpdateRangeFilter();             // created_at + updated_at
 FilterComponents::dateTimeRangeFilter('published_at', '发布时间');
 ```
 
 #### ActionComponents
 
 ```php
-use Wsmallnews\Support\Filament\Actions\ActionComponents;
-
-// 自定义标准操作，可以用在非 filament table 页面
 ActionComponents::deleteAction();
 ActionComponents::editAction();
-
-// 二态切换（枚举须恰好 2 个 case）
-ActionComponents::toggleAction(MemberStatus::class, 'status');
-
-// 多态切换（枚举 > 2 个 case，弹出 Select 选择）
-ActionComponents::switchAction(ProductStatus::class, 'status');
-
-// 自动错误处理的批量操作
-ActionComponents::bulkAction(name: 'bulk_enable', process: function ($action, $record) {
-    $record->update(['status' => MemberStatus::Active]);
-});
-
-// 包裹 record/toolbar actions（根据配置决定是否用 ActionGroup 包裹）
-ActionComponents::recordActions([ViewAction::make(), DeleteAction::make()]);
-ActionComponents::toolbarActions([DeleteBulkAction::make()]);
+ActionComponents::toggleAction(Enum::class, 'status');   // 枚举恰好 2 个 case
+ActionComponents::switchAction(Enum::class, 'status');   // > 2 个 case，弹 Select
+ActionComponents::bulkAction(name: 'bulk_enable', process: fn ($action, $record) => ...);
+ActionComponents::recordActions([...]);                  // 按配置决定是否包 ActionGroup
+ActionComponents::toolbarActions([...]);                 // 按配置决定是否包 BulkActionGroup
 ```
+
+`bulkAction()` 已内置逐条 try/catch 与失败计数，闭包内只管单条记录逻辑。
 
 #### ColumnComponents
 
-`Wsmallnews\Support\Filament\Tables\ColumnComponents` 提供表格列工厂，用于展示关联模型信息：
-
 ```php
-use Wsmallnews\Support\Filament\Tables\ColumnComponents;
-
-// 多态关联列（左侧图片 + 右侧标题/描述 + 类型 badge）
-ColumnComponents::morphColumn(
-    'causer_type',                      // 列名（必须模态类型字段）
-    '操作人',                           // 标签
-    fn ($record) => $record->causer,    // 获取关联模型
-    fn ($record) => $record->causer_type, // 获取多态类型
-    fn ($record) => $record->causer_id,   // 获取多态 ID
-);
-
-// 普通关联列（无类型 badge）
-ColumnComponents::relationColumn(
-    'user.name',
-    '关联用户',
-    fn ($record) => $record->user,
-);
-
-// 模型列（简单展示，无多态/关联逻辑）
+ColumnComponents::contentColumn('content', '内容');   // Textarea 直显，富文本/Markdown 弹框
 ColumnComponents::modelColumn('name', '名称', fn ($record) => $record);
-
-// 内容列（Textarea 直接展示，Richtext/Markdown 点击弹框）
-ColumnComponents::contentColumn('content', '内容');
+ColumnComponents::relationColumn('user.name', '用户', fn ($record) => $record->user);
+ColumnComponents::morphColumn('causer_type', '操作人', fn ($r) => $r->causer, fn ($r) => $r->causer_type, fn ($r) => $r->causer_id);
 ```
 
-### Filament Resource 风格统一
+### Filament Resource 五层结构
 
-所有基于本包构建的扩展包，其 Filament Resource（Table / Form / 状态枚举 / order_column）遵循以下统一规范。范本：cms 包的 `Filament/Resources/Posts` 与 `.../Links` 资源。
+```
+Resources/Xxxs/
+├── BaseResource.php        # abstract：本包资源全部默认值，不定义 getPages()
+├── XxxResource.php         # final：getPages() + 配置模式入口
+├── Pages/                  # List / Create / Edit / (View)
+├── Schemas/XxxForm.php     # 静态 configure()
+└── Tables/XxxsTable.php    # 静态 configure()
+```
 
-#### order_column 统一处理
+- **BaseResource**：`getModel()` 必须走 `Utils::getModel()`（模型可经 `config('包名.models.xxx')` 替换，这是资源能被复用的前提）；标签用 `static::$xxx ?? 翻译key`；`form()` / `table()` 委托给 `Schemas` / `Tables`。
+- **XxxResource**：只做 `getPages()` 与 `CanBeConfigured` + `$configurationClass = ResourceConfiguration::class`，不定义默认值。
+- **Pages**：全部 `use Wsmallnews\Support\Filament\Pages\Concerns\Scopeable`，`$resource` 写死指向 final 类。
+- **继承即自建 Pages**：其他包 `extends BaseResource` 时必须自建 Pages 并把 `$resource` 指向自己的类；不想自建就直接注册 `XxxResource::class` 并用插件 customProperties 覆盖 form / table。
 
-| 层 | 规则 |
-|---|---|
-| 迁移 | 新表标准定义：`$table->unsignedInteger('order_column')->nullable()->comment('排序')` + 索引 |
-| 模型 | use `Wsmallnews\Support\Models\Concerns\HasOrderColumn`：`creating` 时 order_column 为空则自动填充 `max(order_column) + 1`；需要按租户等维度隔离序号的模型覆盖 `modifyOrderColumnQuery(Builder $query): Builder` 自由拼接条件（如 `return $query->where('team_id', $this->team_id)`），默认实现返回原 query（全表计数，序号全局单调，组内排序依然正确）。**不要**在 CreatePage 用 id 回填（id 保存前不可得，且与拖拽 1..N 刻度不一致） |
-| 表单 | 用 `FormComponents::orderColumnInput()`（integer + min:0 + helperText「留空自动分配到末尾」）。保留字段供微调，**不隐藏** |
-| 表格 | 必须同时设置：`->reorderable('order_column', direction: <方向>)` + `->defaultSort('order_column', <方向>)`，**两处方向必须一致**。`direction` 参数决定拖拽保存时写入序号的方向（desc 时视觉第一行得最大序号），漏传会导致拖拽后顺序颠倒 |
+### Table / Form 规范
 
-**默认排序方向按业务域**：
+**Table 方法顺序**（固定）：
 
-| 业务域 | 方向 | 理由 | 示例 |
-|---|---|---|---|
-| 内容型（新内容优先展示） | `desc` | 与前端 `ordered` scope / Livewire 组件查询（order desc）一致，新记录（max+1）排最前 | posts、links、products |
-| 配置型（顺序稳定敏感） | `asc` | 新记录追加到末尾，不扰动既有顺序 | category_types、navigation_types、tags |
-
-- 想按时间倒序看内容时：order_column desc 即可（自动填充保证新 = 大）；**不要**切到 id / created_at 排序再拖拽——拖拽按当前 defaultSort 列重写序号，混排会乱。
-- 改动 order_column 逻辑时，必须核对前端各 Livewire 组件的排序查询方向是否与后台一致。
-
-#### Table 规范
-
-**方法顺序**（全部资源固化）：
-
-@verbatim
 ```php
 return $table
     ->columns([...])
@@ -134,829 +101,182 @@ return $table
     ->recordActions([...ActionComponents::recordActions([...])])
     ->toolbarActions([...ActionComponents::toolbarActions([...])]);
 ```
-@endverbatim
 
-**列顺序**：`id` → 主体识别列（标题 / 名称）→ 业务属性列 → 关联 / badge 列 → counter → `order_column` → `status` → `published_at` → `created_at` → `updated_at`。
+- 列顺序：`id` → 主体识别列 → 业务属性 → 关联/badge → counter → `order_column` → `status` → `published_at` → `created_at` → `updated_at`。
+- `id` 列固定 `->label('ID')->searchable()->sortable()->alignCenter()->toggleable()`。
+- **status 列必须 `->badge()`**；`order_column` 列不加 `sortable()`。
+- filters 顺序：业务筛选 → `...FilterComponents::createUpdateRangeFilter()` → `TrashedFilter::make()`（仅软删除表）。
 
-**列内方法顺序**：`label()` → 业务增强（limit / copyable / badge / formatStateUsing）→ `searchable()` / `sortable()` → `alignCenter()` → `toggleable()`。
+**Form 规范**：
 
-**列规范**：
+- **禁止 `Schemas\Components\Flex` 侧边栏布局**；所有字段必须在 Section 内，不裸放顶层。
+- 只有一个 Section 时基础字段直接放其中；多个 Section 时 order_column / status 放最上面的业务主体 Section。
+- Section 用 `->columns(2)->columnSpanFull()`。
 
-- `id` 列统一 `->label('ID')->searchable()->sortable()->alignCenter()->toggleable()`。
-- **status 列必须 `->badge()`**（状态枚举实现 HasColor / HasIcon 自动带色带图标）；时间列用默认格式，不额外定制。
-- order_column 列 `->alignCenter()->toggleable()`，不加 sortable（排序由 defaultSort 承担）。
+### order_column
 
-**筛选规范**（每个表默认具备）：
+| 层 | 规则 |
+|---|---|
+| 迁移 | `unsignedInteger('order_column')->nullable()` + 索引 |
+| 模型 | `use Models\Concerns\HasOrderColumn`：creating 时为空则填 `max + 1`；需要隔离序号覆盖 `modifyOrderColumnQuery()` |
+| 表单 | `FormComponents::orderColumnInput()`，保留字段可微调，**不隐藏** |
+| 表格 | `->reorderable('order_column', direction: X)` 与 `->defaultSort('order_column', X)` **方向必须一致**，否则拖拽后顺序颠倒 |
 
-- 有状态枚举的表：`FilterComponents::statusFilter(XxxStatus::class)` 放最前；
-- 一律追加 `...FilterComponents::createUpdateRangeFilter()`（created_at + updated_at 时间区间）；
-- 软删除表最后加 `TrashedFilter::make()`。
-- filters 顺序：业务筛选（status / flag / 自定义）→ 时间区间 → Trashed。
+默认方向：内容型（新内容优先）`desc`；配置型（顺序稳定）`asc`。改完必须核对前端 Livewire 组件的排序方向。
 
-#### Form 规范
+### 枚举色板
 
-**布局规则（统一平铺，无例外）**：
-
-- **禁止使用 `Schemas\Components\Flex` 侧边栏布局**（含复杂表单）。
-- **表单所有字段必须在 Section 中**（不裸放 schema 顶层）。
-- **只有一个 Section** 时：order_column、status 等基础字段直接放该 Section 内。
-- **多个 Section** 时：order_column、status 作为基础字段放**最上面的 Section**（业务主体 Section）。
-- Section 用 `->columns(2)->columnSpanFull()`，长内容字段（富文本 / 编辑器 / 上传）`->columnSpanFull()` 或 `->columnSpan(1)` 按宽窄安排。
-
-**组件规范**：
-
-- status 及其他 enum 开关字段一律 `FormComponents::enumsToggleButtons(XxxEnum::class)`（= `ToggleButtons::make($field)->inline()->grouped()->options($enum)->default(枚举第一 case)`，label 默认「状态」）；**禁止** Radio / Select 做状态字段；非 status 语义的 enum（性别、类型等）在外层 `->label()` 覆盖。
-- order_column 一律 `FormComponents::orderColumnInput()`。
-- 两个工厂的 label 已内置通用翻译（「状态」「排序」）：**label 与默认一致时不要再 `->label()` 自定义，也不必新增语言包 key**；仅语义不同时（如「导航状态」）才覆盖。
-
-#### Enum 状态色板与图标
-
-**色板语义原则**：primary = 默认正常态；success = 流程成功完成态；gray = 隐藏 / 草稿 / 取消（弱化）；warning = 待处理 / 待审核；danger = 禁用 / 拒绝 / 失败；info = 中间通知态（少用）。
-
-| 语义 | 颜色 | 图标（一律 `Heroicon::Outlined*` 枚举常量） |
+| 语义 | 颜色 | 图标（一律 `Heroicon::Outlined*`） |
 |---|---|---|
-| 正常 Normal | `primary` | `OutlinedCheckCircle` |
-| 已发布 Published | `primary` | `OutlinedEye` |
-| 上架 Up | `primary` | `OutlinedArrowUp` |
-| 隐藏 Hidden | `gray` | `OutlinedEyeSlash` |
-| 草稿 Draft | `gray` | `OutlinedClipboardDocumentList` |
-| 禁用 Disabled | `danger` | `OutlinedNoSymbol` |
-| 下架 Down | `danger` | `OutlinedArrowDown` |
-| 未审核 Unaudited | `warning` | `OutlinedDocumentCheck` |
-| 已拒绝 Rejected | `danger` | `OutlinedShieldExclamation` |
-| 已执行 Executed | `success` | 维持现状 |
-| 待执行 Pending / 已取消 Cancelled / 失败 Failed | warning / gray / danger | 维持现状 |
+| 正常 / 已发布 / 上架 | `primary` | `OutlinedCheckCircle` / `OutlinedEye` / `OutlinedArrowUp` |
+| 隐藏 / 草稿 | `gray` | `OutlinedEyeSlash` / `OutlinedClipboardDocumentList` |
+| 禁用 / 下架 / 拒绝 | `danger` | `OutlinedNoSymbol` / `OutlinedArrowDown` / `OutlinedShieldExclamation` |
+| 待审核 | `warning` | `OutlinedDocumentCheck` |
 
-**硬性规则**：
+- 相同状态语义 → 相同颜色 + 相同图标。
+- 禁止 solid 常量与字符串图标；枚举结构：`enum X: string implements HasColor, HasIcon, HasLabel` + `use EnumHelper`。
 
-- **相同状态语义 → 相同颜色 + 相同图标**。
-- 图标禁止 solid 常量（`Heroicon::Eye`）与字符串写法（`'heroicon-m-arrow-long-up'`），一律 `Heroicon::Outlined*`。
-- 状态枚举结构照抄：`enum XxxStatus: string implements HasColor, HasIcon, HasLabel` + `use EnumHelper`，match 三件套（getLabel / getColor / getIcon）。
-- 「上架 / 下架」（Up / Down）是货架语义不是「正常 / 禁用」，图标保留 Arrow 体系。
-
-#### scopeable 与翻译等结构惯例
-
-1. **scopeable 按资源性质区分**：公用全局资源（member、user 等，一个站点只有一份）**不需要** scopeable；可能多份存在的资源（post、product、link、navigation 等）模型 use `Wsmallnews\Support\Models\Concerns\Scopeable`，Resource 查询经 `applyScopeableToQuery()` 过滤，且 CreatePage 必须 `mutateFormDataBeforeCreate` 合并 scopeable。
-2. **翻译 key 命名**：`<资源>_table.<field>` / `<资源>_form.<field>` / `<资源>_status.<case>` / `<资源>_table.search_placeholder` / `<资源>_resource.model_label` 等；**禁止硬编码中文 label**。
-
-#### 资源创建规范（五层结构）
-
-> 范本：cms 包 `Filament/Resources/Posts`（含软删除 + ViewPage 增强）与 `.../Links`（无软删除、最小集）。新资源一律按此结构创建。
-
-@verbatim
-```
-Resources/Xxxs/
-├── BaseResource.php        # abstract：本包资源的全部默认值
-├── XxxResource.php         # final：页面路由绑定 + 配置模式入口
-├── Pages/
-│   ├── ListXxxs.php        # ListRecords（header CreateAction）
-│   ├── CreateXxx.php       # CreateRecord（scopeable 资源须合并 scopeable）
-│   ├── EditXxx.php         # EditRecord（软删除表加 ForceDelete/Restore）
-│   └── ViewXxx.php         # 可选，按资源类型增强（见下）
-├── Schemas/XxxForm.php     # 表单（静态 configure，与 Resource 解耦）
-└── Tables/XxxsTable.php    # 表格（静态 configure，与 Resource 解耦）
-```
-@endverbatim
-
-**BaseResource（abstract）—— 默认值层，不定义 `getPages()`**：
-
-- 资源身份：`$navigationIcon` / `$activeNavigationIcon`（Outlined + 实心成对）、`$slug`、`$recordTitleAttribute`、`$navigationSort`；
-- `getModel()` 一律走包 Utils（模型经 `config('包名.models.xxx')` 可替换——这是资源可被其他包复用的前提）；
-- 标签方法用 `static::$xxx ?? 翻译key` 模式（子类可用属性覆盖）；
-- `form()` / `table()` 委托给同目录 `Schemas/XxxForm` / `Tables/XxxsTable` 的静态 `configure()`；
-- `getEloquentQuery()` = `applyScopeableToQuery(parent::getEloquentQuery())`（仅 scopeable 资源）；**表有软删除字段时**才追加 `->withoutGlobalScopes([SoftDeletingScope::class])`，无软删除不加（Links 范本）。
-
-**XxxResource（final）—— 注册与配置层，不定义默认值**：
-
-- 只做两件事：`getPages()` 路由绑定；use `CanBeConfigured` + `$configurationClass = ResourceConfiguration::class`（`form()` / `table()` 先查插件 customProperties 闭包，有则用调用方的，无则回落 parent）。module_id 由注册插件自动注入。
-
-**Pages —— 行为层**：
-
-- 全部 use support 的 `Wsmallnews\Support\Filament\Pages\Concerns\Scopeable`；`$resource` 写死指向 final 类。
-- **「继承即自建 Pages」**：Pages 的 `$resource` 绑定 final 类（Filament generator 惯例），其他包 `extends BaseResource` 自定义资源时**必须自建 Pages**（把 `$resource` 指向自己的类）；不想自建就直接注册 `XxxResource::class` 并用插件 customProperties 闭包覆盖 form / table。
-- **ViewPage + widgets（评论 / 浏览等 footer widget 装配）按资源类型可选**，不属于标准结构必选项。
-
-**软删除条件规则**（仅表有软删除字段时遵守，无则全部省略）：
-
-| 层 | 有软删除 | 无软删除 |
-|---|---|---|
-| BaseResource `getEloquentQuery()` | 追加 `withoutGlobalScopes([SoftDeletingScope])` | 只 `applyScopeableToQuery()` |
-| Table filters | 末尾 `TrashedFilter::make()` | 不加 |
-| EditPage header actions | Delete + ForceDelete + Restore | 只 Delete（或按需） |
-| Table actions | Delete / ForceDelete / Restore + 对应 Bulk | Delete + DeleteBulk |
-
-### SupportModel 基类
-
-`Wsmallnews\Support\Models\SupportModel` 是所有 support 包模型的基类，提供 scopeable 和多租户感知：
+### SupportModel 与 Scopeable
 
 ```php
-use Wsmallnews\Support\Models\SupportModel;
-
 class Post extends SupportModel
 {
-    // 自动获得：
-    // scopeTenant()    — 按当前租户过滤
-    // scopeSnScope()   — 组合 scopeable + tenant 过滤
-    // getModelLabel()  — 默认返回类名
+    // scopeTenant() / scopeSnScope() / getModelLabel()
 }
 ```
 
-各扩展包的模型应继承 `SupportModel`（如 Post、Category、Comment、Member、Product 等），而非直接继承 Laravel 的 `Model`。
+- `scope_type` + `scope_id` 对应 `Models\Concerns\Scopeable`；`scope_id = 0` 表示该类型下的全局作用域（不用 Laravel 原生 morph，正是因为 0 不是可指向的记录）。
+- 值对象 `Data\ScopeableContext`：`new ScopeableContext('post', 0)`、`fromArray()`、`isGlobal()`。
+- Filament 侧：`HasScopeableProperties`（静态 scopeType/scopeId）、`Resources\Concerns\Scopeable`（`applyScopeableToQuery()`）、`Pages\Concerns\Scopeable`。
+- 公用全局资源（member、user）**不需要** scopeable；可能多份存在的资源（post、product、link）才用。
+- 资源 scope 配置错误直接抛 `InvalidScopeException`，不回落 `default`。
 
-### Filament 插件系统
-
-support 提供了一套可配置的 Filament 插件架构，让扩展包的 Resource/Page 可通过配置覆盖：
-
-```php
-use Wsmallnews\Support\Filament\Concerns\RegistersConfigurable;
-
-class CmsPlugin implements Plugin
-{
-    use RegistersConfigurable;
-
-    public function register(Panel $panel): void
-    {
-        $this->registerConfigurableResources($panel);
-        $this->registerConfigurablePages($panel);
-    }
-}
-```
-
-Resource 使用 `CanBeConfigured` + `ResourceConfiguration`：
+### 插件配置（CanBeConfigured）
 
 ```php
-use Wsmallnews\Support\Filament\Concerns\CanBeConfigured;
-use Wsmallnews\Support\Filament\Resources\ResourceConfiguration;
-
 final class PostResource extends BaseResource
 {
     use CanBeConfigured;
 
     protected static ?string $configurationClass = ResourceConfiguration::class;
-
-
 }
 ```
 
-Page 使用 `CanBeConfigured` + `PageConfiguration`：
-
-```php
-use Wsmallnews\Support\Filament\Concerns\CanBeConfigured;
-use Wsmallnews\Support\Filament\Pages\PageConfiguration;
-
-class CategoryPage extends Base
-{
-    use CanBeConfigured;
-
-    protected static ?string $configurationClass = PageConfiguration::class;
-}
-```
-
-### ScheduledTasks 资源
-
-继承 `Wsmallnews\Support\Filament\Resources\ScheduledTasks\BaseResource` 快速实现定时任务管理：
-
-```php
-use Wsmallnews\Support\Filament\Resources\ScheduledTasks\BaseResource;
-
-class ScheduledTaskResource extends BaseResource
-{
-    // BaseResource 已提供：
-    // - 列表页、查看页
-    // - table() 配置（id、schedulable 多态列、action、status、scheduled_at、executed_at 等）
-    // - infolist() 配置（Tabs: Overview/Payload/Raw Data）
-    // - 图标、slug、导航排序、翻译标签
-}
-```
-
-提供可配置的具体实现 `ScheduledTaskResource`，支持通过插件配置覆盖：
-
-```php
-use Wsmallnews\Support\Filament\Resources\ScheduledTasks\ScheduledTaskResource;
-
-// 在 PanelProvider 中直接注册
-$panel->resources([ScheduledTaskResource::class]);
-```
-
-### 定时调度任务
-
-#### Facade 注册
-
-```php
-use Wsmallnews\Support\Facades\ScheduledTask;
-
-// 在 ServiceProvider 中注册可调度的动作
-ScheduledTask::registers('sn_post', [
-    'publish' => ['label' => '发布', 'handler' => PublishHandler::class],
-    'unpublish' => ['label' => '下架', 'handler' => UnpublishHandler::class],
-]);
-
-// 在表单中嵌入调度器
-ScheduledTask::scheduleRepeater('sn_post');
-```
-
-#### Resource & Widget
-
-```php
-// 查看页嵌入定时任务 Widget
-use Wsmallnews\Support\Filament\Resources\ScheduledTasks\Widgets\ScheduledTasks as ScheduledTasksWidget;
-
-ScheduledTasksWidget::make()
-
-// 表格行操作：查看关联的定时任务
-use Wsmallnews\Support\Filament\Resources\ScheduledTasks\Concerns\ViewScheduledTasksAction;
-
-ViewScheduledTasksAction::make()
-```
-
-### 异常体系
-
-所有扩展包的异常应继承 `SupportException`：
-
-```php
-use Wsmallnews\Support\Exceptions\SupportException;
-
-class CmsException extends SupportException {}
-class CommentException extends SupportException {}
-class ProductException extends SupportException {}
-```
-
-`InvalidScopeException` 用于 Scopeable 配置错误时抛出。
-
-### 枚举工具
-
-`EnumHelper` trait 为枚举提供 `getLabel()`、`getColor()`、`getIcon()` 等默认实现：
-
-```php
-use Wsmallnews\Support\Enums\Traits\EnumHelper;
-
-enum PostStatus: string implements HasColor, HasIcon, HasLabel
-{
-    use EnumHelper;
-
-    case Draft = 'draft';
-    case Published = 'published';
-}
-```
-
-### Blade 组件
-
-```blade
-{{-- 内容展示（根据 content_type 自动选择渲染方式） --}}
-<x-sn-support::content :content-type="$contentType" :content="$content" />
-
-{{-- 折叠内容（支持展开/收起） --}}
-<x-sn-support::collapse-content :content-type="$contentType" :content="$content" />
-
-{{-- 图片灯箱 --}}
-<x-sn-support::lightbox class="w-full" :galleries="$galleries" thumb-class="size-20" />
-```
-
-### 前端 CSS 类体系（sn-*）
-
-所有 `sn-*` 前端自定义类定义在 `addons/support/resources/css/index.css`（Tailwind v4 `@apply` 编译，随 app.css 引入）。通用模式为「**基础类（形状/尺寸）+ 修饰类（颜色/状态）**」组合，各体系见下。
-
-#### 设计令牌（tokens.css，主题定制唯一入口）
-
-几何样式（圆角/阴影/光环/间距刻度）统一消费 `addons/support/resources/css/tokens.css` 的 `--sn-*` 令牌。**几何令牌在 lg 断点自动翻转**，颜色令牌在 `.dark` 翻转——sn-container、sn-rounded、sn-page 等类自动获得响应式与暗黑适配，HTML 无需断点前缀。
-
-- 令牌清单：`--sn-radius-card`（md→lg）、`--sn-space-page`（区块间距：gap/margin 全家族与 sn-page 的 gap/my，4→6）、`--sn-space-page-x`（防贴边水平留白：sn-page-x，4→6）、`--sn-space-card`（卡片内边距：sn-padded 家族，p-4→6）、`--sn-shadow-card/-hover`、`--sn-ring-card/-hover`（dark 翻转）、`--sn-radius-control`（恒定）
-- 原子基元（`@utility`，HTML 可直接用）：`sn-surface`、`sn-radius-card`、`sn-ring-card`、`sn-elevation`、`sn-page-x`
-- 页面骨架：`sn-page`（= container mx-auto flex flex-col grow + 响应式 gap/my + `sn-page-x` 防贴边留白）
-- 间距类家族（均 < lg 4 → ≥ lg 6 自动翻转）：**间距** `sn-gap`/`sn-gap-x`/`sn-gap-y`（区块间 gap，`--sn-space-page`）；**留白** `sn-margin`（四边）+ `sn-mt`/`sn-mr`/`sn-mb`/`sn-ml`/`sn-mx`/`sn-my`（单轴/单边，同 `--sn-space-page`，与 gap 刻度联动）；**内边距** `sn-padded`（四边）+ `sn-pt`/`sn-pr`/`sn-pb`/`sn-pl`/`sn-px`/`sn-py`（单轴/单边，`--sn-space-card`）
-- 列表三件套：`sn-list-header/row/footer`（header 内置左右两端对齐 + 窄屏换行 + gap-x-4 gap-y-2，垂直行距走 `--sn-space-row` 令牌；`sn-list-header-muted` 为弱化底色变体）
-- 防贴边：视口宽度 ≤ `container` 断点时内容会贴浏览器边框。页面内容区用 `sn-page`；页头、导航、页脚等全宽色带内的 `container` 内容层必须加 `sn-page-x`（消费 `--sn-space-page-x`，响应式 px-4→px-6 + 刘海安全区），不要手写 `px-4`/`px-4 sm:px-0`
-- 间距规则（防响应式间距漂移）：**主要视觉区块（侧栏、主内容卡、banner、轮播、列表卡、详情内容节）之间的兄弟 gap 用 `sn-gap`，区块前后的留白用 `sn-margin`/`sn-mt`/`sn-my` 等，卡片及其子区块的内边距用 `sn-padded`/`sn-px` 等**——HTML 中不要写 `gap-4`、`gap-2 lg:gap-4`、`p-4`、`px-4`（卡片级）、`mb-4 lg:mb-6`、`mt-(--sn-space-page)` 这类区块级固定值/间距对/任意值令牌。卡片内部微间距（图标-文字、标题-描述、菜单项 hit-area）和布局驱动的间距（列数出现的 sm 档、页脚带状大间距、移动端给悬浮按钮让位的 pr-16 等）仍可自由写 Tailwind
-- 主题定制：CSS 覆盖（app.css 中 @import 后重声明变量）或 `config/sn-support.php` 的 `theme` 节（`_lg` 后缀键 = 桌面档，layout 中 `@snTheme` 指令输出）
-- 职责边界：sn-* 类管主题性/重复性样式；布局结构（flex/grid、列数、可见性）在 HTML 写 Tailwind 断点前缀；可嵌入组件用容器查询（根 `@container` + `@md:` 前缀）
-
-#### 侧栏 + 内容比例分栏（全站统一布局模式）
-
-页面左侧（或右侧）有侧栏（用户菜单、分类树、同级导航卡片等）+ 主内容区的布局，**不要写死侧栏宽度（`w-72` 之类）**，统一用 grid 比例分栏：
-
-- 断点 `lg`（1024px）起并排：`lg:grid lg:grid-cols-4 xl:grid-cols-5`（侧栏 1 格、内容 3/4 格，即 lg 1:3、xl 起 1:4）；lg 以下 `flex flex-col` 上下堆叠，侧栏 DOM 在前 = 堆叠时在上
-- 内容列 `lg:col-span-3 xl:col-span-4`；侧栏是条件渲染时，内容列必须兜底占满整行（`lg:col-span-4 xl:col-span-5`），避免 grid 留空轨道
-- 两列都加 `min-w-0`（防内容撑破轨道）；区块间距用 `sn-gap`
-- 右侧栏 = 内容 div 写在前、侧栏 div 写在后（grid 按源顺序自动放置 = 内容左、侧栏右；堆叠时内容在上）
-
-@verbatim
-```blade
-<div class="w-full flex flex-col lg:grid lg:grid-cols-4 xl:grid-cols-5 items-start sn-gap">
-    <div class="w-full min-w-0">
-        {{-- 侧栏 --}}
-    </div>
-
-    {{-- 侧栏条件渲染时，内容列兜底占满整行 --}}
-    <div @class([
-        'w-full min-w-0 flex flex-col sn-gap',
-        'lg:col-span-3 xl:col-span-4' => $hasSidebar,
-        'lg:col-span-4 xl:col-span-5' => ! $hasSidebar,
-    ])>
-        {{-- 主内容 --}}
-    </div>
-</div>
-```
-@endverbatim
-
-#### 容器体系（使用最广，注意职责边界）
-
-`sn-container` 是**内容区块卡片容器**（亮色白底 / 暗色深底 + ring-1 边框 + 响应式圆角/阴影 + 过渡），**不是通用布局 div**——列表、表单、面板等页面区块用它包裹；不需要卡片感的内容区不要加（它自带背景/边框/阴影）。
-
-```blade
-{{-- 基础卡片 --}}
-<div class="sn-container">...</div>
-
-{{-- 可交互卡片：hover 阴影加深 --}}
-<div class="sn-container sn-hover">...</div>
-
-{{-- 整卡片是链接：hover 主题色淡底 --}}
-<a class="sn-container sn-link">...</a>
-
-{{-- 选中态：主题色淡底 --}}
-<div class="sn-container sn-active">...</div>
-```
-
-**状态类的两层语义（AI 高频出错点）**：`sn-hover` / `sn-link` / `sn-active` 在容器上（`&.sn-link`）和容器**内部子元素**上（`.sn-link` 后代选择器）都生效。分类树节点高亮依赖「外层 `sn-container` + 节点自身 `sn-link`/`sn-active`」的组合——**漏掉外层 sn-container，节点高亮样式不会生效**。
-
-其他容器与背景类：
-
-| 类 | 说明 |
-|---|---|
-| `sn-container-primary/danger/success/info/warning/gray` | 彩色浅底容器变体（同款状态类） |
-| `sn-bg` | 纯背景（白/深），无边框阴影 |
-| `sn-primary-bg` | 主题色实底（bg-primary-500 dark:bg-primary-600），导航 / 高亮条使用 |
-| `sn-gray-bg` / `sn-no-bg` | 灰底 / 透明底，均带 sn-hover / sn-active 状态 |
-| `sn-contour(-{color})` | 无背景纯描边（ring）容器 |
-| `sn-contour-only` | border 描边（支持单边，方向由外部指定） |
-| `sn-rounded` | 区块圆角（rounded-md） |
-| `sn-divide-x` / `sn-divide-y` | 容器分隔线（含暗色） |
-
-#### 徽章 sn-badge（三变体 + 尺寸 + 动态色）
-
-组合用法：`sn-badge`（形状 + 默认尺寸）+ 尺寸类（可选）+ 变体色类。色名固定六色：`primary/danger/success/info/warning/gray`。
-
-```blade
-{{-- soft（默认）：主色透明度浅底，内容标注首选 --}}
-<span class="sn-badge sn-badge-primary">分类名</span>
-
-{{-- outline：透明底 + 主色内描边 --}}
-<span class="sn-badge sn-badge-outline-primary">分类名</span>
-
-{{-- solid：正色 500 实底（不深于导航主题色 primary-500，避免抢重点），醒目场景 --}}
-<span class="sn-badge sn-badge-solid-primary">分类名</span>
-
-{{-- 尺寸：sn-badge-xs(10px) / sn-badge-sm(11px) / 默认(12px) / sn-badge-lg(14px) --}}
-<span class="sn-badge sn-badge-sm sn-badge-danger">热门</span>
-```
-
-- solid 文字色采用白字优先策略（对比度 ≥2:1 即白字，品牌视觉权衡：徽章短词加粗场景，实底品牌色配白字是行业惯例；完全无障碍合规场景用 soft/outline），仅极浅色（yellow/lime 系）回退 950 深字
-- 动态色（`Color::Blue` 色板 / hex / 非六色色名）：用 `sn_badge_color($color, $variant)` 助手，返回 `['class' => ..., 'style' => ...]`（动态路径注入 `--sn-color-*` 变量）
-- 醒目 tab 选中态：`sn-tabs-item-vivid` 叠加在 `fi-tabs-item` 上，变量由 `sn_badge_color($color, 'solid', asVariables: true)['style']` 注入
-
-#### 按钮 sn-btn
-
-`sn-btn`（基础：形状 + focus 环 + disabled 态）+ 尺寸（`sn-btn-sm/md/lg`）+ 变体（`sn-btn-primary/secondary/danger/success` 实色、`sn-btn-outline(-primary/danger)`、`sn-btn-ghost(-primary/danger)`）。按钮底色用 600 + hover 提亮 500（交互控件惯例，与徽章正色 500 不同）；`sn-btn-icon` 配合尺寸类使用。
-
-#### 文字体系
-
-- 标题：`sn-h1-text` / `sn-h2-text` / `sn-h3-text`（字号递减，均支持 `sn-hover`（含 group-hover）/ `sn-active` 主题色状态）
-- 正文与辅助：`sn-content-text`（正文）、`sn-descript-text`（描述）、`sn-tip-text`（提示，最小）
-- 颜色：`sn-primary-text` / `sn-secondary-text` / `sn-danger-text` / `sn-success-text` / `sn-info-text` / `sn-warning-text` / `sn-gray-text`
-
-#### 其他组件类
-
-| 类 | 说明 |
-|---|---|
-| `sn-empty` 系列 | 空状态（`sn-empty-title/description/actions`、`sn-empty-icon-bg` + 尺寸 `sm/md/lg/xl/2xl` + 六色、`sn-compact` 紧凑模式） |
-| `sn-skeleton` 系列 | 骨架屏：基础类（动画+底色+md 圆角）+ 修饰类（`sn-skeleton-text` 文本条、`sn-skeleton-circle` 圆形）组合 |
-| `sn-avatar` / `sn-image` 系列 | 头像（圆形）/ 图片占位（圆角方形），尺寸 `sm/lg/xl`；`-group` 叠放组 |
-| `sn-focus-ring` | 可聚焦元素焦点环（含 rounded-sm） |
-| `sn-truncate` / `sn-truncate-2/3/4` | 单行截断 / 多行省略 |
-| `sn-transition` 系列 | 过渡（all/colors/opacity/transform，统一时长缓动） |
-| `sn-overlay` | 全屏遮罩（黑 50%/70%） |
-| `sn-scrollbar` | 细滚动条（亮暗色适配） |
-| `sn-aspect-video/landscape/square/portrait` | 宽高比 16:9 / 4:3 / 1:1 / 3:4 |
-| `sn-motion-scale` | 图片 hover 缩放（自动尊重 prefers-reduced-motion） |
-| `sn-sr-only` | 屏幕阅读器专用 |
-
-### Scopeable 系统
-
-不使用 Laravel 原生多态，因为 `scope_id` 可以为 `0`（表示该 scope_type 下的全局作用域）。
-
-**为什么不用 `morphs`：** Laravel 多态 `*_type='post'` + `*_id=0` 会尝试查找 ID 为 0 的 Post 记录（不存在）。而我们的 `scope_id = 0` 语义是"适用于该类型的所有记录"，不是指向某个具体 ID 的记录。
-
-**使用场景：**
-- Comment 包：评论同时给所有 post 和 article 提供支持 → `scope_type='post', scope_id=0` / `scope_type='article', scope_id=0`
-- Comment 包：给某门店商品评论 → `scope_type='store', scope_id=<store_id>`
-
-#### Model Trait
-
-```php
-use Wsmallnews\Support\Models\Concerns\Scopeable;
-
-class Comment extends Model
-{
-    use Scopeable;
-
-    // 自动获得：
-    // $model->getScopeable();    // ['scope_type' => '...', 'scope_id' => 0]
-    // $model->getScopeType();    // 'post'
-    // $model->getScopeId();      // 0
-
-    // 查询作用域：
-    // Comment::scopeType('post')           ->where('scope_type', 'post')
-    // Comment::scopeId(0)                  ->whereIn('scope_id', [0])
-    // Comment::scopeable('post', 0)        ->where('scope_type', 'post')->whereIn('scope_id', [0])
-}
-```
-
-#### ScopeableContext 值对象
-
-```php
-use Wsmallnews\Support\Data\ScopeableContext;
-
-// 手动创建
-$context = new ScopeableContext('post', 0);
-$context->isGlobal(); // true (scopeId === 0)
-
-// 从数组创建
-ScopeableContext::fromArray(['scope_type' => 'store', 'scope_id' => 5]);
-
-// 辅助函数
-scopeable_context(['scope_type' => 'post', 'scope_id' => 0]);
-scopeable_query($query, ['scope_type' => 'post', 'scope_id' => 0]);
-```
-
-#### Filament 层面的 Scopeable
-
-Filament Resources 使用 `HasScopeableProperties` concern：
-
-- `Wsmallnews\Support\Filament\Concerns\HasScopeableProperties` — 提供静态的 `scopeType()` / `getScopeType()` 和 `scopeId()` / `getScopeId()`
-- `Wsmallnews\Support\Filament\Resources\Concerns\Scopeable` — Resource 级别的 `applyScopeableToQuery()` 自动对 Eloquent 查询应用 scope 过滤
-- `Wsmallnews\Support\Filament\Pages\Concerns\Scopeable` — Page 级别的 scope 支持
-
-### SN 身份与实体接口
-
-为 preference 等扩展包提供统一的"操作者"（谁）和"目标实体"（什么）数据抽象。Blade 组件通过这两个接口获取展示数据。
-
-#### HasSnIdentifiable（身份/操作者接口）
-
-`Wsmallnews\Support\Contracts\HasSnIdentifiable` — 操作者侧（用户）的标准接口，preferencer 模型必须实现：
-
-```php
-use Wsmallnews\Support\Contracts\HasSnIdentifiable;
-use Illuminate\Support\HtmlString;
-
-// 接口方法：
-getSnId(): int;                                          // 操作者 ID
-getSnName(): string | HtmlString | null;                 // 操作者名称
-getSnAvatarUrl(): string | HtmlString | null;            // 头像 URL
-getSnEmail(): string | HtmlString | null;                // 邮箱
-```
-
-#### UserIdentifiable trait
-
-`Wsmallnews\Support\Concerns\UserIdentifiable` 为 `HasSnIdentifiable` 提供基于 Eloquent 属性的默认实现，自动映射 `$this->id`、`$this->name`、`$this->avatar_url`、`$this->email`：
-
-```php
-use Wsmallnews\Support\Contracts\HasSnIdentifiable;
-use Wsmallnews\Support\Concerns\UserIdentifiable;
-
-class User extends Authenticatable implements HasSnIdentifiable
-{
-    use UserIdentifiable;
-}
-```
-
-#### HasSnSubject（实体/目标接口）
-
-`Wsmallnews\Support\Contracts\HasSnSubject` — 目标侧（内容实体）的标准接口，preferenceable 模型必须实现：
-
-```php
-use Wsmallnews\Support\Contracts\HasSnSubject;
-use Illuminate\Support\HtmlString;
-
-// 接口方法：
-getSnSubjectId(): int;                                   // 实体 ID
-getSnSubjectTitle(): string | HtmlString | null;          // 标题
-getSnSubjectDescription(): string | HtmlString | null;    // 描述
-getSnSubjectCoverUrl(): string | HtmlString | null;       // 封面图 URL
-```
-
-`HasSnSubject` 没有默认 trait，每个实现类需自行实现所有方法（契约只包含固有展示数据，不含跳转链接）：
-
-```php
-use Wsmallnews\Support\Contracts\HasSnSubject;
-
-class Post extends SupportModel implements HasSnSubject
-{
-    public function getSnSubjectId(): int { return $this->id; }
-    public function getSnSubjectTitle(): string | HtmlString | null { return $this->title; }
-    public function getSnSubjectDescription(): string | HtmlString | null { return $this->description; }
-    public function getSnSubjectCoverUrl(): string | HtmlString | null { return $this->getFirstMediaUrl('post_image'); }
-}
-```
-
-#### 接口对比
-
-| 接口 | 用途 | 对应 trait | href 方法 |
-|---|---|---|---|
-| `HasSnIdentifiable` | 操作者/用户 | `UserIdentifiable` | 无（链接由调用方传入） |
-| `HasSnSubject` | 目标/内容实体 | 无默认 trait | 无（链接由调用方传入） |
-
-两个接口只包含固有展示数据，跳转链接由调用方在 Blade 组件上传入 `href` prop（string|Closure），未传时渲染为普通元素并分发 Livewire 事件；panel 语境（`is_in_panel()`）下未传时组件自动兜底 `FilamentModelHelper::getUrl()`（后台资源链接）。
-
-### 自定义表单字段
-
-自定义表单字段（BoxRepeater / Arrange / DistrictSelect）已随功能迁移移除：
-
-- 区划级联选择由 **profile 包** `RegionCascade` 字段提供（区划数据 + code/名称快照成对存储）
-- 表格式/分组 repeater 场景使用 Filament 原生 `Repeater` + 布局组件组合
-
-### Activity Logs 资源
-
-继承 `Wsmallnews\Support\Filament\Resources\ActivityLogs\BaseResource` 快速实现日志功能：
-
-```php
-use Wsmallnews\Support\Filament\Resources\ActivityLogs\BaseResource;
-
-class ActivityLogResource extends BaseResource
-{
-    // BaseResource 已提供：
-    // - 列表页、查看页、导出、时间线
-    // - getEloquentQuery() 按 log_name 过滤
-    // - 图标、slug、导航排序、翻译标签
-}
-```
-
-模型实现接口可自定义日志展示：
-
-- `Wsmallnews\Support\Contracts\HasModelLabel` — 自定义模型标签（`static getModelLabel(): string`），用于活动日志类型下拉选项的标签解析等
-
-### Tags 资源
-
-继承 `Wsmallnews\Support\Filament\Resources\Tags\BaseResource`：
-
-```php
-use Wsmallnews\Support\Filament\Resources\Tags\BaseResource;
-
-class TagResource extends BaseResource
-{
-    public static function getTagType(): string
-    {
-        return 'article'; // 标签类型过滤
-    }
-}
-```
+插件侧 `use RegistersConfigurable`，在 `register()` 里调用 `registerConfigurableResources($panel)` / `registerConfigurablePages($panel)`。`module_id` 由注册插件自动注入（注册即归属），手工声明会被覆盖。
+
+### 注册表速查（全部以模块 id 为 key）
+
+| 能力 | 入口 | 主要方法 |
+|---|---|---|
+| 内容编排 | `CompositionRegistry` | `register($module, ['type' => ..., 'component' => ...])`、`registerPurposes()`、`getTypeForms()` |
+| 搜索 | `Search` | `config()` / `registers()` / `search()` / `resolvePage()` |
+| Sitemap | `Sitemap` | `config()` / `registers()` / `robots()` / `flush()` |
+| Feed | `Feed` | `config()` / `register($module, $name, [...])` / `routes($module)` / `flush()` |
+| SEO | `Seo` | `config($module, [...])` / `init($module)` / 链式 `title()` 等 / `render()` |
+| 定时任务 | `ScheduledTask` | `registers($morphType, [...])` / `scheduleRepeater()` |
+| 模块身份 | `ModuleRegistry` | `register(new Module(id, namespace, plugin))` / `moduleOf()` / `require()` |
+
+要点：
+
+- 注册表都要求模块 id 已登记（`ModuleRegistry`），拼错 id 应当报错而不是静默失效。
+- **Feed 的 name 全局唯一**（URL 的一段），重名注册直接抛异常。
+- **Sitemap / Feed 的域名过滤**：模块声明 `domain` 且与当前请求域名不符时不参与输出；未声明 domain 的模块始终参与。
+- 内容变更后主动调 `Sitemap::flush()` / `Feed::flush()`（缓存键含租户、域名、模块集合）。
+- **Search 来源的 `url` 只能由注册方提供**，默认无链接——前端搜索永不产生后台 panel 地址。
+- 相同 key 重复注册 = 覆盖（应用可借此替换包内置来源）。
+
+### Money（金额）
+
+- 存储：数据库一律存**最小货币单位整数**（分），列 `unsignedBigInteger`；JSON 金额明细同样存整数分。
+- 输入：`int` = 分；`string|float` = 元（十进制主单位）；`Money` 对象原样透传。
+- 运算一律经 `sn_money()`（`MoneyManager`），**禁止**浮点运算后入库；分摊用 `allocate()`（余数分配，总额不丢分）。
+- 币种解析链：`config('app.currency')` → `sn-support.currency` → `CNY`；单据表用 `MoneyCast::class.':currency'` 绑定行内币种列。
+- 展示只走 `format()` / `symbol()` / `formatParts()`；符号与千分位禁止入库。
+- `Features\Currency` 与 `sn_currency()` 已废弃，不要在新代码里使用。
 
 ### Livewire 基础设施
 
-#### Base 组件
+- `Livewire\Base`：`$this->transaction(fn () => ...)` 带 Halt 感知；`$this->halt()` 停止并回滚。
+- Traits：`HasProperties`、`HasContentType`、`HasAuth`、`CanPagination`（scroll / paginator / manual）、`CanBeContained`、`Scopeable`（`#[Locked]`）、`HasModuleContext`。
+- `HasModuleContext`：`:module` 指定消费模块，`moduleConfig` 先读消费模块配置、回落组件所有方；`getOwnerModule()` 经 `ModuleRegistry` 按类名反查。
+- `HasColumns`（`Concerns\HasColumns`）提供响应式列配置，但 HTML 布局仍写在视图里。
 
-`Wsmallnews\Support\Livewire\Base` 继承 Livewire 的 `Component`，提供带 Halt 感知的数据库事务：
+### 操作者与目标实体接口
 
-```php
-$this->transaction(function () {
-    // 数据库操作
-});
-$this->halt(); // 停止执行，回滚事务
-$this->halt($shouldRollbackDatabaseTransaction: true);
-```
+偏好、收藏、购物车一类「谁对什么做了什么」的功能，统一用这两个接口取展示数据：
 
-#### 可用 Traits
+| 接口 | 角色 | 必实现方法 |
+|---|---|---|
+| `Contracts\HasSnIdentifiable` | 操作者（用户） | `getSnId()` / `getSnName()` / `getSnAvatarUrl()` / `getSnEmail()` |
+| `Contracts\HasSnSubject` | 目标实体（内容） | `getSnSubjectId()` / `getSnSubjectTitle()` / `getSnSubjectDescription()` / `getSnSubjectCoverUrl()` |
 
-| Trait | 提供 |
-|---|---|
-| `HasProperties` | `$properties` 数组 + `getProperty()`/`setProperty()` |
-| `HasContentType` | `$contentType` 属性（Textarea/Richtext/Markdown 枚举） |
-| `HasAuth` | `$user` 属性，`authUser()`/`hasAuthUser()` |
-| `CanPagination` | **已包含 `WithPagination`**，三种分页模式（scroll/paginator/manual），`withPagination($builder)` |
-| `CanBeContained` | `$contained` 布尔属性控制布局 |
-| `Scopeable` | `#[Locked]` `$scopeType`/`$scopeId`，`getScopeable()` |
-
-**注意：** `CanPagination` 已经 use 了 Livewire 的 `WithPagination`，**不要再单独 use `WithPagination`**。
-
-#### HasColumns（响应式列配置）
-
-`Wsmallnews\Support\Concerns\HasColumns` 提供响应式断点列配置：
-
-```php
-use Wsmallnews\Support\Concerns\HasColumns;
-
-// 设置列数
-$this->columns(2);                        // 所有断点默认 2 列
-$this->columns(['default' => 1, 'lg' => 3]); // 按断点设置
-
-// 获取列配置
-$this->getColumns();       // 获取完整配置数组
-$this->getColumns('lg');   // 获取指定断点的列数
-$this->getColumnsConfig(); // 获取带默认值的完整配置
-```
-
-
-#### HasMediaFilter（媒体筛选）
-
-`Wsmallnews\Support\Filament\Concerns\HasMediaFilter` 用于自定义媒体集合的筛选逻辑：
-
-```php
-use Wsmallnews\Support\Filament\Concerns\HasMediaFilter;
-
-$this->filterMediaUsing(function (Collection $media): Collection {
-    return $media->filter(fn ($item) => $item->getCustomProperty('featured'));
-});
-
-$this->filterMedia($media);  // 应用筛选
-$this->hasMediaFilter();     // 检查是否设置了筛选回调
-```
+- `Concerns\UserIdentifiable` 是 `HasSnIdentifiable` 的 Eloquent 默认实现（映射 id / name / avatar_url / email），用户模型直接 use。
+- `HasSnSubject` 没有默认 trait，实现类自行编写（只含固有展示数据，不含跳转链接）。
+- 跳转链接由调用方以 `href` prop 传入；panel 语境下未传时兜底 `FilamentModelHelper::getUrl()`。
 
 ### 多租户
 
-#### 中间件
+- 中间件 `IdentifyTenant` 已注册为全局 Livewire 持久中间件；`config('sn-support.tenant_model')` 为 `null` 即禁用。
+- 辅助函数：`has_tenancy()` / `current_tenant()` / `frontend_has_tenancy()` / `frontend_current_tenant()` / `is_in_panel()` / `sn_route()`（自动补 tenant 参数）。
+- 租户设置仓库 `Tenant\Settings\Repositories\DatabaseSettingsRepository`（表 `sn_team_settings`）。
+- `media-library` 的 `media_observer` 必须换成 support 的实现，否则删记录会连带删文件。
 
-`Wsmallnews\Support\Http\Middleware\IdentifyTenant` 已注册为全局 Livewire 持久中间件。从路由的 `tenant` 参数按 `slug` 字段解析租户模型，设置请求属性 `has_tenancy` 和 `current_tenant`。
+### 前端 CSS（sn-*）
 
-#### 辅助函数
+引入 `resources/css/index.css` 即可，其中：
 
-```php
-has_tenancy();           // 是否有租户
-current_tenant();        // 当前租户 Model（自动判断前端/后台）
-frontend_has_tenancy();  // 前端是否有租户
-frontend_current_tenant(); // 前端当前租户
-is_in_panel();           // 是否在 Filament 后台
-sn_route('page.show');   // 租户感知路由（自动添加 tenant 参数）
-```
+- `tokens.css`：设计令牌，主题定制唯一入口；几何令牌按 `lg` 翻转，颜色令牌按 `.dark` 翻转。
+- `utilities.css`：通用 `sn-*` 类（容器、徽章、按钮、文字、空态、骨架屏等）。
+- `content.css`：`sn-prose` 正文排版。
+- `filament.css`：`sn-filament-*`，依赖 Filament 内部 DOM，**仅继承 support 的包可用**。
 
-配置 `sn-support.tenant_model` 为租户 Model 类来启用多租户；设为 `null` 则禁用。
+规则：
 
-### Eloquent Casts
+- 组合式用法：基础类（形状/尺寸）+ 修饰类（颜色/状态），如 `sn-badge sn-badge-sm sn-badge-danger`。
+- 区块间距用 `sn-gap` / `sn-margin` / `sn-padded` 家族，卡片级不要写 `gap-4` / `p-4` 这类固定值。
+- 页面骨架用 `sn-page` + `sn-content`；全宽色带内的 `container` 内容层必须加 `sn-page-x` 防贴边。
+- `sn-container` 是**内容卡片容器**（自带背景/边框/阴影），不是通用布局 div。
+- 状态类 `sn-hover` / `sn-link` / `sn-active` 挂在外层 `sn-container` 上才生效于子元素。
+- 动态颜色用 `sn_badge_color()` / `sn_text_color()`（返回 `['class' => ..., 'style' => ...]`），不要手拼色值。
 
-@verbatim
-<code-snippet name="Eloquent Casts" lang="php">
-use Wsmallnews\Support\Casts\MoneyCast;
-use Wsmallnews\Support\Casts\CounterCast;
-use Wsmallnews\Support\Casts\ImplodeCast;
+### Utils 与辅助函数速查
 
-class Product extends Model
-{
-    protected $casts = [
-        'price' => MoneyCast::class,                // cknow/money 金额转换
-        'price' => MoneyCast::class . ':currency',  // 指定货币字段名
-        'counters' => CounterCast::class,           // JSON 计数器，未设置的 key 默认返回 0
-        'tags' => ImplodeCast::class,               // 逗号分隔字符串 ↔ 数组
-    ];
-}
-</code-snippet>
-@endverbatim
-
-### Rocket 数据管道
-
-`Wsmallnews\Support\Rocket` 提供 params → radars → payloads 三层数据处理管道：
-
-```php
-$rocket = new Rocket();
-$rocket->setParams(['user_id' => 1]);
-$rocket->setRadar('key', 'value');
-$rocket->setPayloads(['result' => $data]);
-
-$rocket->getParam('user_id');
-$rocket->getRadar('key');
-$rocket->getPayloads(); // Collection
-```
-
-### 通用全局搜索（Features/Search）
-
-核心在 `Wsmallnews\Support\Features\Search`（`SearchRegistry` 单例 + `Search` 门面），各扩展包在 `packageBooted()` 中注册可搜索来源：
-
-@verbatim
-```php
-use Wsmallnews\Support\Facades\Search;
-
-// 模块名 = 插件 ID；模块是否启用由包的配置决定（未开启则不注册来源，前端也不渲染搜索框）
-if (Utils::getConfig('search.enabled', true)) {
-    // 配置节整节透传（enabled 除外）：想覆盖 sn-support.search.* 的哪个键就写哪个
-    $searchConfig = collect(Utils::getConfig('search', []))->except('enabled')->all();
-    $searchConfig['page'] ??= fn (?string $query) => Utils::route('search', ['q' => $query]);   // 包内结果页兜底
-
-    Search::config(app(CmsPlugin::class)->getId(), $searchConfig)->registers(app(CmsPlugin::class)->getId(), [
-            [
-                'key' => 'post',
-                'model' => Utils::getPostModel(),      // 支持 morph 别名
-                'group' => '图文',                     // 默认模型 label
-                'query' => fn ($query) => $query->published(),   // LIKE 引擎过滤
-                'scopeable' => Utils::getScopeable(),
-                'url' => fn ($record) => Utils::route('posts.show', $record),  // 仅注册方提供，默认无链接
-            ],
-        ]);
-}
-
-// 聚合包（如 shop）需要多来源时，在自己的 ServiceProvider 中重复注册所需来源，
-// 并可自定义 url 等选项（指向 shop 自己的详情页）
-Search::registers('sn-shop', [
-    ['key' => 'post', 'model' => CmsUtils::getPostModel(), 'url' => fn ($record) => shop_post_route($record)],
-    ['key' => 'product', 'model' => ProductUtils::getProductModel(), 'url' => fn ($record) => shop_product_route($record)],
-]);
-
-// 查询：返回 Collection<string $group, Collection<SearchResult>>
-Search::search(null, '关键词');            // 所有已注册模块来源合并（union）
-Search::search('sn-cms', '关键词');      // 仅指定模块；未知模块名抛 SupportException
-```
-@endverbatim
-
-- **来源选项**：`key`、`model`（必填）、`group`、`fields`（默认 `resolveKeywordSearchFields()` 并剔除含 `.` 的关联字段）、`limit`、`sort`、`query`（LIKE）、`scout`（Scout 索引过滤，此时 query/scopeable/fields 不生效）、`scopeable`、`title`/`description`/`cover`/`badge`（默认取 `HasSnSubject` 固定数据）、`url`（默认无链接，前端搜索永不产生 panel 地址）、`view`（自定义条目视图，接收 `$result`（含 `->record` 原始模型）、`$query`；高亮用 `text_highlight($text, $query)` 助手）、`render`（自定义条目渲染闭包 `fn ($result, $query)`，优先于 view）、`visible`、`results`（完全自定义结果，绕过引擎）。条目渲染 `render` 闭包优先，否则渲染 `view`（未声明时经 `SearchSource::itemView()` 兜底为默认统一模板，视图层无需判断）；外层链接包裹由 support 统一处理，自定义部分只负责条目内容区。
-- **模块选项（模块级）**：`Search::config($module, $config)` 统一声明（增量合并、同名键后声明覆盖、值为 null 的键恢复全局兜底；可链式、与注册顺序无关）。**`sn-support.search.*` 的任意键都可作为模块声明键**——support 新增配置键无需各包同步接线即天然可覆盖。扩展包推荐整节透传自己的配置节接入：`collect(Utils::getConfig('search'))->except('enabled')`（`enabled` 是各包自己的启用门控，不透传），键名与全局一致，想覆盖哪些就写哪些。解析统一走 `Search::resolveConfig($module, $key, $default)`（模块声明 > 全局 > 默认）。已消费的键：
-  - `engine`：模块搜索引擎（`database` 默认 WHERE LIKE / `scout` 需 `Laravel\Scout\Searchable`，未安装抛 `SupportException` / 引擎类名）；
-  - `page`：搜索结果页地址（display = page 时回车跳转目标）。字符串由 support 统一拼接 `?q=关键词`；闭包 `fn (?string $query) => ...` 接收搜索关键词并自行返回完整 URL。cms 等自带结果页路由的包经 `$config['page'] ??= 闭包` 兜底（模块显式声明优先）；
-  - `display` / `debounce` / `show_search_button`：前端搜索组件的展示方式、防抖时长、一体化搜索按钮（仅 display = page 生效，开启后按钮替代 ↵ Enter 提示；搜索结果页组件 `search-results` 同样读取该配置，不受 display 门控）。结果页搜索触发方式随该开关切换：显示按钮时输入框为 deferred 绑定（`wire:model`），按钮 `wire:click="search"` / 回车 `wire:keydown.enter="search"` 显式触发——Livewire 发请求时会自动合并 deferred 待定值且更新先于 action 应用，无需 form；无按钮时 `wire:model.live.debounce` 自动搜索、回车 `$refresh`。按钮为自定义 HTML（组件 `getSearchButtonHtml()` 返回 HtmlString，视图 `search-button.blade.php`，type 与 wire:click 由调用方传入），经 `x-filament::input.wrapper` 的 `suffix` 属性渲染，按钮模式下 `inline-suffix` 关闭——与输入框之间保留 wrapper 自带的竖向分割线；样式类 `.sn-search-submit` 定义于包 CSS（左侧直角贴分割线、右侧圆角随 wrapper），并用 `.fi-input-wrp-suffix:has(.sn-search-submit)` 让按钮占满整个 suffix 区（满高贴右），优先级均为：组件属性 > 模块声明 > 全局；
-  - `results_limit`：来源默认返回条数（调用方显式 limit > 来源声明 limit > 模块声明 > 全局）；
-  - `split_terms` / `terms_operator` / `case_insensitive`：拆词开关、多词组合方式（`'and'` 默认所有词都命中 / `'or'` 任一词命中即返回）、LIKE 大小写（database 引擎经 `ConfigurableEngine::setSearchConfig()` 接收模块声明，自定义引擎按需实现该接口）。
-- **启用开关（注册入口门控）**：模块是否启用由各扩展包在 `packageBooted()` 用配置自行判断——未开启则**不调用 config/registers**（来源不进注册表，前端也不渲染搜索框），如 cms 的 `if (Utils::getConfig('search.enabled', true)) { Search::config(...)->registers(...); }`，视图侧用同一配置判断是否渲染搜索框。cms 的配置节为 `sn-cms.search`：`enabled` 之外任意键整节透传（想覆盖 `sn-support.search.*` 的哪个键就写哪个，如 `display` / `terms_operator` / `show_search_button`）。
-- **项目启用 scout 的步骤**：① `composer require laravel/scout`；② 给模型 use `Searchable` —— 包内模型用子类替换：新建 `App\Models\Cms\Post extends \Wsmallnews\Cms\Models\Post`（use `Searchable`）并把 `config('sn-cms.models.post')` 指向它，业务代码全部经 `Utils::getPostModel()` 解析无需改动；③ 把 `config('sn-support.search.engine')` 设为 `'scout'`（注册时未显式指定引擎的来源全部切换）。Meilisearch/Algolia 等外部引擎需先 `scout:import` 建索引，collection/database 驱动无需。
-- **相同 key 重复注册视为覆盖**（应用可借此覆盖包内置来源）。
-- **前端组件**：`<livewire:sn-support::components.search :module="app(CmsPlugin::class)->getId()" placeholder="搜索…" :limit="5" />`（`module` 绑定模块，null 搜索所有已启用模块），视图 `sn-support::livewire.components.search`，配置在 `config/sn-support.php` 的 `search` 节（`engine`、`display`、`page`、`results_limit`、`split_terms`、`terms_operator`、`show_search_button`、`case_insensitive`、`debounce`）。`display` 控制展示方式：`dropdown`（输入即搜浮层，默认）/ `page`（回车跳转搜索结果页，地址取模块 `page` 选项或全局兜底）；`display` / `debounce` / `show_search_button` 均为「组件属性 > 模块声明 > 全局」三级解析；`page` 模式可经 `show_search_button` 渲染一体化搜索按钮（自定义 HTML 经 wrapper `suffix` 渲染，样式 `.sn-search-submit`）；结果页内容区核心组件为 `<livewire:sn-support::components.search-results :module="..." />`，同样读取 `show_search_button` 渲染按钮，页面路由由调用方定义。
-
-### Utils 工具类
-
-`Wsmallnews\Support\Support\Utils` — 全部为静态方法：
-
-| 方法 | 说明 |
+| 接口 | 用途 |
 |---|---|
-| `getConfig('key', $default)` | 读取 `sn-support` 配置（dot notation） |
-| `getModel('name', $shouldException)` | 获取配置中的模型类名，第二个参数 `false` 时不抛异常 |
-| `getTenantModel()` | 获取租户模型类名 |
-| `getContentModel()` | 获取 Content 模型类名 |
-| `getScheduledTaskModel()` | 获取 ScheduledTask 模型类名 |
-| `isTenancyEnabled()` | 判断多租户是否启用 |
-| `getFilesystemDisk()` | 获取文件系统磁盘（回退到 Filament 默认盘） |
-| `getScopeFromInstances('sn-cms.scopeables', 'footer')` | 从模块 scopeables 实例配置解析 ScopeableContext（第二参数缺省为 main） |
-| `getSchedulerConfig('key', $default)` | 读取定时调度配置 |
+| `Utils::getConfig()` | 读 `sn-support` 配置 |
+| `Utils::getModel($name, $throw = true)` | 读模型类名，`false` 时允许 null |
+| `Utils::getContentModel()` / `getCompositionModel()` / `getPageModel()` / `getScheduledTaskModel()` | 各模型类名 |
+| `Utils::getFilesystemDisk()` | 磁盘，回落到 Filament 默认盘 |
+| `Utils::getScopeFromInstances($configKey, $key)` | 从模块 scopeables 解析 `ScopeableContext` |
+| `sn_money()` | 金额服务 |
+| `sn_route()` | 租户感知路由 |
+| `generate_slug()` | 标题转 slug（空结果兜底随机串） |
+| `text_highlight($text, $query)` | 关键词高亮（已转义，`<mark>` 包裹） |
+| `sn_badge_color()` / `sn_text_color()` | 语义色 → class + style |
+| `href_format()` | 生成 href / target / wire:navigate |
+| `files_url()` | 文件 URL 解析 |
+| `scopeable_context()` / `scopeable_query()` | ScopeableContext 与查询过滤 |
 
-### 关键辅助函数
-
-| 函数 | 说明 |
-|---|---|
-| `get_sn($id, $type)` | 生成唯一编号（时间戳 + 随机数 + ID） |
-| `client_unique()` | 获取客户端唯一标识（基于 URL + IP + UserAgent 的 MD5） |
-| `db_listen()` | 开启数据库查询监听（调试用，直接 echo SQL） |
-| `sn_currency()` | 获取自定义 Currency 操作类实例 |
-| `exception_log($exception, $name, $message)` | 格式化异常日志（含 Message、File、Trace） |
-| `through_cache($key, $callback, $store, $is_force, $ttl)` | 缓存穿透模式，支持指定 store、强制刷新、TTL |
-| `href_format($url, $newTab, $spaMode)` | 生成带 wire:navigate 的链接 HTML |
-| `files_url($files, $disk)` | 解析文件 URL（自动判断 http/data 开头 vs 相对路径） |
-| `filter_richeditor($content)` | 去除富文本中包裹图片的 anchor 标签 |
-| `text_highlight($text, $query)` | 文本关键词高亮（逐词、大小写不敏感，返回转义后含 mark 的 HTML；不限于搜索场景） |
-| `frontend_has_tenancy()` | 前端是否有租户（从 request attributes 读取） |
-| `frontend_current_tenant()` | 前端当前租户 Model |
-| `has_tenancy()` | 全局是否有租户（自动判断前端/后台） |
-| `current_tenant()` | 全局当前租户 Model（自动判断前端/后台） |
-| `get_tenancy_scope_name($panel)` | 获取租户作用域名称 |
-| `is_in_panel()` | 当前是否在 Filament 后台面板 |
-| `tree_to_flatten($tree)` | 递归将树结构扁平化为一维集合 |
-| `sn_route($name, $params, $absolute)` | 租户感知路由，多租户启用时自动添加 tenant 参数 |
-| `remove_query_param_from_url($url, $keys)` | 移除 URL 中的指定 query 参数 |
-| `scopeable_context($input)` | 创建 ScopeableContext（支持数组、ScopeableContext） |
-| `scopeable_query($query, $scope)` | 对查询应用 scope 过滤 |
-
-### 正确命名空间速查
+### 命名空间速查
 
 | 类别 | 命名空间 |
 |---|---|
-| FormComponents 工厂 | `Wsmallnews\Support\Filament\Forms\FormComponents` |
-| FilterComponents 工厂 | `Wsmallnews\Support\Filament\Filters\FilterComponents` |
-| ActionComponents 工厂 | `Wsmallnews\Support\Filament\Actions\ActionComponents` |
-| ColumnComponents 工厂 | `Wsmallnews\Support\Filament\Tables\ColumnComponents` |
-| 自定义表单字段 | `Wsmallnews\Support\Filament\Forms\Fields\` |
-| Activity Logs 资源 | `Wsmallnews\Support\Filament\Resources\ActivityLogs\` |
-| Tags 资源 | `Wsmallnews\Support\Filament\Resources\Tags\` |
-| ScheduledTasks 资源 | `Wsmallnews\Support\Filament\Resources\ScheduledTasks\` |
-| SupportModel 基类 | `Wsmallnews\Support\Models\SupportModel` |
-| Livewire Base | `Wsmallnews\Support\Livewire\Base` |
-| Livewire Traits | `Wsmallnews\Support\Livewire\Concerns\` |
-| Model Traits | `Wsmallnews\Support\Models\Concerns\` |
-| Models | `Wsmallnews\Support\Models\` |
-| Casts | `Wsmallnews\Support\Casts\` |
-| Enums | `Wsmallnews\Support\Enums\` |
-| EnumHelper | `Wsmallnews\Support\Enums\Traits\EnumHelper` |
-| Data 对象 | `Wsmallnews\Support\Data\` |
-| Contracts（接口） | `Wsmallnews\Support\Contracts\` |
-| Contracts - 活动日志 | `Wsmallnews\Support\Contracts\ActivityLogs\` |
-| 通用 Traits | `Wsmallnews\Support\Concerns\` |
-| UserIdentifiable | `Wsmallnews\Support\Concerns\UserIdentifiable` |
-| HasColumns | `Wsmallnews\Support\Concerns\HasColumns` |
-| Plugin 自定义属性 | `Wsmallnews\Support\Concerns\Plugin\` |
-| Resource 自定义属性 | `Wsmallnews\Support\Concerns\Resource\` |
-| 安装工具 | `Wsmallnews\Support\Concerns\Install\` |
-| Filament 通用 | `Wsmallnews\Support\Filament\Concerns\` |
-| FilamentModelHelper | `Wsmallnews\Support\Helpers\FilamentModelHelper` |
-| Utils | `Wsmallnews\Support\Support\Utils` |
-| Facade | `Wsmallnews\Support\Facades\Support` |
-| ScheduledTask Facade | `Wsmallnews\Support\Facades\ScheduledTask` |
-| 中间件 | `Wsmallnews\Support\Http\Middleware\` |
+| 组件工厂 | `Wsmallnews\Support\Filament\{Forms,Filters,Actions,Tables}` |
+| Resources | `Wsmallnews\Support\Filament\Resources\{ActivityLogs,Compositions,Pages,ScheduledTasks,Tags}` |
+| 配置模式 | `Filament\Concerns\{CanBeConfigured,RegistersConfigurable,HasMediaFilter,HasScopeableProperties}` |
+| 模型 / Casts / 枚举 | `Models\` / `Casts\` / `Enums\` |
+| 数据与契约 | `Data\` / `Contracts\` |
+| 通用 Traits | `Concerns\`（`UserIdentifiable`、`HasColumns`、`Install\`） |
+| Livewire | `Livewire\Base`、`Livewire\Concerns\` |
+| 功能注册表 | `Features\{Search,Sitemap,Feed,Seo,Composition,Money,Modules}` |
+| 门面 | `Facades\{Search,Sitemap,Feed,Seo,CompositionRegistry,ScheduledTask,Support}` |
+| 工具 | `Support\Utils`、`Helpers\FilamentModelHelper` |
 
 ### 常见错误
 
-- **使用 `FormComponents::` 工厂方法时不要再手动设置 disk/visibility 等**——工厂已从 config 读取默认值。
-- **`CanPagination` 已包含 `WithPagination`**，不要再单独 use `WithPagination`。
-- **使用 `scope_id = 0` 时不要用 `where('scope_id', 0)` 直接查询**——用 Model trait 提供的 `scopeScopeId(0)`，它内部使用 `whereIn`。
-- **`Utils` 所有方法都是静态的**——`Utils::getConfig()` 而非 `(new Utils)->getConfig()`。
-- **`Utils::getModel()` 默认会抛异常**，传递 `false` 作为第二个参数以允许返回 `null`。
-- **扩展 `ActivityLogs\BaseResource` 时不要覆盖 `getEloquentQuery()`**——除非你理解 causer 上移除租户全局作用域的逻辑。
+- 用工厂方法后又手动 `->disk()` / `->visibility()` —— 重复且会被配置覆盖。
+- 用 `where('scope_id', 0)` 查全局作用域 —— 用 `scopeScopeId(0)`（内部是 `whereIn`）。
+- `Utils` 全部是静态方法，不要 `new Utils`。
+- `Utils::getModel()` 默认抛异常，可选模型要传 `false`。
+- 覆盖 `ActivityLogs\BaseResource::getEloquentQuery()` —— 除非清楚 causer 上的租户全局作用域逻辑。
+- 表格里 `reorderable()` 与 `defaultSort()` 方向不一致 —— 拖拽后顺序颠倒。
