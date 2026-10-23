@@ -1,9 +1,7 @@
-{{-- 分组搜索结果列表：由 search（下拉浮层）与 search-results（结果页）共用，依赖 $groups、$itemRenderers（key => ['view' =>, 'render' =>]）。
-    $stickyGroupHeader：分组标题是否吸附（下拉浮层内部滚动时吸附；结果页随页面滚动，默认不吸附）。
-
-    条目渲染：render 闭包优先，否则渲染 itemView() 兜底好的视图（注册方未声明 view 时即为默认统一模板）；
-    视图数据契约：$result（SearchResult，含 ->record 原始模型）、$query 关键词（高亮用 text_highlight() 助手）。
-    外层的链接包裹（有 url 渲染 <a>）由 support 统一处理，条目视图/闭包只负责内容区。 --}}
+{{-- Grouped result list shared by the dropdown and the results page; expects $groups and
+$itemRenderers. $stickyGroupHeader sticks group headers while the dropdown scrolls.
+A render closure wins over the resolved item view. support wraps the link; the item only
+renders its content. View data: $result and $query. --}}
 
 @forelse ($groups as $group => $results)
     <div class="py-1">

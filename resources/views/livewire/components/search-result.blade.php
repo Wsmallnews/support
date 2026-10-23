@@ -1,5 +1,5 @@
-{{-- 单条搜索结果行项内容（SearchSource::DEFAULT_ITEM_VIEW 兜底模板）：封面 + 标题（命中高亮）/ 描述 + 徽标。
-    数据契约与自定义条目视图一致：$result、$query（高亮用 text_highlight() 助手）。 --}}
+{{-- Single result row (the SearchSource default view): cover, highlighted title,
+description and badge. Same contract as custom views: $result and $query. --}}
 
 <div class="w-9 h-9 shrink-0 overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800">
     @if ($result->coverUrl)

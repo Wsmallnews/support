@@ -1,10 +1,8 @@
 @php
     use Filament\Support\Icons\Heroicon;
 
-    // 搜索触发方式由按钮开关决定（type/placeholder/aria-label 等通用属性直接写在 input 上）：
-    // - 显示按钮：deferred 绑定（wire:model），按钮/回车调用 search() 显式触发
-    //   （Livewire 发请求时自动合并 deferred 待定值，更新先于 action 应用）
-    // - 无按钮：live 防抖自动搜索，回车立即刷新（#[Url] 自动同步 ?q=）
+    // Trigger depends on the button switch: with the button, wire:model is deferred and
+    // search() runs on click or Enter; without it, live debounce searches as you type.
     $searchInput = $showSearchButton
         ? new Illuminate\View\ComponentAttributeBag([
             'wire:model' => 'query',
@@ -18,8 +16,8 @@
 
 <div class="w-full flex flex-col gap-6">
     <div class="w-full max-w-2xl mx-auto">
-        {{-- show_search_button 开启时传自定义按钮 HTML（HtmlString），以非 inline suffix 渲染
-            （与输入框之间保留竖向分割线）；输入框转为 deferred 绑定，搜索由按钮/回车显式触发 --}}
+        {{-- When show_search_button is on, pass the button HTML as a non-inline suffix so the
+        wrapper keeps its divider, and switch the input to deferred binding. --}}
         <x-filament::input.wrapper
             class="sn-bg"
             inline-prefix

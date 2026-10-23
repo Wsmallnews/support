@@ -1,12 +1,12 @@
 @props([
-    'item' => [],      // 快捷传参：['image', 'href', 'html']
-    'image' => null,   // 图片地址，优先级高于 item
-    'href' => null,    // 点击跳转地址，优先级高于 item
-    'html' => null,    // 完全自定义幻灯片内容（忽略 image 默认渲染），优先级高于 item
+    'item' => [],      // Shorthand: [image, href, html]
+    'image' => null,   // Image URL, wins over item
+    'href' => null,    // Link, wins over item
+    'html' => null,    // Fully custom slide content, wins over item
 ])
 
 @aware([
-    'imageFit' => 'cover',  // 从父级 swiper 继承主图填充方式
+    'imageFit' => 'cover',  // Inherited from the parent swiper
 ])
 
 @php
@@ -35,6 +35,6 @@
         <img src="{{ $image }}" loading="lazy" class="w-full h-full {{ $imageFit === 'cover' ? 'object-cover' : 'object-contain' }}" />
     @endif
 
-    {{-- 覆盖内容：直接读取循环 item 渲染，定位与样式由调用处控制 --}}
+    {{-- Overlay content; positioning and styling belong to the caller --}}
     {{ $slot }}
 </div>

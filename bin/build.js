@@ -20,8 +20,8 @@ const defaultOptions = {
     bundle: true,
     mainFields: ['module', 'main'],
     platform: 'neutral',
-    // 必须显式 esm：AlpineComponent 资产经 x-load 的动态 import() 消费，
-    // IIFE 产物命名空间为空 → 组件函数解析为 false → Alpine.data 注册失败（swiper/lightbox 前端静默失效的根因）
+    // Must stay ESM: Alpine components are loaded through dynamic import() by x-load.
+    // An IIFE bundle has an empty namespace, so Alpine.data registration silently fails.
     format: 'esm',
     sourcemap: isDev ? 'inline' : false,
     sourcesContent: isDev,
@@ -53,11 +53,9 @@ compile({
     ...defaultOptions,
     entryPoints: [
         './resources/js/index.js',
-        // './resources/js/forms/arrange.js', 
         './resources/js/components/lightbox.js',
         './resources/js/components/number-stepper.js',
         './resources/js/components/swiper.js',
-        // './resources/js/components/file-upload.js'
     ],
     outdir: './resources/dist/',
 })

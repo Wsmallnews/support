@@ -1,7 +1,7 @@
 @php
     use Wsmallnews\Support\Enums\ContentType;
 
-    // images 类型的内容为 JSON 路径数组
+    // Image content is a JSON array of paths.
     if ($contentType == ContentType::Images) {
         $decoded = is_array($content) ? $content : json_decode((string) ($content ?? ''), true);
 
@@ -11,7 +11,7 @@
 
 <div class="sn-content-container">
     @if ($contentType == ContentType::Images)
-        {{-- 淘宝商品详情式长图：宽度 100%，图片之间无缝隙 --}}
+        {{-- Long-form image stack: full width, no gaps --}}
         @if (count($content))
             <div class="sn-content-images w-full">
                 @foreach ($content as $path)

@@ -1,9 +1,7 @@
 /**
- * 数字步进器（input/step-number 组件的 Alpine 逻辑，control / bare 两种形态共用）。
- *
- * 钳制语义：decrement 到下限后再减不再变化，改为派发 sn-stepper-min 事件——
- * 调用方（如商品附加项「减到下限 = 取消选择」）经 @sn-stepper-min 监听处理；
- * increment 到上限静默钳制（bare 形态的 + 按钮自带 :disabled）。
+ * Number stepper logic shared by both input/step-number variants.
+ * Decrementing below the minimum stops silently and fires sn-stepper-min so callers can
+ * react (e.g. deselect an option); incrementing past the maximum clamps silently.
  */
 export default function numberStepper({ minVal, maxVal, step, decimalPoints }) {
     return {
@@ -14,8 +12,8 @@ export default function numberStepper({ minVal, maxVal, step, decimalPoints }) {
         currentVal: 0,
 
         init() {
-            // 从服务端渲染的输入框取初始值（wire:model 经 x-modelable 回填可能晚于 init；
-            // bare 不可编辑形态无输入框，保持 minVal，由 x-model 父级值经 entangle 接管）
+            // Read the server-rendered input: wire:model may arrive after init. Bare, non-editable
+            // variants have no input, so the parent value takes over through entangle.
             const raw = this.$el.querySelector('input')?.value;
             const num = Number(raw);
             this.currentVal = this.clamp(raw !== '' && raw !== undefined && Number.isFinite(num) ? num : this.minVal);
@@ -23,14 +21,14 @@ export default function numberStepper({ minVal, maxVal, step, decimalPoints }) {
 
         clamp(num) {
             const clamped = Math.min(this.maxVal, Math.max(this.minVal, num));
-            // toFixed 返回字符串，必须转回 number，否则后续 + 变字符串拼接
+            // toFixed returns a string; convert back or later additions concatenate
             return Number(clamped.toFixed(this.decimalPoints));
         },
 
-        updateValue(event) {        // 输入框直接输入时触发
+        updateValue(event) {        // Typed input
             const num = Number(event.target.value);
             this.currentVal = this.clamp(Number.isNaN(num) ? this.minVal : num);
-            // 强制更新输入框显示的值（非数字输入回退为钳制后的值）
+            // Force the displayed value, falling back to the clamped one for non-numeric input
             event.target.value = this.currentVal;
         },
 

@@ -12,8 +12,8 @@
     'actions' => null,
 ])
 
-{{-- 前台空状态统一版式（sn-empty 令牌族）：icon 或 iconSlot 二选一，都缺省时不渲染图标位（不留占位空白）。
-    contained=true 自带卡片（独立空态页）；嵌在列表卡内时传 :contained="false" --}}
+{{-- Shared empty state: pass either icon or iconSlot, or neither to omit the slot.
+contained adds a card; pass :contained="false" inside a list card. --}}
 <section @class([
     'sn-empty',
     'sn-compact' => $compact,

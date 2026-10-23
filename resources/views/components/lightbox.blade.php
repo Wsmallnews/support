@@ -1,15 +1,11 @@
 @props([
     'key' => null,
-    'galleries' => [],                // 幻灯片内容
-    'lightboxCss' => '',          // 外层容器 class`
-    'thumbClass' => '',          // 缩略图 class
+    'galleries' => [],                // Slides
+    'lightboxCss' => '',          // Extra classes on the outer container
+    'thumbClass' => '',          // Thumbnail classes
 ])
 
-{{-- gallery: {
-    title: '预览标题',
-    image: '预览图片',
-    thumb: '缩略图（可选，默认使用 image）',
-} --}}
+{{-- gallery item: ['title' => ..., 'image' => ..., 'thumb' => optional, defaults to image] --}}
 
 @php
     use Filament\Support\Facades\FilamentView;

@@ -11,7 +11,7 @@
     }}
     x-data="{ open: {{ $expanded ? 'true' : 'false' }} }"
 >
-    {{-- 标题区域 --}}
+    {{-- Header --}}
     <button
         type="button"
         class="sn-accordion-item-header flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left sn-gray-bg sn-hover"
@@ -31,7 +31,7 @@
         />
     </button>
 
-    {{-- 内容区域 --}}
+    {{-- Body --}}
     <div
         x-show="open"
         x-collapse

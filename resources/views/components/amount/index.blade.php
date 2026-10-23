@@ -7,7 +7,7 @@
 ])
 
 @php
-    // 着重显示场景的金额组件（小符号 + 大数字）：颜色走 sn_text_color 双通道（色名预置类 / Filament 色板动态变量）
+    // Emphasised amount (small symbol, large figure); colour comes from sn_text_color().
     $parts = sn_money()->formatParts($amount, $currency);
     $textColor = sn_text_color($color);
 @endphp

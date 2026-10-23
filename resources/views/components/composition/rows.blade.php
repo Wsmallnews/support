@@ -1,9 +1,9 @@
 @php
     use Wsmallnews\Support\Features\Composition\CompositionRenderer;
 
-    // $rows: CompositionRenderer::resolveRows() 输出
-    // lg+ 三等分栅格按 layout 占位；lg 以下固定单列，槽内组件按 left → right 顺序堆叠
-    // 注意：Tailwind 经 @source 扫描 blade 源码生成工具类，类名必须字面量书写，禁止动态拼接
+    // $rows: output of CompositionRenderer::resolveRows().
+    // Three-column grid from lg up, single stacked column below (left before right).
+    // Tailwind scans this file, so every class name must be a literal.
 @endphp
 
 @props(['rows' => []])

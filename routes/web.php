@@ -6,22 +6,21 @@ use Wsmallnews\Support\Http\Controllers\SitemapController;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
-/*
-|--------------------------------------------------------------------------
-| Support Routes
-|--------------------------------------------------------------------------
-|
-| support 包的通用路由文件，后续包级路由在此追加。当前承载站点级端点
-| （sitemap.xml / robots.txt / feed）。
-|
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Support Routes
+    |--------------------------------------------------------------------------
+    |
+    | Site-level endpoints (sitemap.xml, robots.txt, feed). Modules only register
+    | content sources with the registries; the endpoints live here.
+    |
+    */
 
-// 站点级端点：注册在根路径、不限定域名也不参与任何模块前缀——cms / shop 等模块只是
-// 往各 Registry（SitemapRegistry / FeedRegistry）注册内容源/流，端点本身由 support
-// 提供（所有模块都依赖 support，单装任一模块站点也具备）
+// Root-level endpoints: no domain restriction and no module prefix, so a site with a
+// single module still exposes them.
 $middlewares = ['web'];
 
-// 多租户开启时，挂租户识别（域名/路径模式均尽力解析，无租户参数时安全跳过）
+// Tenant identification when tenancy is enabled; both domain and path modes are attempted
 SupportUtils::isTenancyEnabled() && array_unshift($middlewares, IdentifyTenant::class);
 
 Route::middleware($middlewares)->group(function (): void {
@@ -31,7 +30,7 @@ Route::middleware($middlewares)->group(function (): void {
         Route::get(SupportUtils::getSitemapConfig('robots_uri', 'robots.txt'), [SitemapController::class, 'robots'])->name('sn-support.robots');
     }
 
-    // RSS 订阅（config sn-support.feeds.*）：/feed 聚合流 + /feed/{name} 具名流
+    // RSS feeds (config sn-support.feeds.*): /feed aggregate plus /feed/{name}
     if (SupportUtils::getFeedsConfig('enabled', true) === true) {
         $uri = trim((string) SupportUtils::getFeedsConfig('uri', 'feed'), '/');
 

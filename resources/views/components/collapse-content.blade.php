@@ -3,9 +3,9 @@
 @endphp
 
 @props([
-    'content' => null,                    // 内容
-    'contentType' => ContentType::Textarea,          // 内容类型，  textarea, markdown or richtext
-    'maxHeight' => 350                    // 默认内容高度
+    'content' => null,                    // Content
+    'contentType' => ContentType::Textarea,          // Content type: textarea, markdown or richtext
+    'maxHeight' => 350                    // Default content height
 ])
 
 <div

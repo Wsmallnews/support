@@ -5,8 +5,8 @@
 @props([
     'active' => false,
     'alpineActive' => null,
-    'labelClass' => null,               // 自定义文字样式
-    'activeLabelHasUnderline' => true,  // 文字选中是否带下划线
+    'labelClass' => null,               // Custom label classes
+    'activeLabelHasUnderline' => true,  // Underline the active label
     'badge' => null,
     'badgeColor' => null,
     'badgeTooltip' => null,
@@ -29,31 +29,31 @@
 
     $hasAlpineActiveClasses = filled($alpineActive);
 
-    // 外层 元素 鼠标经过时候的样式
+    // Hover style of the outer element
     $inactiveItemClasses = '';
 
-    // 外层 元素 选中的样式
+    // Selected style of the outer element
     $activeItemClasses = 'fi-active';
 
-    // 自定义文字样式
+    // Custom text classes
     $labelClasses = $labelClass ?? '';
 
-    // 文字未选中时候的样式
+    // Text when not selected
     $inactiveLabelClasses = 'text-gray-500 group-hover:text-primary-600 group-focus-visible:text-primary-600 dark:text-gray-400 dark:group-hover:text-primary-400 dark:group-focus-visible:text-primary-400';
 
-    // 文字选中时候的样式
+    // Text when selected
     $activeLabelClasses = 'font-bold text-primary-600 dark:text-primary-400';
 
-    // 文字选中时候是否带下划线
+    // Underline the selected label
     $activeLabelHasUnderlineClasses = $activeLabelHasUnderline ? 'after:content-[""] after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:bg-primary-600 dark:after:bg-primary-400' : '';
 
-    // icon 默认 class
+    // Default icon classes
     $iconClasses = 'fi-tabs-item-icon h-5 w-5 shrink-0 transition duration-75';
 
-    // icon 未选中时候的样式
+    // Icon when not selected
     $inactiveIconClasses = 'text-gray-400 dark:text-gray-500';
 
-    // icon 选中时候的样式
+    // Icon when selected
     $activeIconClasses = 'text-primary-600 dark:text-primary-400';
 @endphp
 

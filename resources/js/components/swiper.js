@@ -25,7 +25,7 @@ import 'swiper/css/effect-flip';
 import 'swiper/css/effect-cards';
 
 /**
- * 将 source 深度合并到 target（数组直接覆盖，不递归）
+ * Deep merge source into target; arrays are replaced, not merged.
  */
 function deepMerge(target, source) {
     Object.entries(source || {}).forEach(([key, value]) => {
@@ -57,14 +57,14 @@ export default function supportSwiper({
         thumbSwiper: null,
 
         init: function () {
-            // 主 swiper / 缩略 swiper 都通过 ref 定位，天然支持同页多实例
+            // Both swipers are located by ref, so several instances can share a page
             const mainEl = this.$refs.main;
 
             if (this.$refs.thumbs) {
                 this.thumbSwiper = new Swiper(this.$refs.thumbs, {
                     modules: [FreeMode, Thumbs],
                     direction: thumbDirection,
-                    slidesPerView: 'auto',      // 缩略图尺寸由 css 控制，沿条方向自适应
+                    slidesPerView: 'auto',      // Thumb size comes from CSS; slides adapt along the bar
                     spaceBetween: 8,
                     freeMode: true,
                     watchSlidesProgress: true,
@@ -75,8 +75,8 @@ export default function supportSwiper({
                 modules: [Autoplay, EffectCards, EffectCoverflow, EffectCreative, EffectCube, EffectFade, EffectFlip, FreeMode, Navigation, Pagination, Thumbs],
                 loop: loop,
                 effect: effect,
-                spaceBetween: 10,           // 滑动时两个幻灯片之间的距离 px
-                slidesPerView: 1,           // 可视区域可见幻灯片数量
+                spaceBetween: 10,           // Gap between slides in px
+                slidesPerView: 1,           // Slides visible at once
                 navigation: navigation ? {
                     nextEl: mainEl.querySelector('.swiper-button-next'),
                     prevEl: mainEl.querySelector('.swiper-button-prev'),
@@ -96,11 +96,11 @@ export default function supportSwiper({
             if (this.thumbSwiper) {
                 swiperOptions.thumbs = {
                     swiper: this.thumbSwiper,
-                    slideToClickedSlide: true,  // 点击缩略图切换主 swiper
+                    slideToClickedSlide: true,  // Clicking a thumbnail switches the main swiper
                 };
             }
 
-            // options 透传 Swiper 原生配置，优先级最高
+            // options pass straight through to Swiper and win over every other default
             this.swiper = new Swiper(mainEl, deepMerge(swiperOptions, options));
         },
 

@@ -1,7 +1,7 @@
 @php
-    // $block: ['component_name' => ..., 'extras' => [...]]；$blockKey: 渲染 key
-    // 标题/描述由后台编排时设置（componentInfo 透传），为空则不渲染块头
-    // 注意：$component 是 Blade 组件保留变量，这里用 $block 承载组件数据
+    // $block: ['component_name' => ..., 'extras' => [...]]; $blockKey: render key.
+    // Header is rendered only when componentInfo carries a label or description.
+    // $block avoids shadowing Blade's reserved $component variable.
 @endphp
 
 @props([

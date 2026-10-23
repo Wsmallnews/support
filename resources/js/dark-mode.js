@@ -1,11 +1,11 @@
 document.addEventListener('alpine:init', () => {
     const theme =
         localStorage.getItem('sn-support-frontend-theme') ??
-        getComputedStyle(document.documentElement).getPropertyValue(            // 读取默认主题色变量 （请在 app.blade.php 中设置全局变量）
+        // Default theme mode, set as a global variable in the layout
+        getComputedStyle(document.documentElement).getPropertyValue(
             '--default-theme-mode',
         )
 
-    //  根据获取的 theme 设置 store 中的 theme
     window.Alpine.store(
         'snSupportFrontendTheme',
         theme === 'dark' ||
@@ -15,8 +15,6 @@ document.addEventListener('alpine:init', () => {
             : 'light',
     )
 
-    // 监听主题变化事件
-    // 当主题变化时，更新 store 中的 theme 并将主题保存到 localStorage 中
     window.addEventListener('sn-support-frontend-theme-changed', (event) => {
         let theme = event.detail
 
@@ -31,9 +29,7 @@ document.addEventListener('alpine:init', () => {
         window.Alpine.store('snSupportFrontendTheme', theme)
     })
 
-    // 监听系统主题变化事件
-    // 当系统主题变化时，更新 store 中的 theme
-    // 仅当用户选择 system 主题时才触发
+    // Follow the OS preference, but only while the user chose "system".
     window
         .matchMedia('(prefers-color-scheme: dark)')
         .addEventListener('change', (event) => {
@@ -42,8 +38,7 @@ document.addEventListener('alpine:init', () => {
             }
         })
 
-    // 监听 store 中的 theme 变化
-    // 当 store 中的 theme 变化时，更新 document.documentElement 的 class 列表
+    // Mirror store changes on the document element and persist the choice.
     window.Alpine.effect(() => {
         const theme = window.Alpine.store('snSupportFrontendTheme')
 
