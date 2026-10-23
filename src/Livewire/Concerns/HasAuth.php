@@ -6,14 +6,10 @@ use Wsmallnews\Support\Contracts\HasSnIdentifiable;
 
 trait HasAuth
 {
-    /**
-     * 当前认证用户
-     */
-    public ?HasSnIdentifiable $authUser = null;         // 当前认证用户
+    /** Current authenticated user. */
+    public ?HasSnIdentifiable $authUser = null;         // Current authenticated user
 
-    /**
-     * 设置当前认证用户
-     */
+    /** Set the authenticated user. */
     public function authUser(?HasSnIdentifiable $authUser): static
     {
         $this->authUser = $authUser;
@@ -21,17 +17,13 @@ trait HasAuth
         return $this;
     }
 
-    /**
-     * 获取当前认证用户
-     */
+    /** Get the authenticated user. */
     public function getAuthUser(): ?HasSnIdentifiable
     {
         return $this->authUser;
     }
 
-    /**
-     * 是否存在认证用户
-     */
+    /** Whether a user is authenticated. */
     public function hasAuthUser(): bool
     {
         return $this->authUser !== null;

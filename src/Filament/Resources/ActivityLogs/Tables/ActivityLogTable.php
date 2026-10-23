@@ -86,9 +86,7 @@ class ActivityLogTable
             ->toggleable();
     }
 
-    /**
-     * if config/activitylog.php activity_model is Wsmallnews\Support\Models\Activity，you can not use formatStateUsing、color、icon method
-     */
+    /** if config/activitylog.php activity_model is Wsmallnews\Support\Models\Activity，you can not use formatStateUsing、color、icon method */
     protected static function eventColumn(): Tables\Columns\TextColumn
     {
         return Tables\Columns\TextColumn::make('event')

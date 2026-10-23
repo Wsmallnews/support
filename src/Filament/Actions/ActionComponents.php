@@ -51,17 +51,12 @@ class ActionComponents
     }
 
     /**
-     * 创建带自动错误处理的自定义批量操作。
+     * Bulk action with per-record error isolation; it requires confirmation by default.
      *
-     * 自动通过 safeBulkProcess() 包裹 per-record 业务逻辑，
-     * 调用方只需关注单条记录的处理，链式设置 label/icon/color/modal 等 UI 属性即可。
-     *
-     * 默认设置：->requiresConfirmation()
-     *
-     * @param  string  $name  批量操作名称
-     * @param  Closure(BulkAction, Model): void  $process  单条记录的业务逻辑
-     * @param  Closure(EloquentCollection<int, Model>): void|null  $prepare  可选：批量预处理（如 eager load），异常导致整批标记失败
-     * @return BulkAction 可继续链式设置 UI 属性
+     * @param  string  $name  Action name
+     * @param  Closure(BulkAction, Model): void  $process  Per-record logic
+     * @param  Closure(EloquentCollection<int, Model>): void|null  $prepare  Optional batch preflight (e.g. eager load); a throw fails the whole batch
+     * @return BulkAction Ready for further UI chaining
      */
     public static function bulkAction(string $name, Closure $process, ?Closure $prepare = null): BulkAction
     {
@@ -88,17 +83,14 @@ class ActionComponents
     }
 
     /**
-     * 安全执行批量操作，自动处理 try/catch 和失败上报。
+     * Run a bulk action record by record, catching failures per record.
      *
-     * - 遍历 $records，每条记录包裹 try/catch，单条失败不影响整批
-     * - 异常时自动调用 $action->reportBulkProcessingFailure() 更新计数器
-     * - 仅上报第一条异常的 stack trace，避免日志洪水
-     * - $process 闭包中可手动调用 $action->reportBulkProcessingFailure() 处理非异常失败
+     * Only the first exception is reported, to avoid flooding the log.
      *
-     * @param  BulkAction  $action  批量操作实例（用于调用 reportBulkProcessingFailure 等）
-     * @param  EloquentCollection<int, Model>  $records  待处理的记录集合
-     * @param  Closure(BulkAction, Model): void  $process  单条记录的业务逻辑
-     * @param  Closure(EloquentCollection<int, Model>): void|null  $prepare  可选：批量预处理（如 eager load），异常导致整批标记失败
+     * @param  BulkAction  $action  Action used to report failures
+     * @param  EloquentCollection<int, Model>  $records  Records to process
+     * @param  Closure(BulkAction, Model): void  $process  Per-record logic
+     * @param  Closure(EloquentCollection<int, Model>): void|null  $prepare  Optional batch preflight; a throw fails the whole batch
      */
     public static function safeBulkProcess(BulkAction $action, EloquentCollection $records, Closure $process, ?Closure $prepare = null): void
     {
@@ -132,13 +124,10 @@ class ActionComponents
     }
 
     /**
-     * 根据配置，条件性地将 record actions 包裹在 ActionGroup 中。
-     *
-     * 当配置 'action_components.table_record_actions.group' 为 true 时，
-     * actions 被包裹在 ActionGroup::make() 中；为 false 时原样返回。
+     * Wrap record actions in an ActionGroup when the configuration asks for it.
      *
      * @param  array<Action>  $actions
-     * @param  array|null  $groupConfig  单表覆盖配置，会与全局配置合并
+     * @param  array|null  $groupConfig  Per-table override, merged over the global config
      * @return array<Action|ActionGroup>
      */
     public static function recordActions(array $actions, ?array $groupConfig = null): array
@@ -157,7 +146,7 @@ class ActionComponents
         match ($config['trigger'] ?? 'icon_button') {
             'button' => $group->button(),
             'link' => $group->link(),
-            default => null, // icon_button 已是 ActionGroup 默认值
+            default => null, // icon_button is already the ActionGroup default
         };
 
         if (! empty($config['icon'])) {
@@ -188,13 +177,10 @@ class ActionComponents
     }
 
     /**
-     * 根据配置，条件性地将 toolbar actions 包裹在 BulkActionGroup 中。
-     *
-     * 当配置 'action_components.table_toolbar_actions.group' 为 true 时，
-     * actions 被包裹在 BulkActionGroup::make() 中；为 false 时原样返回。
+     * Wrap toolbar actions in a BulkActionGroup when the configuration asks for it.
      *
      * @param  array<Action>  $actions
-     * @param  array|null  $groupConfig  单表覆盖配置，会与全局配置合并
+     * @param  array|null  $groupConfig  Per-table override, merged over the global config
      * @return array<Action|BulkActionGroup>
      */
     public static function toolbarActions(array $actions, ?array $groupConfig = null): array
@@ -213,7 +199,7 @@ class ActionComponents
         match ($config['trigger'] ?? 'button') {
             'icon_button' => $group->iconButton(),
             'link' => $group->link(),
-            default => null, // button 已是 BulkActionGroup 默认值
+            default => null, // button is already the BulkActionGroup default
         };
 
         if (! empty($config['icon'])) {
@@ -244,17 +230,15 @@ class ActionComponents
     }
 
     /**
-     * 创建二态切换 Action。
+     * Two-state toggle; the enum must have exactly two cases implementing HasColor/HasIcon/HasLabel.
+     * Label, icon and colour are derived from the opposite case at runtime.
      *
-     * 枚举须恰好包含 2 个 case 且实现 HasColor、HasIcon、HasLabel。
-     * label、icon、color、modalHeading 均自动从目标 case 派生（运行时 closure）。
+     * @param  string  $enumClass  Enum FQCN with HasColor, HasIcon and HasLabel
+     * @param  string  $field  Model attribute
+     * @param  Closure|null  $valueResolver  Extracts the current value from a record
+     * @param  Closure|null  $process  Custom persistence logic
      *
-     * @param  string  $enumClass  枚举 FQCN，须实现 HasColor、HasIcon、HasLabel
-     * @param  string  $field  模型字段名（默认 'status'）
-     * @param  Closure|null  $valueResolver  从记录中提取当前值的 closure（默认 null）
-     * @param  Closure|null  $process  处理保存逻辑
-     *
-     * @throws InvalidArgumentException 当枚举不存在或 case 数量不为 2
+     * @throws InvalidArgumentException When the enum is missing or does not have exactly two cases
      */
     public static function toggleAction(
         string $enumClass,
@@ -274,7 +258,6 @@ class ActionComponents
             );
         }
 
-        // 当前值解析器
         $valueResolver = fn (Model $record) => $valueResolver ? $valueResolver($record) : ($record->{$field} ?? null);
 
         $action = Action::make($field . 'ToggleAction')
@@ -315,11 +298,11 @@ class ActionComponents
     }
 
     /**
-     * 在二态枚举中，找到与当前值对立的 case。
+     * Find the case opposite to the current value; falls back to the first case on no match.
      *
-     * @param  array<object>  $cases  枚举的 ::cases() 结果
-     * @param  BackedEnum  $currentValue  当前记录字段的值
-     * @return object 对立的目标 case；当前值不匹配任何 case 时返回第一个 case
+     * @param  array<object>  $cases  Result of Enum::cases()
+     * @param  BackedEnum  $currentValue  Current record value
+     * @return object The opposite case
      */
     private static function findOppositeCase(array $cases, BackedEnum $currentValue): BackedEnum
     {
@@ -333,17 +316,15 @@ class ActionComponents
     }
 
     /**
-     * 创建多态切换 Action。
+     * Multi-state switch: a modal lists every other case and applies the chosen one.
      *
-     * 点击弹出 Select 表单，列出枚举所有（非当前值）选项，选择后确认并执行。
+     * @param  string  $enumClass  Enum FQCN with HasColor, HasIcon and HasLabel
+     * @param  string  $field  Model attribute
+     * @param  string | Htmlable | Closure | null  $label  Label, defaults to sn-support::support.action.switch_status
+     * @param  Closure|null  $valueResolver  fn(Model $record): BackedEnum, defaults to $record->{$field}
+     * @param  Closure|null  $process  fn(Model $record, array $data): void, defaults to updating $field
      *
-     * @param  string  $enumClass  枚举 FQCN，须实现 HasColor、HasIcon、HasLabel
-     * @param  string  $field  模型字段名
-     * @param  string | Htmlable | Closure | null  $label  自定义标签，默认取 __('sn-support::support.action.switch_status')
-     * @param  Closure|null  $valueResolver  当前值解析器 fn(Model $record): BackedEnum，默认取 $record->{$field}
-     * @param  Closure|null  $process  自定义处理逻辑 fn(Model $record, array $data): void，默认更新 $field
-     *
-     * @throws InvalidArgumentException 当枚举不存在
+     * @throws InvalidArgumentException When the enum is missing
      */
     public static function switchAction(
         string $enumClass,
@@ -356,7 +337,6 @@ class ActionComponents
             throw new InvalidArgumentException("{$enumClass} is not a valid enum.");
         }
 
-        // 当前值解析器
         $valueResolver = fn (Model $record) => $valueResolver ? $valueResolver($record) : ($record->{$field} ?? null);
         $label = $label ?? __('sn-support::support.action.switch_status');
 

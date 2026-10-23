@@ -25,9 +25,7 @@ class Composition extends SupportModel implements HasSnSubject
         'status' => CompositionStatus::class,
     ];
 
-    /**
-     * 搜索字段（用于 morphFilter 关键词搜索）。
-     */
+    /** Searchable fields for morph keyword search. */
     public static array $keywordSearchFields = ['title'];
 
     protected function getActivityTitleAttribute(): string

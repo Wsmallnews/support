@@ -7,27 +7,21 @@ use Spatie\LaravelSettings\Support\Crypto;
 
 class SavingSettingsAutoCreate
 {
-    /**
-     * Create the event listener.
-     */
+    /** Create the event listener. */
     public function __construct()
     {
         //
     }
 
-    /**
-     * Handle the event.
-     */
+    /** Handle the event. */
     public function handle(SavingSettings $event): void
     {
-        $settings = $event->settings;           // 赋过最新值的 settings class，值是明文（输入框中的未转换的值）
-        $properties = $event->properties;           // 最新的 设置属性键值对 collection, 值是明文（输入框中的未转换的值）
-        $originalValues = $event->originalValues;   // 编辑之前的 设置属性键值对 collection, 值是数据库中读取的解码后的明文
-        $config = $settings->config;                // config 虽然是 private, 但是 settings class 有 __get 方法
+        $settings = $event->settings;           // Settings with the newest values, as raw input
+        $properties = $event->properties;           // Newest property values, as raw input
+        $originalValues = $event->originalValues;   // Values before the edit, decoded from the database
+        $config = $settings->config;                // config is private but exposed through __get
 
-        // 这里是初始化，不判断 isLocked，因为 isLocked 是在后续保存时判断的
-        // $notRejectedProperties = $properties
-        //     ->reject(fn($payload, string $name) => $config->isLocked($name));
+        // Initialisation skips the isLocked check, which only applies to later saves.
         $notRejectedProperties = $properties;
 
         $changedProperties = $notRejectedProperties
@@ -43,9 +37,9 @@ class SavingSettingsAutoCreate
                 return $payload;
             });
 
-        // 循环保存配置项（值为 class 中预设的初始值）
+        // Save each setting with the default declared on the settings class
         $changedProperties->each(function ($payload, string $name) use ($config) {
-            // 跳过已存在的配置项
+            // Skip settings that already exist
             if ($config->getRepository()->checkIfPropertyExists(
                 $config->getGroup(),
                 $name
@@ -53,7 +47,7 @@ class SavingSettingsAutoCreate
                 return;
             }
 
-            // 初始化创建设置
+            // Create the initial settings
             $config->getRepository()->createProperty(
                 $config->getGroup(),
                 $name,
@@ -61,7 +55,7 @@ class SavingSettingsAutoCreate
             );
         });
 
-        // 所有标记为 defaultValueLoaded 的属性，都需要重置，否则后续还是会提示 MissingSettings Exception （加载时标记是否加载的是默认值,也就是数据库中没有记录）
+        // Reset properties marked defaultValueLoaded, or later reads still raise MissingSettings
         $config->resetDefaultValueLoadedProperties();
     }
 }

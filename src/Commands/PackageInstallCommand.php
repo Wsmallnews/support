@@ -9,32 +9,16 @@ use Spatie\LaravelPackageTools\Package;
 use Wsmallnews\Support\Features\Install\InstallPlanner;
 
 /**
- * 扩展包安装命令基类：依赖编排 + 统一交互 + 美化输出。
- *
- * 子类只需声明 protected string $packageName（如 'sn-cms'），
- * 可选覆盖 afterPublish() 追加包私有发布步骤（如 settings 迁移）。
- *
- * 执行流（顶层运行）：
- *   1. 生成依赖安装计划（InstallPlanner：composer 拓扑序，每包一次）
- *   2. 逐个静默安装依赖（依赖模式：只发布，不询问）
- *   3. 发布自身资源（config / migrations / afterPublish 钩子）
- *   4. 统一询问并执行一次 migrate（跑全部待迁移项）
- *   5. 只对当前包询问 GitHub star（依赖包不询问）
- *
- * 选项：
- *   --no-deps         跳过依赖安装
- *   --as-dependency   （内部）作为依赖被调用：仅发布资源，无任何交互
+ * Base install command for extension packages: dependency planning, prompts and output.
+ * Subclasses declare $packageName and may override afterPublish().
+ * See the Install section of the README.
  */
 abstract class PackageInstallCommand extends InstallCommand
 {
-    /**
-     * 模块 id（= 配置名 = 命令前缀，如 sn-cms）
-     */
+    /** Module id, used as config name and command prefix (e.g. sn-cms). */
     protected string $packageName = '';
 
-    /**
-     * star 的仓库（默认 wsmallnews/{模块短名}）
-     */
+    /** Repository to star; defaults to wsmallnews/{short name}. */
     protected ?string $starRepoName = null;
 
     public function __construct(Package $package)
@@ -99,14 +83,10 @@ abstract class PackageInstallCommand extends InstallCommand
         return self::SUCCESS;
     }
 
-    /**
-     * 包私有发布步骤（在标准 config/migrations 之后执行）
-     */
+    /** Package-specific publish steps, run after config and migrations. */
     protected function afterPublish(): void {}
 
-    /**
-     * 发布自身资源：config + migrations + afterPublish 钩子（task 风格输出）
-     */
+    /** Publish this package's resources: config, migrations, then the afterPublish hook. */
     protected function publishResources(): void
     {
         foreach ($this->publishes as $tag) {
@@ -124,7 +104,7 @@ abstract class PackageInstallCommand extends InstallCommand
     }
 
     /**
-     * 安装单个依赖（静默模式：仅发布资源，无交互）
+     * Install one dependency silently: publish only, no prompts.
      *
      * @param  array{name: string, command: string}  $dependency
      */
@@ -140,9 +120,7 @@ abstract class PackageInstallCommand extends InstallCommand
         ], $this->getOutput());
     }
 
-    /**
-     * 统一迁移询问：只问一次，执行全局 migrate（跑全部待迁移项）；非交互环境跳过
-     */
+    /** Ask once, then run a single migrate for every pending migration. Non-interactive runs skip it. */
     protected function askMigrationsOnce(): void
     {
         if (! $this->input->isInteractive()) {
@@ -158,9 +136,7 @@ abstract class PackageInstallCommand extends InstallCommand
         }
     }
 
-    /**
-     * star 询问：只问当前安装的包（依赖包不询问）；非交互环境跳过
-     */
+    /** Ask only for the package being installed, never for dependencies. Non-interactive runs skip it. */
     protected function askStarOnce(): void
     {
         if (! $this->input->isInteractive()) {
@@ -183,9 +159,7 @@ abstract class PackageInstallCommand extends InstallCommand
         };
     }
 
-    /**
-     * 小节标题（── sn-cms ──────，ASCII 分隔线避免 Windows 终端编码乱码）
-     */
+    /** Section heading; ASCII rules avoid encoding issues on Windows terminals. */
     protected function section(string $title): void
     {
         $line = substr('  ' . $title . ' ' . str_repeat('-', 56), 0, 58);

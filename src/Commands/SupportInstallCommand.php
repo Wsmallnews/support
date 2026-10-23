@@ -10,9 +10,7 @@ class SupportInstallCommand extends PackageInstallCommand
 
     protected string $packageName = 'sn-support';
 
-    /**
-     * support 管理的第三方依赖发布（config + migrations）
-     */
+    /** Publish the third-party resources managed by support. */
     protected function afterPublish(): void
     {
         $this->publishThirdParty($this, [

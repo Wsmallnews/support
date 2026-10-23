@@ -9,22 +9,8 @@ use Wsmallnews\Support\Livewire\Base;
 use Wsmallnews\Support\Livewire\Concerns\HasProperties;
 
 /**
- * 前端全局搜索组件（sn-support::components.search）。
- *
- * 搜索哪些内容由各扩展包注册的来源决定（见 SearchRegistry），
- * 组件不感知引擎与来源，只负责输入防抖、分组渲染与命中高亮。
- *
- * 展示方式由 display 决定（优先级：组件属性 > 模块声明 Search::config > sn-support.search.display）：
- * - dropdown：输入即搜，结果浮层展示在搜索框下方
- * - page：回车跳转到独立搜索结果页。地址经 Search::config($search, ['page' => ...])
- *   按模块声明（URL 字符串由 support 拼接 ?q=关键词；闭包接收关键词并自行返回完整 URL），
- *   未声明的模块走全局兜底 sn-support.search.page
- *
- * page 模式可经 show_search_button 配置（组件属性 showButton > 模块声明 > 全局配置）
- * 在搜索框右端渲染一体化搜索按钮，点击与回车等价，替代 ↵ Enter 提示。
- *
- * 用法：<livewire:sn-support::components.search placeholder="搜索…" :limit="5" />
- * 页面模式：<livewire:sn-support::components.search display="page" module="sn-cms" />
+ * Frontend search component. Sources come from SearchRegistry; the component only handles
+ * debouncing, grouping and highlighting. See the Search section of the README.
  */
 class Search extends Base
 {
@@ -32,25 +18,16 @@ class Search extends Base
 
     public ?string $query = null;
 
-    /**
-     * 绑定的模块（插件 ID）；null 时搜索所有已启用模块
-     */
+    /** Bound module id; null searches every enabled module. */
     public ?string $module = null;
 
-    /**
-     * 覆盖每个来源的返回条数（null 使用来源/全局配置）
-     */
+    /** Per-source result limit; null uses the source or global config. */
     public ?int $limit = null;
 
-    /**
-     * 结果展示方式：null 时回退 sn-support.search.display 配置
-     */
+    /** Display mode; null falls back to sn-support.search.display. */
     public ?string $display = null;
 
-    /**
-     * 是否渲染一体化搜索按钮（仅 display = page 生效）：
-     * null 时回退模块声明（Search::config）→ 全局 sn-support.search.show_search_button
-     */
+    /** Render the inline submit button (page mode only); null falls back to module then global. */
     public ?bool $showButton = null;
 
     public string $placeholder = '';
@@ -59,8 +36,8 @@ class Search extends Base
     {
         $this->placeholder = $this->placeholder ?: __('sn-support::search.placeholder');
 
-        // mount 时解析进属性本身（组件属性 > 模块声明 > 全局），
-        // 视图直接读 $display——公共属性会遮蔽同名视图数据，不能只靠 render 传值
+        // Resolved into the property at mount so the view can read $display directly; a public
+        // property would shadow any same-named view data.
         $this->display = $this->display ?? (string) SearchFacade::resolveConfig($this->module, 'display', 'dropdown');
     }
 
@@ -78,27 +55,20 @@ class Search extends Base
         ]);
     }
 
-    /**
-     * 是否为下拉浮层展示方式
-     */
+    /** Whether results render in a dropdown. */
     public function isDropdownDisplay(): bool
     {
         return $this->getDisplay() === 'dropdown';
     }
 
-    /**
-     * 展示方式解析：组件属性 > 模块声明（Search::config）> 全局 sn-support.search.display
-     */
+    /** Resolve the display mode: component property, then module, then global. */
     public function getDisplay(): string
     {
         return $this->display
             ?? (string) SearchFacade::resolveConfig($this->module, 'display', 'dropdown');
     }
 
-    /**
-     * 是否渲染一体化搜索按钮：仅 page 模式生效；
-     * 组件属性 > 模块声明（Search::config）> 全局配置，默认不显示
-     */
+    /** Whether to render the submit button (page mode only), same precedence as display. */
     public function isShowButton(): bool
     {
         if ($this->getDisplay() !== 'page') {
@@ -112,9 +82,7 @@ class Search extends Base
         return (bool) SearchFacade::resolveConfig($this->module, 'show_search_button', false);
     }
 
-    /**
-     * 一体化搜索按钮：自定义 HTML（HtmlString）传入 wrapper 的 suffix 渲染，点击与回车等价
-     */
+    /** Submit button HTML passed to the wrapper suffix; clicking equals pressing Enter. */
     public function getSearchButtonHtml(): HtmlString
     {
         return new HtmlString(view('sn-support::livewire.components.search-button', [
@@ -123,9 +91,7 @@ class Search extends Base
         ])->render());
     }
 
-    /**
-     * page 模式：回车跳转到搜索结果页，关键词由 resolvePage 拼进地址（闭包声明自行拼接）
-     */
+    /** Page mode: navigate to the results page with the query resolved into the URL. */
     public function gotoSearchPage(): void
     {
         $term = trim((string) $this->query);

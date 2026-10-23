@@ -20,18 +20,14 @@ trait RegistersConfigurable
      */
     protected array $pageConfigurations = [];
 
-    /**
-     * 注册 resources 到 Panel（配置文件 + PanelProvider 覆盖）
-     */
+    /** Register resources into the panel: config file entries plus PanelProvider overrides. */
     public function registerConfigurableResources(Panel $panel): void
     {
         $panel->resources([...$this->buildConfigurations('resources')]);
         $panel->resources([...$this->resourceConfigurations]);
     }
 
-    /**
-     * 注册 pages 到 Panel（配置文件 + PanelProvider 覆盖）
-     */
+    /** Register pages into the panel: config file entries plus PanelProvider overrides. */
     public function registerConfigurablePages(Panel $panel): void
     {
         $panel->pages([...$this->buildConfigurations('pages')]);
@@ -39,11 +35,11 @@ trait RegistersConfigurable
     }
 
     /**
-     * 从 PanelProvider 覆盖资源配置
-     *
-     * @param  array<ResourceConfiguration>  $configurations
-     * @return $this
-     */
+    * Apply resource overrides from the PanelProvider.
+    *
+    * @param  array<ResourceConfiguration>  $configurations
+    * @return $this
+    */
     public function configurableResources(array $configurations): static
     {
         $this->resourceConfigurations = $configurations;
@@ -85,18 +81,18 @@ trait RegistersConfigurable
     }
 
     /**
-     * 从配置文件读取条目，合并共享默认，构建 Configuration 对象
-     *
-     * @return array<string, ResourceConfiguration|PageConfiguration>
-     */
+    * Read config entries, merge the shared defaults and build the configuration objects.
+    *
+    * @return array<string, ResourceConfiguration|PageConfiguration>
+    */
     protected function buildConfigurations(string $type): array
     {
         $raw = $this->getPanelRegister($type);
 
-        // 提取 global_default 共享默认
+        // Shared defaults
         $globalDefaults = $this->getPanelRegister('global_default') ?? [];
 
-        // 分离条目
+        // Entries
         $entries = [];
         foreach ($raw as $key => $value) {
             if (is_int($key)) {
@@ -106,7 +102,7 @@ trait RegistersConfigurable
             }
         }
 
-        // 合并共享默认，构建 Configuration 对象
+        // Merge shared defaults, then build the configuration objects
         $configurations = [];
         foreach ($entries as $class => $overrides) {
             $merged = array_merge($globalDefaults, $overrides);
@@ -117,34 +113,34 @@ trait RegistersConfigurable
     }
 
     /**
-     * 从合并后的配置数组构建 Configuration 对象
-     *
-     * @param  class-string  $class
-     * @param  array<string, mixed>  $config  键名使用 snake_case
-     * @param  string  $type  'resources' | 'pages'
-     */
+    * Build a configuration object from merged config.
+    *
+    * @param  class-string  $class
+    * @param  array<string, mixed>  $config  Keys in snake_case
+    * @param  string  $type  resources or pages
+    */
     protected function buildConfiguration(string $class, array $config, string $type): ResourceConfiguration | PageConfiguration
     {
         $key = $config['key'] ?? 'default';
         $configObj = $class::make($key);
 
-        // 设置 slug 为资源默认值，避免 URL 出现 /default 前缀
+        // Default the slug so URLs never contain a /default prefix
         if ($key == 'default' && method_exists($class, 'getDefaultSlug')) {
             $configObj->slug($class::getDefaultSlug());
         }
 
         foreach ($config as $snakeKey => $value) {
-            // 解析闭包
+            // Resolve closures
             if ($value instanceof Closure) {
                 $value = $value();
             }
 
-            // 翻译：字符串且包含 :: 视为翻译键
+            // A string containing :: is treated as a translation key
             if (is_string($value) && str_contains($value, '::')) {
                 $value = fn () => __($value);
             }
 
-            // 自定义属性单独处理
+            // Custom properties are handled separately
             if ($snakeKey === 'custom_properties') {
                 if (is_array($value)) {
                     $configObj->customProperties($value);
@@ -153,15 +149,15 @@ trait RegistersConfigurable
                 continue;
             }
 
-            // snake_case → camelCase 转换调用 setter
+            // snake_case to camelCase setter call
             $setter = Str::camel($snakeKey);
             if (method_exists($configObj, $setter)) {
                 $configObj->{$setter}($value);
             }
         }
 
-        // 注册即归属：条目注册进哪个模块（由哪个插件的 panel_register 声明），
-        // module_id 就是该插件的 id——自动注入并覆盖任何手工声明，跨模块注册无需（也不应）手工指定
+        // Registration implies ownership: the module that registered the entry becomes module_id,
+        // which overwrites any manual declaration (and cross-module registration needs none).
         if (method_exists($configObj, 'moduleId') && method_exists($this, 'getId')) {
             $configObj->moduleId($this->getId());
         }

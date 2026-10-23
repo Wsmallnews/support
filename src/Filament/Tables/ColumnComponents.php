@@ -21,7 +21,7 @@ class ColumnComponents
         array | bool $searchable = true,
         ?Closure $actionResolver = null,
     ): TextColumn {
-        // 处理 内容 弹框（弹窗内容由调用方通过 actionResolver 配置，如评论 table 的内容不一定来自 record->content）
+        // Content modal, configured by the caller via actionResolver (the content may not come from the record)
         $action = Action::make('viewContent')
             ->modal()
             ->modalHeading(fn ($record) => __('sn-support::support.table.column.view_content') . ' #' . $record->id)
@@ -35,7 +35,7 @@ class ColumnComponents
         return TextColumn::make($name)
             ->label($label)
             ->state(function ($record) {
-                // 文本域内容直接返回，其他类型返回 '-', 保证 formatStateUsing 方法正常被调用(state == null, 会跳过 formatStateUsing 方法)
+                // Plain text returns as-is; other types return '-' so formatStateUsing still runs
                 return $record->content_type === ContentType::Textarea ? $record->content : '-';
             })
             ->formatStateUsing(function ($state, $record) {
@@ -58,12 +58,12 @@ class ColumnComponents
     }
 
     /**
-     * 模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
-     *
-     * @param  string  $name  列名（如 'causer.name'）
-     * @param  string  $label  列标签
-     * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
-     */
+    * Model column: image on the left, title and description on the right, optionally linked.
+    *
+    * @param  string  $name  Column name, e.g. causer.name
+    * @param  string  $label  Column label
+    * @param  Closure  $modelResolver  Resolves the model from the record, e.g. fn ($record) => $record->causer
+    */
     public static function modelColumn(
         string $name,
         string $label,
@@ -82,14 +82,14 @@ class ColumnComponents
     }
 
     /**
-     * 关联模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
-     *
-     * @param  string  $name  列名（如 'causer.name'）
-     * @param  string  $label  列标签
-     * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
-     * @param  ?Closure  $relationTypeResolver  关联模型类型 fn ($record) => ‘post’  或者 fn ($record) => Post::class
-     * @param  ?Closure  $relationIdResolver  从 $record 获取关联 ID，如 fn ($record) => $record->post_id
-     */
+    * Related model column with an optional type badge.
+    *
+    * @param  string  $name  Column name, e.g. causer.name
+    * @param  string  $label  Column label
+    * @param  Closure  $modelResolver  Resolves the model from the record, e.g. fn ($record) => $record->causer
+    * @param  ?Closure  $relationTypeResolver  Relation type, e.g. fn ($record) => 'post'
+    * @param  ?Closure  $relationIdResolver  Relation id, e.g. fn ($record) => $record->post_id
+    */
     public static function relationColumn(
         string $name,
         string $label,
@@ -102,7 +102,7 @@ class ColumnComponents
             ->state(function ($record) use ($name, $relationTypeResolver) {
                 $relationType = $relationTypeResolver instanceof Closure ? $relationTypeResolver($record) : null;
 
-                return $relationType ?? ($record->{$name} ?? '-');       // 确保 formatStateUsing 方法执行(null 的话 formatStateUsing 不会执行)
+                return $relationType ?? ($record->{$name} ?? '-');       // Ensure formatStateUsing runs; a null value would skip it
             })
             ->formatStateUsing(function ($state, $record) use ($modelResolver, $relationTypeResolver, $relationIdResolver): HtmlString {
                 $model = $modelResolver($record);
@@ -125,14 +125,14 @@ class ColumnComponents
     }
 
     /**
-     * 多态关联模型列：左侧图片 + 右侧标题/描述，支持点击跳转。
-     *
-     * @param  string  $name  列名（如 'causer.name'）
-     * @param  string  $label  列标签
-     * @param  Closure  $modelResolver  从 $record 获取关联模型，如 fn ($record) => $record->causer
-     * @param  ?Closure  $morphTypeResolver  从 $record 获取多态类型，如 fn ($record) => $record->causer_type
-     * @param  ?Closure  $morphIdResolver  从 $record 获取多态 ID，如 fn ($record) => $record->causer_id
-     */
+    * Polymorphic model column.
+    *
+    * @param  string  $name  Column name, e.g. causer.name
+    * @param  string  $label  Column label
+    * @param  Closure  $modelResolver  Resolves the model from the record, e.g. fn ($record) => $record->causer
+    * @param  ?Closure  $morphTypeResolver  Morph type, e.g. fn ($record) => $record->causer_type
+    * @param  ?Closure  $morphIdResolver  Morph id, e.g. fn ($record) => $record->causer_id
+    */
     public static function morphColumn(
         string $name,
         string $label,
@@ -145,7 +145,7 @@ class ColumnComponents
             ->state(function ($record) use ($name, $morphTypeResolver) {
                 $morphType = $morphTypeResolver instanceof Closure ? $morphTypeResolver($record) : null;
 
-                return $morphType ?? ($record->{$name} ?? '-');       // 确保 formatStateUsing 方法执行(null 的话 formatStateUsing 不会执行)
+                return $morphType ?? ($record->{$name} ?? '-');       // Ensure formatStateUsing runs; a null value would skip it
             })
             ->formatStateUsing(function ($state, $record) use ($modelResolver, $morphTypeResolver, $morphIdResolver): HtmlString {
                 $model = $modelResolver($record);
@@ -167,12 +167,7 @@ class ColumnComponents
             ->toggleable();
     }
 
-    /**
-     * 处理 模型 样式
-     *
-     * @param  string  $type
-     * @return HtmlString
-     */
+    /** Shared model presentation. */
     protected static function modelInfo(mixed $model, $type = 'model')
     {
         $modelType = $model instanceof HasSnIdentifiable ? 'identifiable' : 'other';
@@ -215,9 +210,7 @@ class ColumnComponents
         );
     }
 
-    /**
-     * 已删除多态模型的降级显示
-     */
+    /** Fallback label for a deleted polymorphic model. */
     protected static function emptyModelInfo(?string $modelType, ?int $modelId): HtmlString
     {
         if (! $modelType) {

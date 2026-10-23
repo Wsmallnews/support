@@ -8,7 +8,7 @@ use Wsmallnews\Support\Features\Search\SearchSource;
 interface Engine
 {
     /**
-     * 对单个来源执行搜索。
+     * Run the search for one source.
      *
      * @return Collection<int, Model>
      */

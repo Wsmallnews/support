@@ -11,17 +11,13 @@ class Tag extends BaseTagModel implements HasModelLabel
 {
     use Scopeable;
 
-    /**
-     * 默认模型名称
-     */
+    /** Default model label. */
     public static function getModelLabel(): string
     {
         return class_basename(static::class);
     }
 
-    /**
-     * Scope query to current tenant.
-     */
+    /** Scope query to current tenant. */
     public function scopeScopeTenant(Builder $query): Builder
     {
         if (has_tenancy()) {

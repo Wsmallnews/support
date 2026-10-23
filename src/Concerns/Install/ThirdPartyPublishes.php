@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Artisan;
 trait ThirdPartyPublishes
 {
     /**
-     * 发布 support 管理的第三方依赖资源（config / migrations），task 风格输出
+     * Publish third-party configs and migrations with task-style output.
      *
-     * @param  Command  $command  安装命令实例（需支持 components->task）
+     * @param  Command  $command  Install command, must support components->task
      * @param  array<int, array{provider: string, tag: string, label: string}>  $publishes
      */
     protected function publishThirdParty(Command $command, array $publishes, bool $force = false): void

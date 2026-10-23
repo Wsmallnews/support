@@ -16,12 +16,9 @@ use Wsmallnews\Support\Filament\Resources\Concerns\Scopeable;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
- * 内容编排资源基类：承载编排资源的全部默认值（模型经 sn-support.models.composition 可替换）。
- *
- * support 自身不注册本资源——消费方（cms、shop 等模块）在自己的 panel_register 配置中注册
- * \Wsmallnews\Support\Filament\Resources\Compositions\CompositionResource 并声明
- * scope_type / scope_id（数据隔离）与 module_id（组件来源模块，供表单选择 CompositionRegistry
- * 注册的组件）。自定义时继承本类并 use CanBeConfigured（getModuleId 经插件自动解析）。
+ * Base resource for compositions. support does not register it: consumers register
+ * CompositionResource in their own panel and declare scope_type/scope_id plus module_id,
+ * the module whose registered types the form may pick from.
  */
 abstract class BaseResource extends Resource
 {
@@ -64,7 +61,7 @@ abstract class BaseResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        // module_id 注册时由所属插件自动注入（注册即归属），决定表单可选的组件类型
+        // module_id is injected by the owning plugin and decides the selectable component types
         return CompositionForm::configure($schema, static::getModuleId());
     }
 

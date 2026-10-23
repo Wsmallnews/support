@@ -11,33 +11,26 @@ use Wsmallnews\Support\Enums\ContentType;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
- * 内容类型切换表单组（contentTypeGroup）
- *
- * 依赖宿主类的 richEditor() / markdownEditor() / plainImageUpload() 工厂方法
- * （见 FormComponents），编辑器统一应用 form_components.editor / upload 配置。
+ * Content type switcher. Relies on the host's richEditor(), markdownEditor() and
+ * plainImageUpload() factories so editors pick up the shared editor and upload config.
  */
 trait HasContentTypeGroup
 {
-    // ========================= 对外工厂方法 =========================
+    // ------------------------- Public factories -------------------------
 
     /**
-     * 创建一个内容类型切换表单组（morphOne content 关联 + 虚拟字段映射）
-     *
-     * 通过 content_type 切换编辑器（textarea / richtext / markdown / images），内容统一写入
-     * 关联表的 content 列；images 类型存 JSON 路径数组。保存逻辑封装在组件内部，
-     * 调用方的 Create / Edit 页面无需任何 content 处理代码。
-     *
-     * 类型与默认值由调用方直接传入（通常从各模块自己的配置读取），
-     * 也可以在特定场景直接传数组，不经过配置；调用方不传时回退到
-     * sn-support.form_components.content 全局默认配置。
-     *
-     * @param  array<int, ContentType|string>|null  $types  允许的内容类型，null = 全局配置或全部类型
-     * @param  ContentType|string|null  $defaultType  默认内容类型，null = 全局配置或 Richtext（不在允许列表时取第一个）
-     * @param  string  $relationship  内容关联名称
-     * @param  string|null  $label  内容字段标签（默认取 support 翻译）
-     * @param  string|null  $directory  编辑器附件 / 纯图上传目录
-     * @param  bool  $required  内容是否必填（false 时空内容不创建 / 删除关联记录）
-     */
+    * Content type group bound to a morphOne content relation: content_type switches the
+    * editor (textarea, richtext, markdown or images) and everything is stored in the related
+    * content column; images are stored as a JSON array of paths. Saving is internal, so
+    * Create and Edit pages need no content handling.
+    *
+    * @param  array<int, ContentType|string>|null  $types  Allowed types; null uses the global config or every type
+    * @param  ContentType|string|null  $defaultType  Default type; null uses the global config or Richtext
+    * @param  string  $relationship  Relation name
+    * @param  string|null  $label  Field label, defaults to the support translation
+    * @param  string|null  $directory  Upload directory for editor attachments and images
+    * @param  bool  $required  Whether content is mandatory (false deletes the related record when empty)
+    */
     public static function contentTypeGroup(
         ?array $types = null,
         ContentType | string | null $defaultType = null,
@@ -61,7 +54,7 @@ trait HasContentTypeGroup
         $detailLabel = $label ?? __('sn-support::support.form_components.content.detail_label');
 
         $editors = [
-            // 只有一种类型时隐藏切换按钮，用 Hidden 保持 content_type 的填充与脱水
+            // A single type hides the switcher; Hidden keeps content_type filled and dehydrated
             count($types) === 1
                 ? Forms\Components\Hidden::make('content_type')->default($defaultType)
                 : $typeButtons,
@@ -99,7 +92,7 @@ trait HasContentTypeGroup
                     ->directory($directory)
                     ->multiple()
                     ->required($required)
-                    ->panelLayout('compact')        // 竖着排列，每张图片占一行
+                    ->panelLayout('compact')        // Stacked layout, one image per row
                     ->hintAction($previewAction)
                     ->visible(fn (Get $get): bool => static::normalizeContentType($get('content_type')) === ContentType::Images),
             };
@@ -114,12 +107,12 @@ trait HasContentTypeGroup
                 $type = static::normalizeContentType($data['content_type'] ?? null) ?? $defaultType;
                 $value = $data['content_' . $type->value] ?? null;
 
-                // 富文本空内容（如空段落 <p></p>）与其他类型的空值一样视为空白
+                // Whitespace-only rich text (e.g. an empty <p></p>) counts as empty like any other type
                 $isBlank = $type === ContentType::Richtext
                     ? blank(trim(strip_tags((string) $value)))
                     : blank($value);
 
-                // 可选模式下内容为空：不创建关联记录，已有记录则删除
+                // Optional and empty: create no related record, and delete an existing one
                 if ((! $required) && $isBlank) {
                     $component->getCachedExistingRecord()?->delete();
 
@@ -133,11 +126,9 @@ trait HasContentTypeGroup
             ->columns(1);
     }
 
-    // ========================= 预览操作 =========================
+    // ------------------------- Preview action -------------------------
 
-    /**
-     * 内容预览操作：按当前 content_type 读取虚拟字段值，用 content 组件弹窗渲染
-     */
+    /** Preview action: reads the virtual field and renders it in a modal. */
     protected static function previewContentAction(): Action
     {
         return Action::make('previewContent')
@@ -163,14 +154,14 @@ trait HasContentTypeGroup
             });
     }
 
-    // ========================= 类型解析 =========================
+    // ------------------------- Type resolution -------------------------
 
     /**
-     * 解析允许的内容类型：显式参数 > support 全局配置（form_components.content.types） > 全部类型
-     *
-     * @param  array<int, ContentType|string>|null  $types
-     * @return array<int, ContentType>
-     */
+    * Resolve the allowed types: explicit argument, then form_components.content.types, then all.
+    *
+    * @param  array<int, ContentType|string>|null  $types
+    * @return array<int, ContentType>
+    */
     protected static function resolveContentTypes(?array $types): array
     {
         $configTypes = $types ?? SupportUtils::getConfig('form_components.content.types');
@@ -186,11 +177,11 @@ trait HasContentTypeGroup
     }
 
     /**
-     * 解析默认内容类型：显式参数 > support 全局配置（form_components.content.default_type） > Richtext，
-     * 并保证其属于允许类型列表
-     *
-     * @param  array<int, ContentType>  $types
-     */
+    * Resolve the default type: explicit argument, then form_components.content.default_type,
+    * then Richtext, always constrained to the allowed list.
+    *
+    * @param  array<int, ContentType>  $types
+    */
     protected static function resolveContentTypeDefault(ContentType | string | null $defaultType, array $types): ContentType
     {
         $defaultType = static::normalizeContentType($defaultType)
@@ -200,9 +191,7 @@ trait HasContentTypeGroup
         return in_array($defaultType, $types, true) ? $defaultType : $types[0];
     }
 
-    /**
-     * 内容类型规范化（兼容枚举实例与字符串值）
-     */
+    /** Normalise a content type, accepting enum instances and raw strings. */
     protected static function normalizeContentType(mixed $type): ?ContentType
     {
         return match (true) {
@@ -212,14 +201,14 @@ trait HasContentTypeGroup
         };
     }
 
-    // ========================= 虚拟字段映射 =========================
+    // ------------------------- Virtual field mapping -------------------------
 
     /**
-     * 关联记录 content 列回填到当前类型的虚拟字段（images 解码为数组）
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
+    * Map the related content column onto the virtual field of the current type (images decoded).
+    *
+    * @param  array<string, mixed>  $data
+    * @return array<string, mixed>
+    */
     protected static function fillVirtualContentField(array $data): array
     {
         $type = static::normalizeContentType($data['content_type'] ?? null);
@@ -242,11 +231,11 @@ trait HasContentTypeGroup
     }
 
     /**
-     * 虚拟字段映射回 content 列（images 编码为 JSON 路径数组）
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
+    * Map the virtual field back onto the content column (images encoded as JSON).
+    *
+    * @param  array<string, mixed>  $data
+    * @return array<string, mixed>
+    */
     protected static function mapVirtualContentField(array $data, ContentType $type): array
     {
         $value = $data['content_' . $type->value] ?? null;

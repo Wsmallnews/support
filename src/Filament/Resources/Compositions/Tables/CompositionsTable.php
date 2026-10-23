@@ -37,7 +37,7 @@ class CompositionsTable
                 Tables\Columns\TextColumn::make('purpose')
                     ->label(__('sn-support::composition.table.purpose'))
                     ->badge()
-                    // null = 通用展示编排（可被 Page 绑定），灰色弱化
+                    // null means a generic composition a page can bind; shown muted
                     ->placeholder(__('sn-support::composition.table.purpose_generic'))
                     ->color(fn ($state): string => filled($state) ? 'primary' : 'gray')
                     ->toggleable(),

@@ -75,25 +75,19 @@ class ScopeableContext
         }
     }
 
-    /**
-     * Check if this is a global scope (scope_id = 0).
-     */
+    /** Check if this is a global scope (scope_id = 0). */
     public function isGlobal(): bool
     {
         return $this->scopeId === 0;
     }
 
-    /**
-     * Get a string representation.
-     */
+    /** Get a string representation. */
     public function toString(): string
     {
         return "{$this->scopeType}:{$this->scopeId}";
     }
 
-    /**
-     * Check equality with another scope context.
-     */
+    /** Check equality with another scope context. */
     public function equals(ScopeableContext $other): bool
     {
         return $this->scopeType === $other->scopeType

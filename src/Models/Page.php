@@ -14,10 +14,8 @@ use Wsmallnews\Support\Models\Concerns\HasOrderColumn;
 use Wsmallnews\Support\Support\Utils;
 
 /**
- * 站点页面：站点静态内容页实体（关于我们/政策/专题页），是"这个站点有哪些页面"的唯一事实源。
- * 内容双通道互斥（编排优先）：composition_id 绑定编排（复杂页面的高级模式），
- * 或 content 关联承载自有内容（富文本/Markdown，简单页面的主体通道）；导航指向页面而非承载页面。
- * 侧栏相关字段（sidebar_purpose / sidebar_position）在 purpose 机制落地时追加。
+ * Site page entity: the single source of truth for which pages exist. Content is either a
+ * bound composition or its own content, and navigation points at pages rather than content.
  */
 class Page extends SupportModel implements HasSnSubject
 {
@@ -32,9 +30,7 @@ class Page extends SupportModel implements HasSnSubject
         'options' => 'array',
     ];
 
-    /**
-     * 搜索字段（用于 morphFilter 关键词搜索）。
-     */
+    /** Searchable fields for morph keyword search. */
     public static array $keywordSearchFields = ['title', 'slug'];
 
     protected function getActivityTitleAttribute(): string
@@ -77,9 +73,7 @@ class Page extends SupportModel implements HasSnSubject
         return $query->where('status', PageStatus::Hidden);
     }
 
-    /**
-     * 按 slug 查询（scope 内唯一）
-     */
+    /** Find by slug, unique within the scope. */
     public function scopeSlug($query, string $slug)
     {
         return $query->where('slug', $slug);
@@ -90,9 +84,7 @@ class Page extends SupportModel implements HasSnSubject
         return $this->belongsTo(Utils::getCompositionModel());
     }
 
-    /**
-     * 页面自有内容（未绑定编排时的主体通道，复用 sn_contents 多态体系）
-     */
+    /** Own content channel, used when no composition is bound. */
     public function content(): MorphOne
     {
         return $this->morphOne(Utils::getContentModel(), 'contentable');
@@ -104,13 +96,11 @@ class Page extends SupportModel implements HasSnSubject
     }
 
     /**
-     * 编排通道解析：页面 → 可渲染的编排行
-     *
-     * 绑定失效（未绑 / 编排被删 / 草稿）返回空数组，由渲染层走 content 通道或空态；
-     * $module 为 CompositionRegistry 的组件来源模块（插件 id），$pageContext 为页面级上下文种子
-     *
-     * @return array CompositionRenderer::resolveRows() 输出
-     */
+    * Resolve the composition channel into renderable rows; an invalid binding returns an
+    * empty array so the caller can fall back to content or the empty state.
+    *
+    * @return array CompositionRenderer::resolveRows() output
+    */
     public function resolveRows(string $module, array $pageContext = []): array
     {
         $composition = $this->composition_id

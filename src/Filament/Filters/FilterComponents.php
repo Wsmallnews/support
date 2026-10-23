@@ -50,33 +50,33 @@ class FilterComponents
                         function (Builder $query, $keyword) use ($data, $type, $morphIdFieldName) {
                             $morphType = $data['morph_type'] ?? null;
 
-                            // 未选择 morphType，则不支持关键字搜索
+                            // Keyword search needs a selected morph type
                             if (! $morphType) {
                                 return;
                             }
 
-                            // 根据所选的 morphType，解析出对应的模型类
+                            // Resolve the model class from the selected morph type
                             $modelClass = FilamentModelHelper::getModelClassName($morphType);
                             if (! $modelClass || ! class_exists($modelClass)) {
-                                // 默认搜索 morph_id 字段
+                                // Search morph_id by default
                                 $query->where($morphIdFieldName, $keyword);
 
                                 return;
                             }
 
-                            // 获取模型要 keyword search 的字段（关键词搜索用）
+                            // Keyword searchable fields of the model
                             $searchFields = FilamentModelHelper::resolveKeywordSearchFields($modelClass);
                             $keyName = (new $modelClass)->getKeyName();
 
-                            // 分离普通字段和关联字段
+                            // Split plain fields from relation paths
                             $plainFields = [];
                             $relationFields = [];
 
                             foreach ($searchFields as $field) {
                                 if (str_contains($field, '.')) {
                                     $parts = explode('.', $field);
-                                    $column = array_pop($parts);           // 最后的段是列名
-                                    $relation = implode('.', $parts);      // 前面的是关联名
+                                    $column = array_pop($parts);           // Last segment is the column
+                                    $relation = implode('.', $parts);      // The rest is the relation
                                     $relationFields[$relation][] = $column;
                                 } else {
                                     $plainFields[] = $field;
@@ -85,17 +85,17 @@ class FilterComponents
 
                             $query->whereHasMorph($type, $modelClass, function ($q) use ($keyword, $plainFields, $relationFields, $keyName) {
                                 $q->where(function ($q) use ($keyword, $plainFields, $relationFields, $keyName) {
-                                    // 精确 ID 匹配（keyword 可能是数字 ID）
+                                    // Exact id match, since a keyword may be a numeric id
                                     $q->where($keyName, $keyword);
 
-                                    // 本表字段 LIKE 搜索
+                                    // LIKE on this table's own columns
                                     foreach ($plainFields as $field) {
                                         if ($field !== $keyName) {
                                             $q->orWhere($field, 'like', "%{$keyword}%");
                                         }
                                     }
 
-                                    // 关联字段：同一 relation 的多个字段合并到一个 whereHas
+                                    // Relation fields: one whereHas per relation
                                     foreach ($relationFields as $relation => $columns) {
                                         $q->orWhereHas($relation, function ($relQ) use ($keyword, $columns) {
                                             $relQ->where(function ($innerQ) use ($keyword, $columns) {
@@ -133,12 +133,12 @@ class FilterComponents
     }
 
     /**
-     * 状态筛选（枚举下拉）
-     *
-     * @param  class-string<\BackedEnum>  $enumClass  状态枚举类名
-     * @param  string  $field  字段名称
-     * @param  string | null  $label  筛选标签，缺省取翻译
-     */
+    * Status filter driven by an enum.
+    *
+    * @param  class-string<\BackedEnum>  $enumClass  Status enum
+    * @param  string  $field  Column name
+    * @param  string | null  $label  Filter label, defaults to the translation
+    */
     public static function statusFilter(string $enumClass, string $field = 'status', ?string $label = null): Tables\Filters\SelectFilter
     {
         return Tables\Filters\SelectFilter::make($field)
@@ -146,9 +146,7 @@ class FilterComponents
             ->options($enumClass);
     }
 
-    /**
-     * 创建时间，更新时间 筛选
-     */
+    /** Created-at and updated-at range filter. */
     public static function createUpdateRangeFilter(): array
     {
         return [
@@ -158,11 +156,11 @@ class FilterComponents
     }
 
     /**
-     * 时间区间筛选
-     *
-     * @param  string  $field_name
-     * @param  string | null  $label
-     */
+    * Date range filter for one column.
+    *
+    * @param  string  $field_name
+    * @param  string | null  $label
+    */
     public static function dateTimeRangeFilter($field_name, $label = null): Tables\Filters\Filter
     {
         return Tables\Filters\Filter::make($field_name)

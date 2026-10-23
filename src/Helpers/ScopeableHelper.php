@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Wsmallnews\Support\Data\ScopeableContext;
 
-/**
- * Helper functions for scope operations.
- */
+/** Helper functions for scope operations. */
 class ScopeableHelper
 {
     /**

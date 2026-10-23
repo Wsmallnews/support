@@ -9,14 +9,10 @@ use Overtrue\EasySms\Message as EasySmsMessage;
 use Wsmallnews\Support\Exceptions\SupportException;
 use Wsmallnews\Support\Models\SmsLog;
 
-/**
- * 短信验证码消息类
- */
+/** SMS verification code message. */
 class CodeMessage extends EasySmsMessage
 {
-    /**
-     * 发送类型
-     */
+    /** Delivery type. */
     protected $event;
 
     protected PhoneNumberInterface $mobile;
@@ -35,14 +31,14 @@ class CodeMessage extends EasySmsMessage
     }
 
     /**
-     * 初始化
+     * Initialise.
      *
      * @param  string  $event
      * @return $this
      */
     public function init(PhoneNumberInterface $mobile, $event)
     {
-        // 触发事件
+        // Fire the event
         $this->event = $event;
 
         $this->mobile = $mobile;
@@ -53,7 +49,7 @@ class CodeMessage extends EasySmsMessage
     }
 
     /**
-     * 获取数据，包含验证码
+     * Payload including the code.
      *
      * @return void
      */
@@ -84,7 +80,7 @@ class CodeMessage extends EasySmsMessage
             $content = str_replace('{code}', $this->code, $content);
             $content = str_replace('{minutes}', (int) ($this->expire / 60), $content);
 
-            // 部分发送渠道 content 上追加 短信签名
+            // Some gateways append the signature to the content
             if ($content && in_array($gateway->getName(), ['smsbao'])) {
                 if (mb_substr((string) $content, 0, 1) != '【' && ! empty($gatewayConfig['sign_name'])) {
                     $content = '【' . $gatewayConfig['sign_name'] . '】' . $content;
@@ -96,7 +92,7 @@ class CodeMessage extends EasySmsMessage
     }
 
     /**
-     * 获取模板
+     * Get the template.
      *
      * @return string
      */
@@ -114,7 +110,7 @@ class CodeMessage extends EasySmsMessage
     }
 
     /**
-     * 生成随机验证码
+     * Generate a random code.
      *
      * @return string
      */
@@ -141,7 +137,7 @@ class CodeMessage extends EasySmsMessage
     }
 
     /**
-     * 验证短信验证码
+     * Verify a submitted code.
      *
      * @param  string  $exception
      */
@@ -179,7 +175,7 @@ class CodeMessage extends EasySmsMessage
             return false;
         }
 
-        // 验证成功，删除验证码
+        // Verified: drop the code
         $smsLog->delete();
 
         return true;

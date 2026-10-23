@@ -18,9 +18,7 @@ class ScheduledTask extends SupportModel
         'status' => ScheduledTaskStatus::class,
     ];
 
-    /**
-     * Boot the model and apply default scope attributes.
-     */
+    /** Boot the model and apply default scope attributes. */
     protected static function boot(): void
     {
         parent::boot();

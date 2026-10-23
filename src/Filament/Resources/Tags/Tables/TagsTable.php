@@ -26,10 +26,6 @@ class TagsTable
                 Tables\Columns\TextColumn::make('name')
                     ->label('名称')
                     ->searchable(),
-                // Tables\Columns\TextColumn::make('type')
-                //     ->label('类型')
-                //     ->searchable()
-                //     ->toggleable(),
                 Tables\Columns\TextColumn::make('slug')
                     ->label('Slug')
                     ->searchable()

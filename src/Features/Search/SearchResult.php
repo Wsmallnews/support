@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 final class SearchResult
 {
     /**
-     * @param  string  $key  来源标识
-     * @param  string  $group  分组标签
-     * @param  string  $title  标题（已转义由视图处理，此处为纯文本）
-     * @param  string  $description  描述
-     * @param  string  $coverUrl  封面图 URL
-     * @param  string  $url  跳转链接（由注册方 url 闭包提供，为空时渲染为无链接项）
-     * @param  string  $badge  徽标文本
-     * @param  string  $morphType  记录的 morph 别名
-     * @param  Model|null  $record  原始模型（自定义条目视图经 ->record 获取任意字段；results 自定义结果可能没有）
+     * @param  string  $key  Source key
+     * @param  string  $group  Group label
+     * @param  string  $title  Plain title; the view escapes it
+     * @param  string  $description  Description
+     * @param  string  $coverUrl  Cover image URL
+     * @param  string  $url  Link from the registrant's url closure; empty renders an unlinked item
+     * @param  string  $badge  Badge text
+     * @param  string  $morphType  Morph alias of the record
+     * @param  Model|null  $record  Original model, reachable as ->record from custom views; may be absent for custom results
      */
     public function __construct(
         public readonly string $key,

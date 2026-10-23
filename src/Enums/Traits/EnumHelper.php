@@ -5,9 +5,9 @@ namespace Wsmallnews\Support\Enums\Traits;
 trait EnumHelper
 {
     /**
-     * 获取枚举数组
+     * Enum cases as an array.
      *
-     * @param  bool  $is_kv  是否是 key-value 模式，默认否
+     * @param  bool  $is_kv  Return value => label pairs instead of a plain list
      */
     public static function labels($is_kv = false): array
     {

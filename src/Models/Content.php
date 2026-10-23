@@ -15,9 +15,7 @@ class Content extends SupportModel
         'content_type' => ContentType::class,
     ];
 
-    /**
-     * Boot the model and apply default scope attributes.
-     */
+    /** Boot the model and apply default scope attributes. */
     protected static function boot(): void
     {
         parent::boot();

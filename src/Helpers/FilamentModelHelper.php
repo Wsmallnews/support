@@ -14,9 +14,7 @@ use Wsmallnews\Support\Contracts\HasSnSubject;
 
 class FilamentModelHelper
 {
-    /**
-     * 获取模型标题/名称。
-     */
+    /** Title or name of the model. */
     public static function getTitle(?Model $model): string | HtmlString
     {
         if (! $model instanceof Model) {
@@ -44,9 +42,7 @@ class FilamentModelHelper
         return filled($title) ? (string) $title : class_basename($model);
     }
 
-    /**
-     * 获取模型详情页 URL（统一走后台资源链接兜底）。
-     */
+    /** Detail page URL, falling back to the panel resource link. */
     public static function getUrl(?Model $model): ?string
     {
         if (! $model instanceof Model) {
@@ -56,9 +52,7 @@ class FilamentModelHelper
         return static::resolveResourceUrl($model);
     }
 
-    /**
-     * 获取模型描述。
-     */
+    /** Description of the model. */
     public static function getDescription(?Model $model): ?string
     {
         if (! $model instanceof Model) {
@@ -82,10 +76,10 @@ class FilamentModelHelper
     }
 
     /**
-     * 获取模型封面/头像 URL。
-     *
-     * @param ?Model
-     */
+    * Cover or avatar URL of the model.
+    *
+    * @param  ?Model
+    */
     public static function getCoverUrl(?Model $model): ?string
     {
         if (! $model instanceof Model) {
@@ -102,9 +96,7 @@ class FilamentModelHelper
         return $cover ?? null;
     }
 
-    /**
-     * Get subject type options for filter/select.
-     */
+    /** Get subject type options for filter/select. */
     public static function getTypeOptions(Collection $types): array
     {
         return $types->mapWithKeys(function ($type) {
@@ -112,17 +104,13 @@ class FilamentModelHelper
         })->toArray();
     }
 
-    /**
-     * Get human-readable label for a morph type.
-     */
+    /** Get human-readable label for a morph type. */
     public static function getTypeLabel(string $type): string
     {
         return static::getModelLabel(static::getModelClassName($type));
     }
 
-    /**
-     * Resolve the actual model class name from a morph type string.
-     */
+    /** Resolve the actual model class name from a morph type string. */
     public static function getModelClassName(string $type): string
     {
         $modelName = Str::contains($type, '\\') ? $type : Relation::getMorphedModel($type);
@@ -131,29 +119,21 @@ class FilamentModelHelper
     }
 
     /**
-     * 解析模型的搜索字段（关键词搜索用）。
-     *
-     * 优先级：
-     *  1. Model::getKeywordSearchFields() 静态方法
-     *  2. Model::$keywordSearchFields 静态属性
-     *  3. 兜底：[$model->getKeyName()]
-     *
-     * 用于：
-     *  - morphFilter 关键词 LIKE 搜索
-     *  - CanBeConfigured::getGloballySearchableAttributes()
-     */
+    * Keyword search fields of a model, in order: the getKeywordSearchFields() static method,
+    * the $keywordSearchFields static property, then the primary key.
+    */
     public static function resolveKeywordSearchFields(string $modelClass): array
     {
         if (! class_exists($modelClass)) {
             return [];
         }
 
-        // 优先调用静态方法 getKeywordSearchFields()
+        // Static method first
         if (method_exists($modelClass, 'getKeywordSearchFields')) {
             return $modelClass::getKeywordSearchFields();
         }
 
-        // 其次读取静态属性 $keywordSearchFields
+        // Then the static property
         if (property_exists($modelClass, 'keywordSearchFields')) {
             $fields = $modelClass::$keywordSearchFields;
             if (is_array($fields) && ! empty($fields)) {
@@ -161,13 +141,11 @@ class FilamentModelHelper
             }
         }
 
-        // 兜底：使用主键
+        // Fall back to the primary key
         return [(new $modelClass)->getKeyName()];
     }
 
-    /**
-     * Resolve human-readable label for a model class.
-     */
+    /** Resolve human-readable label for a model class. */
     public static function getModelLabel(mixed $model): string
     {
         if (is_subclass_of($model, HasModelLabel::class)) {
@@ -181,17 +159,15 @@ class FilamentModelHelper
         return class_basename($model);
     }
 
-    /**
-     * Resolve Filament Resource URL for a model.
-     */
+    /** Resolve Filament Resource URL for a model. */
     protected static function resolveResourceUrl(Model $model): ?string
     {
         $resource = Filament::getModelResource(get_class($model));
 
-        // Fallback: getModelResource() 仅查找纯字符串注册的资源，
-        // ResourceConfiguration 注册的资源需要从 getResourceConfigurations() 中查找
+        // Fallback: getModelResource() only finds plain string registrations, while resources
+        // registered through ResourceConfiguration live in getResourceConfigurations()
         if (! $resource) {
-            // 查找当前面板的资源配置（无 panel 请求上下文时回退默认面板）
+            // Look in the current panel, falling back to the default panel outside a panel request
             $panel = Filament::getCurrentOrDefaultPanel();
             foreach ($panel->getResourceConfigurations() as $config) {
                 if (is_a($model, $config->resource::getModel())) {

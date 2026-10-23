@@ -12,9 +12,7 @@ use Wsmallnews\Support\Support\Utils;
 #[ObservedBy([ActivityObserver::class])]
 class Activity extends ModelsActivity
 {
-    /**
-     * 搜索字段（用于全局搜索）。
-     */
+    /** Searchable fields for global search. */
     public static array $keywordSearchFields = ['description'];
 
     protected function casts(): array

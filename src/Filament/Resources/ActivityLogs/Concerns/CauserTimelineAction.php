@@ -45,9 +45,7 @@ class CauserTimelineAction extends Action
         $this->slideOver();
     }
 
-    /**
-     * 自定义查询条件
-     */
+    /** Custom query constraints. */
     public function modifyQueryUsing(Closure $modifyQueryUsing): static
     {
         $this->modifyQueryUsing = $modifyQueryUsing;
@@ -55,9 +53,7 @@ class CauserTimelineAction extends Action
         return $this;
     }
 
-    /**
-     * 查询活动记录
-     */
+    /** Query the activity records. */
     protected function getActivities(?Model $record): Collection
     {
         if (! $record) {
@@ -92,9 +88,7 @@ class CauserTimelineAction extends Action
         return $activities;
     }
 
-    /**
-     * Create a new timeline action instance.
-     */
+    /** Create a new timeline action instance. */
     public static function make(?string $name = null): static
     {
         return parent::make($name ?? 'causerTimeline');

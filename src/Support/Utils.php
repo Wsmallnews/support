@@ -8,9 +8,7 @@ use Wsmallnews\Support\Data\ScopeableContext;
 use Wsmallnews\Support\Exceptions\InvalidScopeException;
 use Wsmallnews\Support\Exceptions\SupportException;
 
-/**
- * Utility class for support package configuration.
- */
+/** Utility class for support package configuration. */
 class Utils
 {
     /**
@@ -150,47 +148,33 @@ class Utils
         return self::getConfig('theme' . ($name ? '.' . $name : ''), $default);
     }
 
-    /**
-     * Get the tenant model class.
-     */
+    /** Get the tenant model class. */
     public static function getTenantModel(): ?string
     {
         return self::getConfig('tenant_model');
     }
 
-    /**
-     * Check if tenancy is enabled.
-     */
+    /** Check if tenancy is enabled. */
     public static function isTenancyEnabled(): bool
     {
         return self::getTenantModel() !== null;
     }
 
-    /**
-     * Get the filesystem disk for file storage.
-     */
+    /** Get the filesystem disk for file storage. */
     public static function getFilesystemDisk(): ?string
     {
         return self::getConfig('filesystem_disk') ?: config('filament.default_filesystem_disk');
     }
 
     /**
-     * Get scope context from a module's scopeables instance configuration.
-     *
-     * 配置形态（module 即模块标识/插件 id，如 sn-cms）：
-     *   "{$module}.scopeables" => [
-     *       'main'   => ['scope_type' => 'sn-cms', 'scope_id' => 0],   // 默认实例，必须存在
-     *       'footer' => ['scope_type' => 'sn-cms-footer', 'scope_id' => 0],   // 差异实例，按需声明
-     *   ]
-     *
-     * 未引用的实例声明合法（预留）；引用不存在的实例键、缺失 main、
-     * 或多个实例指向同一分区（scope_type + scope_id 重复）都属配置错误，直接抛异常。
-     *
-     * @param  string  $configKey  实例配置键（如 'sn-cms.scopeables'）
-     * @param  string|null  $key  实例键（null = main 默认实例）
-     *
-     * @throws InvalidScopeException
-     */
+    * Resolve a scope from a module's scopeables config, e.g. sn-cms.scopeables with a
+    * mandatory main instance and optional variants. A missing instance, a missing main or a
+    * duplicate scope_type/scope_id pair throws InvalidScopeException.
+    *
+    * @param  string  $configKey  Instance config key, e.g. sn-cms.scopeables
+    * @param  string|null  $key  Instance key; null selects main
+    * @throws InvalidScopeException
+    */
     public static function getScopeFromInstances(string $configKey, ?string $key = null): ScopeableContext
     {
         $key ??= 'main';

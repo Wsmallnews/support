@@ -103,24 +103,24 @@ trait CanBeConfigured
 
     public static function getGloballySearchableAttributes(): array
     {
-        // 优先从插件配置覆盖
+        // Plugin configuration wins
         $configValue = static::getConfigurationValue('globallySearchableAttributes');
         if ($configValue !== null) {
             return $configValue;
         }
 
-        // 从模型约定获取
+        // Fall back to the model convention
         $model = static::getModel();
         if (class_exists($model)) {
             $fields = FilamentModelHelper::resolveKeywordSearchFields($model);
 
             if ([(new $model)->getKeyName()] == $fields) {
-                // 如果 resolveKeywordSearchFields 只获取到了 兜底 的 [(new $model)->getKeyName()]，则合并默认的 getGloballySearchableAttributes
+                // When resolveKeywordSearchFields() only returns the fallback key, merge Filament's attributes
                 $fields = array_merge($fields, parent::getGloballySearchableAttributes());
             }
         }
 
-        // Filament 默认行为（返回 [$recordTitleAttribute]）
+        // Filament default (returns [$recordTitleAttribute])
         return parent::getGloballySearchableAttributes();
     }
 
@@ -147,16 +147,13 @@ trait CanBeConfigured
     // ========================================================================
 
     /**
-     * 解析当前资源/页面的 scopeable（scope_type + scope_id）
-     *
-     * 优先级：配置实例键（scopeable，经模块 scopeables 解析）→ 显式 pair（scope_type/scope_id）
-     * → 模块 main 实例；module_id 与显式 pair 均缺失时抛异常，
-     * 不再回落 'default'，scope 配置错误必须在开发期暴露。
-     *
-     * @return array{scope_type: string, scope_id: int}
-     *
-     * @throws InvalidScopeException
-     */
+    * Resolve the scopeable for this resource or page: instance key, then explicit pair,
+    * then the module's main instance. Missing both module and pair throws, because a broken
+    * scope must fail during development instead of silently falling back to 'default'.
+    *
+    * @return array{scope_type: string, scope_id: int}
+    * @throws InvalidScopeException
+    */
     public static function getScopeable(): array
     {
         $instanceKey = static::getConfigurationValue('scopeable');
@@ -174,15 +171,15 @@ trait CanBeConfigured
             ];
         }
 
-        // 未声明实例键 = 使用模块 main 默认实例
+        // No instance declared: use the module's main instance
         return static::resolveScopeableInstance('main');
     }
 
     /**
-     * 经模块语境（moduleId，即 config root）解析 scopeable 实例
-     *
-     * @throws InvalidScopeException
-     */
+    * Resolve a scopeable instance within a module (moduleId is the config root).
+    *
+    * @throws InvalidScopeException
+    */
     protected static function resolveScopeableInstance(string $key): array
     {
         $configRoot = static::getConfigurationValue('moduleId');
@@ -205,9 +202,9 @@ trait CanBeConfigured
     }
 
     /**
-     * 资源归属的消费模块标识（插件 id）：用于模块级注册表（如 CompositionRegistry）寻址。
-     * 注册时由 RegistersConfigurable 自动注入（注册即归属），未注册语境为 null
-     */
+    * Module that owns this resource, used to address module-level registries.
+    * Injected by RegistersConfigurable at registration; null outside that context.
+    */
     public static function getModuleId(): ?string
     {
         return static::getConfigurationValue('moduleId');
@@ -217,9 +214,7 @@ trait CanBeConfigured
     // Core resolution
     // ========================================================================
 
-    /**
-     * 从 Configuration 对象安全获取属性值
-     */
+    /** Safely read a property from the Configuration object. */
     protected static function getConfigurationValue(string $property): mixed
     {
         $configuration = static::getSafeConfiguration();
@@ -235,9 +230,7 @@ trait CanBeConfigured
         return null;
     }
 
-    /**
-     * 从 Configuration 对象获取自定义属性
-     */
+    /** Read a custom property from the Configuration object. */
     protected static function resolveCustomProperty(string $key, mixed $default = null): mixed
     {
         $configuration = static::getSafeConfiguration();
@@ -248,9 +241,7 @@ trait CanBeConfigured
         return $default;
     }
 
-    /**
-     * 安全获取当前 config
-     */
+    /** Safely read the current config. */
     protected static function getSafeConfiguration(): PageConfiguration | ResourceConfiguration | null
     {
         try {

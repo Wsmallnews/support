@@ -25,8 +25,8 @@ class CompositionForm
     }
 
     /**
-     * @param  string|null  $moduleId  模块标识（插件 id）：组件类型与用途槽位下拉的数据来源（CompositionRegistry 注册 key）
-     */
+    * @param  string|null  $moduleId  Module id, the CompositionRegistry key behind the type and purpose options
+    */
     public static function forms(?string $moduleId = null): array
     {
         return [
@@ -37,8 +37,9 @@ class CompositionForm
                 FormComponents::orderColumnInput(),
                 FormComponents::enumsToggleButtons(CompositionStatus::class),
 
-                // purpose 槽位（可选）：空 = 通用展示编排（可被 Page 绑定）；选模块槽位后参与槽位匹配
-                // （同槽位多条已发布编排时渲染 order_column 最前的一条），白名单由各模块经 Registry 注册
+                // Optional purpose slot: empty means a generic composition that a page can bind; slot
+                // compositions are matched by purpose and the first by order_column wins. Modules register
+                // the allowed purposes.
                 Forms\Components\Select::make('purpose')
                     ->label(__('sn-support::composition.form.purpose'))
                     ->placeholder(__('sn-support::composition.form.purpose_placeholder'))
@@ -46,7 +47,7 @@ class CompositionForm
                     ->helperText(__('sn-support::composition.form.purpose_helper'))
                     ->live()
                     ->afterStateUpdated(function (Get $get, Set $set) use ($moduleId) {
-                        // 切换槽位：位置重置为新槽位默认位置，并按新模式同步行布局
+                        // Switching purposes resets the position and syncs the row layout to the new mode
                         $meta = filled($moduleId) && filled($get('purpose'))
                             ? CompositionRegistry::getPurpose($moduleId, $get('purpose'))
                             : null;
@@ -55,9 +56,8 @@ class CompositionForm
                         static::syncRowsToLayoutMode($moduleId, $get, $set, $get('purpose'), $position);
                     }),
 
-                // 槽位位置：选项/默认值读槽位注册的 positions/default（label 为翻译键或纯文本，此处统一 __()；
-                // 标准位置键在 sn-support::composition.position.*，自定义位置键由注册模块提供）。
-                // 槽位只声明一个位置时无需选择，隐藏
+                // Position options and default come from the slot's registered positions (labels may be
+                // translation keys or plain text). A slot with a single position hides the field.
                 Forms\Components\ToggleButtons::make('options.position')
                     ->label(__('sn-support::composition.form.position'))
                     ->options(function (Get $get) use ($moduleId): array {
@@ -71,7 +71,7 @@ class CompositionForm
                     })
                     ->live()
                     ->afterStateUpdated(function (Get $get, Set $set) use ($moduleId) {
-                        // 位置切换改变布局模式（如 上→左）：进入堆叠模式时同步行布局
+                        // Changing position switches layout mode (e.g. top to left), which syncs the row layout
                         static::syncRowsToLayoutMode($moduleId, $get, $set, $get('purpose'), $get('options.position'));
                     })
                     ->visible(function (Get $get) use ($moduleId): bool {
@@ -95,10 +95,9 @@ class CompositionForm
     }
 
     /**
-     * 行式布局编排：每个区块（行）选择 lg+ 分栏方式，往对应栏里添加组件；
-     * lg 以下固定单列，按 左栏 → 右栏 顺序堆叠（无需设置）。
-     * 堆叠模式（侧栏类槽位）：隐藏分栏开关，每行强制通栏，按钮文案改为「添加侧栏块」
-     */
+    * Row-based composition: each row picks a split from lg up; below lg everything stacks
+    * single column, left before right. Stack mode hides the split and forces full width.
+    */
     protected static function rowsRepeater(?string $moduleId): Forms\Components\Repeater
     {
         return Forms\Components\Repeater::make('rows')
@@ -108,7 +107,7 @@ class CompositionForm
             ->addActionLabel(fn (Component $livewire): string => static::layoutMode($moduleId, $livewire) === CompositionRenderer::LAYOUT_MODE_STACK
                 ? __('sn-support::composition.form.add_sidebar_block')
                 : __('sn-support::composition.form.add_row'))
-            ->defaultItems(0)               // 空编排合法（渲染回退空状态），不预置空行
+            ->defaultItems(0)               // An empty composition is valid and renders as empty, so do not seed a row
             ->collapsible()
             ->cloneable()
             ->addActionAlignment(Alignment::Start)
@@ -117,10 +116,9 @@ class CompositionForm
     }
 
     /**
-     * 单个区块（行）的 schema：布局选择 + 左右栏组件。
-     * 栏容器为三等分栅格，槽位宽度与前台渲染比例一致（所见即所得）。
-     * 堆叠模式（侧栏类槽位）下隐藏分栏开关（行恒为通栏），右栏不渲染
-     */
+    * One row: layout picker plus the left and right slot repeaters. The preview widths match
+    * the frontend ratio; stack mode hides the split and skips the right slot.
+    */
     protected static function rowSchema(?string $moduleId): array
     {
         return [
@@ -150,7 +148,7 @@ class CompositionForm
                         CompositionRenderer::LAYOUT_LEFT_WIDE => 1,
                         default => 'full',
                     })
-                    // 通栏布局右栏本就不渲染（visibleJs）；堆叠模式（侧栏槽位）服务端兜底隐藏（已有数据保留，切回行式不丢）
+                    // A full-width row never renders the right slot here; stack mode hides it server side too
                     ->visible(fn (Component $livewire): bool => static::layoutMode($moduleId, $livewire) === CompositionRenderer::LAYOUT_MODE_ROWS)
                     ->visibleJs(<<<'JS'
                         $get('layout') != 'full'
@@ -159,9 +157,7 @@ class CompositionForm
         ];
     }
 
-    /**
-     * 栏（槽）Repeater：通栏时仅左栏生效（作为内容区渲染，占满整行）
-     */
+    /** Slot repeater; only the left slot is used when the row is full width. */
     protected static function slotRepeater(string $slot, string $label, ?string $moduleId): Forms\Components\Repeater
     {
         return Forms\Components\Repeater::make($slot)
@@ -169,15 +165,15 @@ class CompositionForm
             ->schema(fn () => static::componentItems($moduleId))
             ->itemLabel(fn (array $state): ?string => $state['label'] ?? null)
             ->addActionLabel(__('sn-support::composition.form.add_component'))
-            ->defaultItems(0)               // 不预置空条目，避免 required 的组件类型挡住保存；右侧栏虽经 visibleJs 隐藏，服务端校验仍会命中
+            ->defaultItems(0)               // No seeded items: a required type would block saving, and hidden right slots still validate
             ->collapsible()
             ->cloneable();
     }
 
     /**
-     * 组件条目 schema：类型（CompositionRegistry 注册项）+ 标题 + 描述 + 类型对应参数表单。
-     * 注册表 forms 闭包的 fields 参数需要整表根状态，经注入的 Livewire 组件取 data（避免深层相对路径上溯）
-     */
+    * Component entry: type, label, description and the type's own form fields. Registry form
+    * closures need the whole form state, read from the injected Livewire component.
+    */
     protected static function componentItems(?string $moduleId): array
     {
         return [
@@ -188,13 +184,13 @@ class CompositionForm
                 ->live()
                 ->required()
                 ->afterStateUpdated(function (Get $get, Set $set, Component $livewire) use ($moduleId) {
-                    // 默认设置内容类型 label
+                    // Default content type label
                     $set('label', filled($moduleId) ? (CompositionRegistry::getTypesOptions($moduleId)[$get('type')] ?? '') : '');
 
-                    // 官方文档的动态字段模式（live Select + schema 闭包，见 extras Fieldset）在本场景缺一环：
-                    // 注册表字段挂在 statePath('extras') 容器下且嵌于双层 Repeater，切类型/新建条目时 extras 为 null，
-                    // 前端 entangle 无法在 null 上写字段键（实测选中值丢失、保存报 required）。
-                    // 这里按新类型的注册表单显式初始化 extras（字段名为键 + 默认值），同时清除旧类型的残留参数
+                    // Filament's dynamic field pattern (live Select plus schema closure) cannot be used here:
+                    // the fields sit under statePath('extras') inside two nested repeaters, so extras is null
+                    // when the type changes and entangle cannot write keys onto null. Seed extras explicitly
+                    // from the new type's form and drop the previous type's leftovers instead.
                     $fields = filled($moduleId) && filled($get('type'))
                         ? CompositionRegistry::getTypeForms($moduleId, $get('type'), ['fields' => $livewire->data])
                         : [];
@@ -217,7 +213,7 @@ class CompositionForm
                 ->live(onBlur: true)
                 ->placeholder(__('sn-support::composition.form.component_description_placeholder')),
 
-            // 前台显示设置：块头（标题/描述）与外层容器均可按条目关闭（标题/描述保留在后台用于区分条目）
+            // Display options: the header and outer container can be turned off per entry
             Forms\Components\ToggleButtons::make('show_header')
                 ->label(__('sn-support::composition.form.show_header'))
                 ->boolean()
@@ -241,21 +237,20 @@ class CompositionForm
                 })->visible(function (Get $get, Component $livewire) use ($moduleId) {
                     $hasForms = filled($moduleId) && filled($get('type')) ? CompositionRegistry::hasTypeForms($moduleId, $get('type'), ['fields' => $livewire->data]) : false;
 
-                    // 选了内容类型，并且内容类型有 form 表单
+                    // A type is selected and it has form fields
                     return filled($moduleId) && filled($get('type')) && $hasForms;
                 })
-                ->columns(1)          // 单列：编排槽位有宽有窄（左一右二），管理表单列数无容器查询，两列会把窄槽里的选择器挤成半列
+                ->columns(1)          // Single column: slots vary in width and these forms have no container queries
                 ->columnSpanFull()
                 ->statePath('extras')
-                ->key('dynamicExtrasFields'),    // 固定相对 key：绝对 key 自动拼条目 uuid（跨请求稳定），随机 uuid 会导致下拉往返时 DOM 重建、闪关
+                ->key('dynamicExtrasFields'),    // Fixed relative key: an absolute key appends the item uuid, and a random one rebuilds the DOM
         ];
     }
 
     /**
-     * 当前编辑布局模式（rows 行式分栏 | stack 单列堆叠）。
-     * 经注入的 Livewire 组件读整表根状态（purpose/options.position 在根级，
-     * 行内字段的深层相对路径上溯在双层 Repeater 下不可靠）
-     */
+    * Current editing layout mode (rows or stack), read from the injected component because
+    * purpose and options.position live at the root and deep relative paths are unreliable.
+    */
     protected static function layoutMode(?string $moduleId, Component $livewire): string
     {
         $data = $livewire->data ?? [];
@@ -264,9 +259,9 @@ class CompositionForm
     }
 
     /**
-     * 位置/槽位切换后按新模式同步行布局：进入堆叠模式时所有行强制通栏
-     * （侧栏槽位单列；右栏残留数据保留在状态中，切回行式模式不丢）
-     */
+    * Sync all rows to the new mode after a purpose or position change: stack forces full
+    * width, while right-slot data stays in the state so switching back loses nothing.
+    */
     protected static function syncRowsToLayoutMode(?string $moduleId, Get $get, Set $set, ?string $purpose, ?string $position): void
     {
         if (CompositionRegistry::getLayoutMode($moduleId, $purpose, $position) !== CompositionRenderer::LAYOUT_MODE_STACK) {
@@ -280,9 +275,7 @@ class CompositionForm
         $set('components', $rows);
     }
 
-    /**
-     * 布局选项（label 与 CompositionRenderer 布局常量一一对应）
-     */
+    /** Layout options, mirroring the CompositionRenderer constants. */
     protected static function layoutOptions(): array
     {
         return [

@@ -8,13 +8,13 @@ use Wsmallnews\Support\Features\Search\SearchSource;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
- * 数据库 LIKE 引擎（默认）：空白拆词（字段间 OR，多词组合方式由 terms_operator
- * 决定：and 所有词都命中 / or 任一词命中），对中文友好、零外部依赖。
+ * Default LIKE engine: splits on whitespace, OR-ing terms across fields and combining
+ * them by terms_operator. No external dependency and friendly to CJK text.
  */
 class DatabaseEngine implements ConfigurableEngine
 {
     /**
-     * 模块级搜索配置（Search::config 声明）；读取时未声明的键回退全局配置
+     * Module-level search options from Search::config(); missing keys fall back to the global config.
      *
      * @var array<string, mixed>
      */
@@ -35,7 +35,7 @@ class DatabaseEngine implements ConfigurableEngine
         $orTerms = $this->searchConfig('terms_operator', 'and') === 'or';
 
         foreach ($this->splitTerms($query) as $index => $term) {
-            // or 模式首个分组仍用 where（首条分组不带连接词），后续 orWhere
+            // The first group uses where because it carries no connector
             $combine = $orTerms && $index > 0 ? 'orWhere' : 'where';
 
             $queryBuilder->{$combine}(function (Builder $scope) use ($source, $term, $caseSensitive) {
@@ -64,9 +64,7 @@ class DatabaseEngine implements ConfigurableEngine
         return filled($terms) ? $terms : [$query];
     }
 
-    /**
-     * 读取搜索配置：模块声明优先（null 视为未声明），未声明走全局 sn-support.search.*
-     */
+    /** Read an option: module declaration first (null counts as undeclared), then the global config. */
     protected function searchConfig(string $key, mixed $default = null): mixed
     {
         return $this->searchConfig[$key] ?? SupportUtils::getSearchConfig($key, $default);

@@ -16,11 +16,9 @@ use Wsmallnews\Support\Filament\Resources\Pages\Tables\PagesTable;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
- * 站点页面资源基类：页面 = slug → 内容绑定（当前绑 composition），是页面体系的唯一事实源。
- *
- * support 自身不注册本资源——消费方（cms、shop 等模块）在自己的 panel_register 配置中注册
- * \Wsmallnews\Support\Filament\Resources\Pages\PageResource 并声明 scope_type / scope_id（数据
- * 隔离）。页面绑定的编排同样按 scope 过滤可选。自定义时继承本类并 use CanBeConfigured。
+ * Base resource for site pages: slug bound to content, currently a composition. support does
+ * not register it; consumers register PageResource in their own panel with scope_type/scope_id,
+ * and the bindable compositions are filtered by the same scope.
  */
 abstract class BaseResource extends Resource
 {

@@ -7,10 +7,8 @@ use Wsmallnews\Support\Exceptions\SupportException;
 use Wsmallnews\Support\Features\Search\SearchSource;
 
 /**
- * Laravel Scout 引擎：复用 Scout 的驱动体系（Meilisearch/Algolia/collection 等）。
- *
- * 要求模型 use Laravel\Scout\Searchable；该 trait 无法条件引入，
- * 包内模型不直接 use（避免硬依赖），项目可通过模型配置替换为 use 了该 trait 的子类。
+ * Laravel Scout engine, reusing whichever Scout driver is configured. Models must use
+ * Searchable, which cannot be applied conditionally, so swap the model via config instead.
  */
 class ScoutEngine implements Engine
 {

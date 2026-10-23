@@ -7,28 +7,8 @@ use Illuminate\Support\HtmlString;
 use Stringable;
 
 /**
- * SEO 渲染器：模块默认值注册（启动期）+ 页面上下文持有与渲染（渲染期）。
- *
- * 页面数据声明方法（title/description/image/type/url/robots/jsonLd/article/website 等）
- * 经 __call 转发到当前 SeoPage，见 SeoPage 的公开方法清单。
- *
- * 页面上下文（SeoPage）经 init() 按页重建——由 seo-init 中间件在每个会输出 <head> 的
- * 请求（首屏）自动调用，测试或特殊场景可直调：
- *
- *     Seo::init('sn-cms')->title($post->title)->description($post->description)->article([...]);
- *
- * Livewire 语义：update 请求不经过页面路由中间件、也不重渲染 layout（head 不输出），
- * 因此 init 只在首屏执行即足够；update 时组件 render() 里的声明是落在内存对象上的
- * 空转，无输出路径、成本可忽略。Octane 下 init 由中间件保证每屏重置，无跨请求泄漏。
- *
- * 多模块支持（与 SearchRegistry 同构）：站点默认值（站点名、默认描述、默认分享图、
- * favicon、统计代码）由各扩展包在 ServiceProvider::packageBooted() 中经 config(模块名, ...)
- * 按模块注册，互不覆盖；模块名 = 插件 ID（如 sn-cms / sn-shop），由 seo-init:模块名
- * 路由中间件参数声明归属。配置值支持数组或闭包（闭包在渲染时才解析，天然跟随当前
- * 请求/租户上下文——多租户下各模块 Settings 走各自仓库）。未注册配置回退全局兜底（app.name）。
- *
- * URL 约定：canonical / og:url 缺省取当前请求地址（自动携带多租户域名或路径前缀）；
- * 图片地址允许相对路径，输出前统一转为绝对地址。
+ * SEO renderer: per-module site defaults plus the current page context (rebuilt by init()).
+ * See the Seo section of the README.
  *
  * @method SeoPage title(?string $title)
  * @method SeoPage description(?string $description)
@@ -43,28 +23,22 @@ use Stringable;
 class Seo implements Stringable
 {
     /**
-     * 模块默认值配置：[模块名 => array|Closure]。Closure 在 defaults() 解析时调用，
-     * 返回 array{site_name?: string, description?: ?string, image?: ?string, favicon?: ?string, analytics_code?: ?string}
-     *
-     * @var array<string, array|Closure>
+     * @var array<string, array|Closure> module => defaults, closures resolved lazily
      */
     protected array $configs = [];
 
-    /**
-     * 当前页面归属的模块（null = 未声明，走全局兜底）。
-     */
+    /** Module the current page belongs to; null falls back to global defaults. */
     protected ?string $forModule = null;
 
     /**
-     * 已解析的模块默认值缓存（随 init()/config() 变更失效）。
+     * Resolved defaults cache, invalidated by init() and config().
+     *
      *
      * @var ?array{site_name: string, description: ?string, image: ?string, favicon: ?string, analytics_code: ?string}
      */
     protected ?array $resolvedDefaults = null;
 
-    /**
-     * 当前页面上下文（页面级 SEO 值对象）。
-     */
+    /** Page-level SEO value object. */
     protected SeoPage $page;
 
     public function __construct()
@@ -73,16 +47,14 @@ class Seo implements Stringable
     }
 
     /*
-     * ---------- 模块注册与解析 ----------
+     * ---------- Module registration and resolution ----------
      */
 
-    /**
-     * 声明模块的站点默认值（消费方在 ServiceProvider::packageBooted 中调用；同名模块重复声明增量合并）。
-     */
+    /** Declare module defaults; repeated calls merge. Call from packageBooted(). */
     public function config(string $module, array | Closure $config): static
     {
         if (! isset($this->configs[$module])) {
-            $this->configs[$module] = $config;      // 首次注册原样保存（闭包保持延迟解析，渲染时才跟随请求/租户）
+            $this->configs[$module] = $config;      // stored as-is so closures stay lazy
         } else {
             $this->configs[$module] = array_merge($this->resolveConfig($this->configs[$module]), $this->resolveConfig($config));
         }
@@ -92,11 +64,7 @@ class Seo implements Stringable
         return $this;
     }
 
-    /**
-     * 开始一个页面的 SEO 声明：重建页面上下文（SeoPage）并声明模块归属。
-     *
-     * 由 seo-init 中间件（带模块名参数）在每个首屏请求自动调用；测试或未走中间件的场景可直调。
-     */
+    /** Start a page: rebuild the page context and bind its module. Called by the seo-init middleware. */
     public function init(?string $module = null): static
     {
         $this->forModule = $module;
@@ -106,16 +74,15 @@ class Seo implements Stringable
         return $this;
     }
 
-    /**
-     * 当前页面归属的模块名。
-     */
+    /** Module the current page belongs to. */
     public function getFor(): ?string
     {
         return $this->forModule;
     }
 
     /**
-     * 站点默认值：取当前归属模块的注册配置（闭包此时才解析，跟随请求/租户），逐项回退全局兜底。
+     * Site defaults: module config (closures resolved now) with a per-key global fallback.
+     *
      *
      * @return array{site_name: string, description: ?string, image: ?string, favicon: ?string, analytics_code: ?string}
      */
@@ -147,24 +114,21 @@ class Seo implements Stringable
     }
 
     /*
-     * ---------- 页面上下文 ----------
+     * ---------- Page context ----------
      */
 
-    /**
-     * 当前页面上下文。
-     */
+    /** Current page context. */
     public function page(): SeoPage
     {
         return $this->page;
     }
 
     /*
-     * ---------- 页面数据声明（经 __call 转发到当前 SeoPage，调用方经门面链式使用） ----------
+     * ---------- Page data declaration (forwarded to the current SeoPage via __call) ----------
      */
 
     /**
-     * 页面数据声明转发：SeoPage 的全部公开方法（title/description/image/type/url/robots/
-     * jsonLd/article/website...）均可直接在 Seo 上调用，新增能力无需改本类。
+     * Forward page declarations to SeoPage, so new page methods need no change here.
      *
      * @param  array<int, mixed>  $parameters
      */
@@ -178,20 +142,16 @@ class Seo implements Stringable
     }
 
     /*
-     * ---------- 渲染 ----------
+     * ---------- Rendering ----------
      */
 
-    /**
-     * 输出 <head> 中的全部 SEO 标签（页面声明 + 模块默认值兜底）。
-     */
+    /** Render every SEO tag for <head>: page declarations with module defaults as fallback. */
     public function render(): HtmlString
     {
         return $this->page->render($this->defaults());
     }
 
-    /**
-     * 输出统计代码（layout </body> 前调用）。
-     */
+    /** Render the analytics snippet, for use before </body>. */
     public function renderAnalytics(): HtmlString
     {
         $analytics = $this->defaults()['analytics_code'];

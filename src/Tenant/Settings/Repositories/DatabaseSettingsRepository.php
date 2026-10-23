@@ -125,7 +125,7 @@ class DatabaseSettingsRepository implements SettingsRepository
             $model->setTable($this->table);
         }
 
-        // 获取租户 id
+        // Tenant id
         $team_id = $this->getTeamId();
 
         return $model->newQuery()->where('team_id', $team_id);
@@ -152,9 +152,7 @@ class DatabaseSettingsRepository implements SettingsRepository
         return $decoder($payload, $associative);
     }
 
-    /**
-     * 获取当前租户 id
-     */
+    /** Current tenant id. */
     protected function getTeamId(): int
     {
         $team_id = current_tenant()?->id;

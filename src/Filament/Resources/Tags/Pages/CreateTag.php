@@ -17,10 +17,10 @@ class CreateTag extends CreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // 合并 scopeinfo 参数
+        // Merge the scope parameters
         $data = array_merge($data, static::getResource()::getScopeable());
 
-        // 合并 tag type 参数
+        // Merge the tag type
         $data['type'] = static::getResource()::getTagType();
 
         return parent::mutateFormDataBeforeCreate($data);

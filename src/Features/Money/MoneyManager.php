@@ -11,32 +11,12 @@ use Wsmallnews\Support\Exceptions\SupportException;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
- * 货币服务（全生态金额处理的唯一规范入口）。
- *
- * 货币规范：
- * 1. 存储：数据库一律存「最小货币单位的整数」（分/cent），列类型 unsignedBigInteger；
- *    JSON 金额明细（amount_fields/discount_fields 等）同样存整数分，键 => 金额，
- *    不存小数、不嵌套币种对象，参与运算的口径与列完全一致。
- * 2. 币种：单据级快照。sn_orders/sn_pay_records/sn_pay_refunds 必有 currency 列(char 3, ISO 4217)，
- *    创建单据时固化；sn_products.currency 可空（空 = 站点默认币种），变体价格随 SPU 币种；
- *    订单项/明细不存币种，随单据。跨币种必须先换算成单一交易币种再落单。
- * 3. 输入约定：int = 最小单位（分）；string/float = 十进制主单位（元，来自表单）；
- *    Money 对象原样透传。禁止把浮点运算结果直接传入（浮点精度污染），请用本服务的运算方法。
- * 4. 运算：全部经 Money 值对象（bcmath 整数运算）；分摊（优惠拆单等）一律用 allocate() 余数分配，
- *    禁止手工除法后四舍五入（会丢分）。
- * 5. 展示：符号/千分位/小数位是纯展示层概念，禁止入库。统一走 format()/symbol()
- *    （底层 Laravel Number + intl，按 locale + currency 输出）。
- * 6. 站点默认币种解析链：config('app.currency')（可选覆盖）→ sn-support.currency → CNY，
- *    由 defaultCurrency() 统一解析，SupportServiceProvider 启动时同步给 Laravel Number 与 cknow/money。
+ * Single entry point for money handling: store minor units, never floats.
+ * See the Money section of the README.
  */
 class MoneyManager
 {
-    /**
-     * 站点默认币种（ISO 4217）。
-     * 优先级：消费应用 config('app.currency')（cknow/money 遵循的社区约定，可选）
-     * → sn-support.currency（包默认，消费应用无需任何配置）
-     * → 'CNY' 兜底。
-     */
+    /** Default currency (ISO 4217): app.currency -> sn-support.currency -> CNY. */
     public function defaultCurrency(): string
     {
         $appCurrency = config('app.currency');
@@ -53,7 +33,7 @@ class MoneyManager
     }
 
     /**
-     * 取值自带币种（Money 取内嵌币种，标量取指定/默认币种）。
+     * Currency carried by the value: embedded for Money objects, the passed string for scalars.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      */
@@ -75,7 +55,7 @@ class MoneyManager
     }
 
     /**
-     * 构造 Money（输入约定见类注释）。
+     * Build a Money value: int = minor units, string/float = decimal major units.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      */
@@ -99,28 +79,24 @@ class MoneyManager
             return new CknowMoney($value, $this->parseCurrency($currency));
         }
 
-        // string/float 一律视为十进制主单位（元）
+        // Strings and floats are decimal major units
         return CknowMoney::parseByDecimal((string) $value, $this->parseCurrency($currency));
     }
 
-    /**
-     * 从最小单位（分）构造。
-     */
+    /** Build from minor units. */
     public function fromMinor(int | string $minor, ?string $currency = null): CknowMoney
     {
         return new CknowMoney((int) $minor, $this->parseCurrency($currency ?: $this->defaultCurrency()));
     }
 
-    /**
-     * 从十进制主单位（元）构造。
-     */
+    /** Build from decimal major units. */
     public function fromDecimal(string | float $decimal, ?string $currency = null): CknowMoney
     {
         return CknowMoney::parseByDecimal((string) $decimal, $this->parseCurrency($currency ?: $this->defaultCurrency()));
     }
 
     /**
-     * 转为最小单位（分）整数。
+     * Convert to an integer amount in minor units.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      */
@@ -132,7 +108,7 @@ class MoneyManager
     }
 
     /**
-     * 转为十进制主单位（元）字符串，如 "12.34"（小数位随币种）。
+     * Convert to a decimal string such as "12.34"; the scale follows the currency.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      */
@@ -144,7 +120,7 @@ class MoneyManager
     }
 
     /**
-     * 加法（参数币种必须一致，空值视为 0 元）。
+     * Sum values; currencies must match, null counts as zero.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  ...$values
      */
@@ -158,7 +134,7 @@ class MoneyManager
     }
 
     /**
-     * 减法（第一个参数为被减数）。
+     * Subtract, the first argument is the minuend.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  ...$values
      */
@@ -172,7 +148,7 @@ class MoneyManager
     }
 
     /**
-     * 乘法（数量/倍数，倍数仅接受整数或整数字符串，避免浮点乘法丢精度）。
+     * Multiply by an integer factor only, so no precision is lost.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      */
@@ -188,7 +164,7 @@ class MoneyManager
     }
 
     /**
-     * 求和。
+     * Sum a map of values.
      *
      * @param  array<int|string, CknowMoney|MoneyMoney|int|string|float|null>  $values
      */
@@ -198,8 +174,8 @@ class MoneyManager
     }
 
     /**
-     * 按比例分摊金额（余数分配法：除不尽的分逐个补给前面的份额，总额不丢分）。
-     * 例：100 元优惠摊 3 单 -> allocate(10000, [1, 1, 1]) => [3334, 3333, 3333]。
+     * Split by ratios with remainder distribution, so the total is preserved exactly.
+     * E.g. allocate(10000, [1, 1, 1]) => [3334, 3333, 3333].
      *
      * @param  CknowMoney|MoneyMoney|int|string|float  $value
      * @param  array<int, int>  $ratios
@@ -220,7 +196,7 @@ class MoneyManager
     }
 
     /**
-     * 是否为负数。
+     * Whether the value is negative.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      */
@@ -230,7 +206,7 @@ class MoneyManager
     }
 
     /**
-     * 是否为零。
+     * Whether the value is zero.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      */
@@ -240,7 +216,7 @@ class MoneyManager
     }
 
     /**
-     * 是否大于零。
+     * Whether the value is greater than zero.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      */
@@ -250,7 +226,7 @@ class MoneyManager
     }
 
     /**
-     * 格式化为带符号的展示金额（展示层唯一入口），如 ￥1,234.56 / $1,234.56。
+     * Format for display with symbol, e.g. ￥1,234.56. The only display formatter callers need.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      */
@@ -262,10 +238,7 @@ class MoneyManager
     }
 
     /**
-     * 拆分格式化：符号与金额一次返回（符号小数字大等拆分展示场景，如 amount 组件）。
-     *
-     * 一次调用保证两部分来自同一币种/locale；金额部分千分位分组、两位小数、不带符号。
-     * 非两位小数币种（JPY 0 位 / KWD 3 位）将来在此处适配，调用方无感。
+     * Symbol and amount separately, both resolved from the same currency and locale.
      *
      * @param  CknowMoney|MoneyMoney|int|string|float|null  $value
      * @return array{symbol: string, amount: string}
@@ -280,9 +253,7 @@ class MoneyManager
         ];
     }
 
-    /**
-     * 货币符号（如 ￥ / $），币种缺省取站点默认。
-     */
+    /** Currency symbol, defaulting to the site currency. */
     public function symbol(?string $currency = null, ?string $locale = null): string
     {
         $currency ??= $this->defaultCurrency();
@@ -290,7 +261,7 @@ class MoneyManager
 
         $formatted = Number::currency(0, $currency, $locale);
 
-        // 去掉数字部分，只留符号（含前后缀空白）
+        // Strip the numeric part, keep the symbol
         $symbol = Str::replaceMatches(
             pattern: '/(?<=\W)\d+\.?\d*/u',
             replace: '',
@@ -301,7 +272,7 @@ class MoneyManager
     }
 
     /**
-     * JSON 金额明细清洗：所有值统一为整数分（int 进 int 出，string 十进制会按元转换）。
+     * Normalise a JSON money map to integer minor units.
      *
      * @param  array<string, int|string|float>  $fields
      * @return array<string, int>
@@ -315,7 +286,7 @@ class MoneyManager
     }
 
     /**
-     * JSON 金额明细求和（整数分）。
+     * Sum a JSON money map in minor units.
      *
      * @param  array<string, int|string|float>  $fields
      */
@@ -325,7 +296,7 @@ class MoneyManager
     }
 
     /**
-     * JSON 金额明细格式化为展示字符串（键 => "￥1,234.56"）。
+     * Format a JSON money map for display (key => "￥1,234.56").
      *
      * @param  array<string, int|string|float>  $fields
      * @return array<string, string>
@@ -340,16 +311,14 @@ class MoneyManager
         );
     }
 
-    /**
-     * 解析币种。
-     */
+    /** Resolve a currency instance. */
     protected function parseCurrency(string $currency): Currency
     {
         return CknowMoney::parseCurrency($currency);
     }
 
     /**
-     * 归一化一批输入：空值补零、统一为 CknowMoney，并校验币种一致。
+     * Normalise a value list to Money and reject mixed currencies.
      *
      * @param  array<int, CknowMoney|MoneyMoney|int|string|float|null>  $values
      * @return array<int, CknowMoney>

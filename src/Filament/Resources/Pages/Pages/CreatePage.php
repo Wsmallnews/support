@@ -20,7 +20,7 @@ class CreatePage extends CreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // 合并 scopeinfo 参数
+        // Merge the scope parameters
         $data = array_merge($data, static::getScopeable());
 
         return parent::mutateFormDataBeforeCreate($data);

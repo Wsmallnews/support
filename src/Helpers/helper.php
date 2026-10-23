@@ -22,10 +22,10 @@ use Wsmallnews\Support\Support\Utils;
 
 if (! function_exists('get_sn')) {
     /**
-     * 获取唯一编号
+     * Build a unique serial number: timestamp + random + zero-padded id.
      *
-     * @param  mixed  $id  唯一标识
-     * @param  string  $type  类型
+     * @param  mixed  $id  Unique identifier
+     * @param  string  $type  Prefix
      * @return string
      */
     function get_sn($id, $type = '')
@@ -43,7 +43,7 @@ if (! function_exists('get_sn')) {
 
 if (! function_exists('client_unique')) {
     /**
-     * 获取客户端唯一标识
+     * Client fingerprint derived from path, IP and user agent.
      *
      * @return bool
      */
@@ -62,7 +62,7 @@ if (! function_exists('client_unique')) {
 
 if (! function_exists('db_listen')) {
     /**
-     * 获取客户端唯一标识
+     * Echo every executed query with bindings and duration (debug only).
      *
      * @return bool
      */
@@ -82,10 +82,7 @@ if (! function_exists('db_listen')) {
 
 if (! function_exists('sn_currency')) {
     /**
-     * 获取自定义 currency 操作类
-     *
-     * @deprecated 改用 sn_money()（Wsmallnews\Support\Features\Money\MoneyManager），
-     *  旧服务随 order 管道改造（阶段 C）一并移除
+     * @deprecated Use sn_money() (MoneyManager) instead.
      *
      * @return Currency
      */
@@ -97,7 +94,7 @@ if (! function_exists('sn_currency')) {
 
 if (! function_exists('sn_money')) {
     /**
-     * 货币服务（金额运算、分摊、格式化的唯一规范入口）
+     * The money manager: arithmetic, allocation and formatting.
      *
      * @return MoneyManager
      */
@@ -109,7 +106,7 @@ if (! function_exists('sn_money')) {
 
 if (! function_exists('exception_log')) {
     /**
-     * 格式化exception 记录日志，重要地方使用
+     * Log an exception with message, file and trace.
      *
      * @param  object  $exception
      * @param  string  $name
@@ -137,7 +134,7 @@ if (! function_exists('through_cache')) {
         $cache = Cache::store($store);
 
         if (! $is_force && $cache->has($key)) {
-            // 直接取缓存
+            // Cache hit
             return $cache->get($key);
         }
 
@@ -151,9 +148,7 @@ if (! function_exists('through_cache')) {
 
 if (! function_exists('href_format')) {
 
-    /**
-     * href 跳转地址格式化
-     */
+    /** Build href/target/wire:navigate attributes, empty string for a blank URL. */
     function href_format(?string $url, bool $shouldOpenInNewTab = false, ?bool $shouldOpenInSpaMode = null): Htmlable
     {
         if (blank($url)) {
@@ -199,7 +194,7 @@ if (! function_exists('filter_richeditor')) {
 
 if (! function_exists('frontend_has_tenancy')) {
     /**
-     * 前端是否有租户
+     * Whether the current frontend request is tenant-scoped.
      *
      * @return bool
      */
@@ -211,7 +206,7 @@ if (! function_exists('frontend_has_tenancy')) {
 
 if (! function_exists('frontend_current_tenant')) {
     /**
-     * 前端当前租户
+     * Tenant of the current frontend request.
      *
      * @return Model
      */
@@ -222,9 +217,7 @@ if (! function_exists('frontend_current_tenant')) {
 }
 
 if (! function_exists('has_tenancy')) {
-    /**
-     * 全局是否有租户（包括用户端租户信息）
-     */
+    /** Whether a tenant is active in either the panel or the frontend. */
     function has_tenancy(): bool
     {
         return is_null(current_tenant()) ? false : true;
@@ -232,17 +225,15 @@ if (! function_exists('has_tenancy')) {
 }
 
 if (! function_exists('current_tenant')) {
-    /**
-     * 全局当前租户（包括用户端租户信息）
-     */
+    /** Current tenant, resolved from the panel first and the frontend second. */
     function current_tenant(): ?Model
     {
         $teannt = null;
         if (Filament::getCurrentPanel()) {
-            // 当前在后台面板
+            // Inside a panel
             $teannt = Filament::getTenant();
         } else {
-            // 用户端
+            // Frontend
             if (frontend_has_tenancy()) {
                 $teannt = frontend_current_tenant();
             }
@@ -253,9 +244,7 @@ if (! function_exists('current_tenant')) {
 }
 
 if (! function_exists('get_tenancy_scope_name')) {
-    /**
-     * 获取租户作用域名称
-     */
+    /** Tenancy scope name of a panel. */
     function get_tenancy_scope_name(Panel | string | null $panel = null): ?string
     {
         $panel = $panel instanceof Panel ? $panel : (is_string($panel) ? Filament::getPanel($panel) : Filament::getCurrentPanel());
@@ -265,9 +254,7 @@ if (! function_exists('get_tenancy_scope_name')) {
 }
 
 if (! function_exists('is_in_panel')) {
-    /**
-     * 全局是否有面板（包括用户端租户信息）
-     */
+    /** Whether the current request runs inside a Filament panel. */
     function is_in_panel(): bool
     {
         return ! is_null(Filament::getCurrentPanel());
@@ -276,7 +263,7 @@ if (! function_exists('is_in_panel')) {
 
 if (! function_exists('tree_to_flatten')) {
     /**
-     * 递归将树结构转换为平面数组
+     * Flatten a tree collection into a single level.
      *
      * @param  Collection  $tree
      * @return Collection
@@ -284,10 +271,10 @@ if (! function_exists('tree_to_flatten')) {
     function tree_to_flatten($tree)
     {
         return $tree->flatMap(function ($node) {
-            // 递归处理子节点，并将当前节点与子节点数组合并
+            // Recurse, but only when children were eager loaded
             $children = $node->relationLoaded('children') ? tree_to_flatten($node->children) : collect();
 
-            // 将当前节点和所有子节点合并成一个新集合
+            // Current node followed by its flattened children
             return collect([$node])->merge($children);
         });
     }
@@ -295,7 +282,7 @@ if (! function_exists('tree_to_flatten')) {
 
 if (! function_exists('sn_route')) {
     /**
-     * 多租户路由处理
+     * Generate a route, injecting the current tenant when tenancy is active.
      *
      * @param  string  $name
      * @param  mixed  $parameters
@@ -306,9 +293,9 @@ if (! function_exists('sn_route')) {
         if (has_tenancy()) {
             $parameters = Arr::wrap($parameters);
 
-            if (! isset($parameters['tenant'])) {        // 没有租户参数,则添加租户参数
+            if (! isset($parameters['tenant'])) {        // never overwrite an explicit tenant
                 $tenant = current_tenant();
-                $parameters['tenant'] = $tenant;        // 租户参数
+                $parameters['tenant'] = $tenant;
             }
         }
 
@@ -317,9 +304,7 @@ if (! function_exists('sn_route')) {
 }
 
 if (! function_exists('remove_query_param_from_url')) {
-    /**
-     * 移除 url 地址 query 参数
-     */
+    /** Strip query parameters from a URL. */
     function remove_query_param_from_url(string $url, string | array $keys): string
     {
         $parts = parse_url($url);
@@ -369,10 +354,7 @@ if (! function_exists('scopeable_query')) {
 }
 
 if (! function_exists('text_highlight')) {
-    /**
-     * 文本关键词高亮：逐词、大小写不敏感，文本已转义，命中处包 <mark> 标签。
-     * 通用助手（不限于搜索场景），搜索结果条目视图（自定义视图与默认模板）亦直接调用。
-     */
+    /** Highlight query terms in escaped text (case-insensitive) with <mark> tags. */
     function text_highlight(?string $text, ?string $query): string
     {
         $text = e((string) $text);
@@ -395,10 +377,8 @@ if (! function_exists('text_highlight')) {
 
 if (! function_exists('generate_slug')) {
     /**
-     * 从标题生成 URL slug：
-     * - Str::slug 按应用语言转写（装有 intl 的环境会把中文转写为拼音）
-     * - 超 $limit 字符时按词边界（连字符）截断，避免单词截半或留下尾部连字符（窗口内没有任何连字符的超长单词才硬切）
-     * - 转写结果为空（无 intl 环境的纯中文、纯符号标题等）时兜底 "$fallbackPrefix-随机串"
+     * Slugify a title: transliterate by locale, cut at a word boundary, and fall back to
+     * "{prefix}-{random}" when transliteration yields nothing (no intl extension).
      */
     function generate_slug(?string $value, int $limit = 80, ?string $fallbackPrefix = null): string
     {
@@ -420,19 +400,11 @@ if (! function_exists('generate_slug')) {
 
 if (! function_exists('sn_badge_color')) {
     /**
-     * 前端 sn-badge 徽章颜色解析：把 Filament 语义颜色（预置色名字符串 / Color::Blue 色板数组 / hex 字符串）
-     * 解析为 sn-badge 可用的 class 与 style。
-     *
-     * - $variant：soft（默认浅底）/ outline（描边）/ solid（实底醒目，可用于徽章与醒目 tab 选中态）
-     * - 色名在 sn-badge 六色清单内（primary/danger/success/info/warning/gray）→ 返回对应变体的预置类
-     * - 其余色名（经 Filament 色板注册表解析）或色板数组 → 返回动态类 + --sn-color-* 变量 style（暗色变量一并输出）；
-     *   solid 动态路径按 WCAG 4.5:1 对比度挑选文字色（复刻 Filament ButtonComponent 的结论方向）
-     * - 解析失败 → 回退 gray 预置类
+     * Map a Filament colour (name, hex or palette array) to a sn-badge class and style.
+     * Unresolvable colours fall back to gray.
      *
      * @param  string  $variant  soft | outline | solid
-     * @param  bool  $asVariables  为 true 时跳过静态类路径，强制输出 --sn-color-* 变量 style
-     *                             （用于无法挂静态类的场景，如 fi-tabs 选中态注入；
-     *                             色名会经 Filament 色板注册表解析，自定义主题色可能与 CSS 端存在偏差）
+     * @param  bool  $asVariables  Force the --sn-color-* variable path (e.g. tab selection, where a static class cannot be attached)
      * @return array{class: string, style: string}
      */
     function sn_badge_color(string | array | null $color, string $variant = 'soft', bool $asVariables = false): array
@@ -445,12 +417,12 @@ if (! function_exists('sn_badge_color')) {
             default => 'sn-badge-{color}',
         };
 
-        // 色名 → 预置变体类
+        // Named colour: use the preset variant class
         if (is_string($color) && in_array($color, $named) && ! $asVariables) {
             return ['class' => str_replace('{color}', $color, $namedClass), 'style' => ''];
         }
 
-        // 其余输入统一解析为 Filament 色板（Color::Blue 数组原样；色名/hex 走 FilamentColor 注册表）
+        // Everything else resolves to a Filament palette (arrays as-is, names via the registry)
         $palette = $color;
         if (is_string($color) && filled($color)) {
             $palette = FilamentColor::getColor($color);
@@ -460,9 +432,8 @@ if (! function_exists('sn_badge_color')) {
             return ['class' => str_replace('{color}', 'gray', $namedClass), 'style' => ''];
         }
 
-        // solid：实底取主题正色 500（不深于导航主题色，避免抢重点）+ 白字优先策略：
-        // 对比度 ≥2:1 即用白字（品牌视觉权衡，徽章为短词加粗场景；完全无障碍场景请用 soft/outline），
-        // 仅极浅色（yellow/lime 系，连 2:1 都不到）回退 950 深字
+        // Solid: background 500 plus white text whenever contrast reaches 2:1; only the
+        // palest hues (yellow/lime) fall back to 950. Use soft/outline for strict a11y.
         if ($variant === 'solid') {
             $bg = $palette['500'] ?? $palette['600'];
             $lightText = $palette['50'] ?? '#ffffff';
@@ -478,7 +449,7 @@ if (! function_exists('sn_badge_color')) {
             ];
         }
 
-        // soft / outline：主色透明度路线（变量注入 500/600/700 色值，CSS 端混合保证色相与预置类一致）
+        // Soft/outline: inject 500/600/700 so the CSS mix matches the preset hues
         $class = $variant === 'outline' ? 'sn-badge-dynamic-outline' : 'sn-badge-dynamic';
         $style = sprintf(
             '--sn-color-bg: %s; --sn-color-text: %s; --sn-color-ring: %s; --sn-color-dark-bg: %s; --sn-color-dark-text: %s;',
@@ -495,12 +466,7 @@ if (! function_exists('sn_badge_color')) {
 
 if (! function_exists('sn_text_color')) {
     /**
-     * 文字颜色解析（色名预置类 + Filament 色板动态变量双通道，同构 sn_badge_color）。
-     *
-     * - 色名在六色清单内（primary/danger/success/info/warning/gray）→ 完整 Tailwind 类（编译期可见）
-     * - 其余输入（hex / Filament 注册色名 / Color::Xxx 色板数组）→ sn-text-dynamic 类
-     *   + --sn-color-text / --sn-color-dark-text 变量（亮色 600 档、暗色 400 档）
-     * - 解析失败 → 回退 primary 预置类
+     * Map a Filament colour to a text class and style; falls back to primary.
      *
      * @return array{class: string, style: string}
      */
@@ -519,7 +485,7 @@ if (! function_exists('sn_text_color')) {
             return ['class' => $named[$color], 'style' => ''];
         }
 
-        // 动态通道：色板数组原样；hex / rgb 串经 Filament 色板生成器；其余色名走 FilamentColor 注册表
+        // Dynamic path: arrays as-is, hex/rgb through the palette generator, names via the registry
         $palette = $color;
         if (is_string($color)) {
             $palette = str_starts_with($color, '#') || str_starts_with($color, 'rgb')

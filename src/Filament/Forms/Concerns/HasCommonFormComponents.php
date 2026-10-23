@@ -5,22 +5,19 @@ namespace Wsmallnews\Support\Filament\Forms\Concerns;
 use Filament\Forms;
 
 /**
- * 公共表单组件工厂
- *
- * 统一 enum 开关（ToggleButtons）与 order_column 字段（TextInput）的组件形态，
- * 配套规范见 boost guidelines「Filament Resource 风格统一」。
+ * Shared form component factories: enum toggles and the order_column input.
+ * See the Filament conventions section of the core guidelines.
  */
 trait HasCommonFormComponents
 {
     /**
-     * 创建 enum ToggleButtons 组件（inline + grouped，options 取枚举，默认第一个 case）
-     *
-     * 主要用于状态字段（label 默认「状态」），其他 enum 场景（性别、类型等）在外层 ->label() 覆盖
-     *
-     * @param  class-string<\BackedEnum>  $enumClass  枚举类名
-     * @param  string  $field  字段名称
-     * @param  string | null  $label  字段标签，缺省取翻译
-     */
+    * Enum ToggleButtons (inline, grouped, defaulting to the first case). Intended for status
+    * fields; other enums should override the label at the call site.
+    *
+    * @param  class-string<\BackedEnum>  $enumClass  Enum class
+    * @param  string  $field  Column name
+    * @param  string | null  $label  Field label, defaults to the translation
+    */
     public static function enumsToggleButtons(string $enumClass, string $field = 'status', ?string $label = null): Forms\Components\ToggleButtons
     {
         return Forms\Components\ToggleButtons::make($field)
@@ -32,11 +29,11 @@ trait HasCommonFormComponents
     }
 
     /**
-     * 创建 order_column 排序输入组件（integer + min:0，留空自动分配到末尾）
-     *
-     * @param  string  $field  字段名称
-     * @param  string | null  $label  字段标签，缺省取翻译
-     */
+    * order_column input (integer, min 0, left empty to append at the end).
+    *
+    * @param  string  $field  Column name
+    * @param  string | null  $label  Field label, defaults to the translation
+    */
     public static function orderColumnInput(string $field = 'order_column', ?string $label = null): Forms\Components\TextInput
     {
         return Forms\Components\TextInput::make($field)

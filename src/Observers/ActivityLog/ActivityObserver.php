@@ -13,7 +13,7 @@ class ActivityObserver
 
         $channel = 'frontend';
         if ($panel = Filament::getCurrentPanel()) {
-            // 当前在后台面板
+            // Inside a panel
             $channel = 'panel-' . $panel->getId();
         }
 

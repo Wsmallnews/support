@@ -11,22 +11,17 @@ use RuntimeException;
 use Wsmallnews\Support\Commands\PackageInstallCommand;
 
 /**
- * 安装编排器：依赖图以 composer 为唯一事实源。
- *
- * 从目标包出发，读 vendor 下各 wsmallnews 包 composer.json 的 require，
- * 递归展开 wsmallnews/* 依赖并按拓扑序排列（每包只出现一次）。
- * 只有存在对应安装命令（{sn-xxx}:install，经 Artisan 校验）的包才纳入计划——
- * 无安装命令的包（如 filament-nestedset）自动跳过。
- *
- * 计划不含目标包自身（自身由当前命令直接处理），新增包零配置。
+ * Builds the install plan from composer itself: walks the target package's wsmallnews
+ * requires in vendor, expands them recursively and orders them topologically.
+ * Only packages exposing an {sn-xxx}:install command are planned, and the root is excluded.
  */
 class InstallPlanner
 {
     /**
-     * 生成依赖安装计划（拓扑序，不含 root）
+     * Build the dependency install plan in topological order, root excluded.
      *
-     * @param  string  $rootModule  目标模块 id（如 sn-cms）
-     * @return Collection<int, array{name: string, command: string}> name = composer 包名
+     * @param  string  $rootModule  Target module id, e.g. sn-cms
+     * @return Collection<int, array{name: string, command: string}> name is the composer package
      */
     public static function plan(string $rootModule): Collection
     {
@@ -61,19 +56,15 @@ class InstallPlanner
             ->values();
     }
 
-    /**
-     * 模块 id → composer 包名（sn-cms → wsmallnews/cms）
-     */
+    /** Module id to composer package name (sn-cms to wsmallnews/cms). */
     protected static function composerNameOf(string $module): string
     {
         return 'wsmallnews/' . Str::after($module, 'sn-');
     }
 
     /**
-     * composer 包名 → 安装命令名（wsmallnews/cms → sn-cms:install）；
-     * 仅纳入 PackageInstallCommand 基类的子类（支持 --as-dependency 依赖模式）——
-     * 用原生 spatie hasInstallCommand 的包（如 filament-nestedset，独立工具包不依赖 support）
-     * 返回 null 自动跳过，由用户按需单独执行其原生命令
+     * Composer package to install command (wsmallnews/cms to sn-cms:install). Only subclasses of
+     * PackageInstallCommand qualify; others return null and must be installed on their own.
      */
     protected static function installCommandOf(string $composerName): ?string
     {
@@ -85,7 +76,7 @@ class InstallPlanner
     }
 
     /**
-     * 包的直接 wsmallnews 依赖（读 vendor 下该包的 composer.json）
+     * Direct wsmallnews requirements of a package, read from its composer.json in vendor.
      *
      * @return array<int, string>
      */

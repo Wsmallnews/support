@@ -16,12 +16,12 @@ class CounterCast implements CastsAttributes
     {
         $data = $value ? json_decode($value, true) : [];
 
-        // 包装为支持默认值
+        // Wrapper so missing keys default to 0
         return new class($data) implements Arrayable, ArrayAccess, Countable, Jsonable, JsonSerializable, Wireable
         {
             public function __construct(private array $data) {}
 
-            // 实现 ArrayAccess
+            // ArrayAccess support
             public function offsetExists($offset): bool
             {
                 return array_key_exists($offset, $this->data);
@@ -67,16 +67,14 @@ class CounterCast implements CastsAttributes
                 return new self((array) $value);
             }
 
-            /**
-             * 实现 arrayable 接口
-             */
+            /** Arrayable implementation. */
             public function toArray()
             {
                 return $this->data;
             }
 
             /**
-             * 实现 Jsonable 接口
+             * Jsonable implementation.
              *
              * @param  int  $options
              * @return string
@@ -86,17 +84,13 @@ class CounterCast implements CastsAttributes
                 return json_encode($this->jsonSerialize(), $options);
             }
 
-            /**
-             * 实现 JsonSerializable 接口的 jsonSerialize 方法, 定义了对象在 JSON 序列化时的数据
-             */
+            /** JsonSerializable implementation. */
             public function jsonSerialize(): mixed
             {
                 return $this->data;
             }
 
-            /**
-             * 实现 Countable 接口的 count 方法, 定义了对象的元素数量
-             */
+            /** Countable implementation. */
             public function count(): int
             {
                 return count($this->data);

@@ -11,12 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
-/**
- * 查看某条记录的定时任务列表的 Action。
- *
- * 用于在 Post / Product 等实体的表格行操作或详情页中，
- * 以 slide-over 弹层展示该记录的所有定时调度任务。
- */
+/** Shows the scheduled tasks of one record in a slide-over, for row actions or detail pages. */
 class ViewScheduledTasksAction extends Action
 {
     protected ?Closure $modifyQueryUsing = null;
@@ -48,9 +43,7 @@ class ViewScheduledTasksAction extends Action
         $this->slideOver();
     }
 
-    /**
-     * 自定义查询条件
-     */
+    /** Custom query constraints. */
     public function modifyQueryUsing(Closure $modifyQueryUsing): static
     {
         $this->modifyQueryUsing = $modifyQueryUsing;
@@ -58,16 +51,14 @@ class ViewScheduledTasksAction extends Action
         return $this;
     }
 
-    /**
-     * 查询当前记录的定时任务
-     */
+    /** Query the scheduled tasks of the current record. */
     protected function getScheduledTasks(?Model $record): Collection
     {
         if (! $record) {
             return collect();
         }
 
-        // 优先使用模型上定义的 scheduledTasks 关联
+        // Prefer the model's own scheduledTasks relation
         if (method_exists($record, 'scheduledTasks')) {
             $query = $record->scheduledTasks();
         } else {
@@ -83,9 +74,7 @@ class ViewScheduledTasksAction extends Action
         return $query->orderBy('scheduled_at', 'asc')->limit(50)->get();
     }
 
-    /**
-     * Create a new action instance.
-     */
+    /** Create a new action instance. */
     public static function make(?string $name = null): static
     {
         return parent::make($name ?? 'viewScheduledTasks');

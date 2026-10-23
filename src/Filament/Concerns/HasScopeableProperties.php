@@ -12,33 +12,25 @@ trait HasScopeableProperties
 
     protected static int $scopeId = 0;
 
-    /**
-     * Set the scope type for this resource/page.
-     */
+    /** Set the scope type for this resource/page. */
     public static function scopeType(?string $scope_type): void
     {
         static::$scopeType = $scope_type;
     }
 
-    /**
-     * Set the scope ID for this resource/page.
-     */
+    /** Set the scope ID for this resource/page. */
     public static function scopeId(int $scope_id): void
     {
         static::$scopeId = $scope_id;
     }
 
-    /**
-     * Get the current scope type.
-     */
+    /** Get the current scope type. */
     public static function getScopeType(): string
     {
         return static::$scopeType;
     }
 
-    /**
-     * Get the current scope ID.
-     */
+    /** Get the current scope ID. */
     public static function getScopeId(): int
     {
         return static::$scopeId;

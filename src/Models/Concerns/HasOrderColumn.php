@@ -6,10 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * order_column 排序支持：创建时留空自动填充
- *
- * 取 max(order_column) + 1 填充，刻度与表格拖拽重排（1..N）一致。
- * 需要按租户等维度隔离序号的模型覆盖 modifyOrderColumnQuery() 自由拼接查询条件。
+ * order_column support: fills max(order_column) + 1 on create, matching the 1..N scale used
+ * by table reordering. Models needing per-tenant sequences override modifyOrderColumnQuery().
  */
 trait HasOrderColumn
 {
@@ -26,9 +24,7 @@ trait HasOrderColumn
         });
     }
 
-    /**
-     * order_column 计算查询，默认全表；需要隔离序号的模型覆盖（如 where('team_id', $this->team_id)）
-     */
+    /** Query used to compute the next value; override to scope the sequence (e.g. by tenant). */
     protected function modifyOrderColumnQuery(Builder $query): Builder
     {
         return $query;

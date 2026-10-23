@@ -41,11 +41,11 @@ class PageForm
                 FormComponents::orderColumnInput(),
                 FormComponents::enumsToggleButtons(PageStatus::class),
 
-                // 绑定编排（可选高级模式）：前台页面渲染该编排的组件行；未绑定时直接编辑下方页面内容，两者互斥。
-                // 仅列通用展示编排（purpose 为空）；槽位专用编排（如 post-sidebar）归用途寻址，不进页面绑定
+                // Optional advanced mode: the frontend renders the bound composition instead of the page
+                // content, and the two are mutually exclusive. Only generic compositions are listed.
                 Forms\Components\Select::make('composition_id')->label(__('sn-support::page.form.composition'))
                     ->options(function (Component $livewire): array {
-                        // 资源页面（CreatePage/EditPage）均 use Pages\Scopeable，直接读取（与 NavigationForm 同模式）
+                        // Create and Edit pages both use Pages\Scopeable, so the scope is readable directly
                         $scopeable = $livewire->getScopeable();
 
                         return SupportUtils::getCompositionModel()::query()
@@ -61,7 +61,7 @@ class PageForm
                     ->live()
                     ->helperText(__('sn-support::page.form.composition_helper')),
 
-                // 页面内容（主体通道）：未绑定编排时编辑；绑定后隐藏（渲染时编排优先，忽略内容）
+                // Page content: editable while nothing is bound, hidden once a composition is bound
                 FormComponents::contentTypeGroup(required: false)
                     ->visible(fn (Get $get): bool => blank($get('composition_id')))
                     ->columnSpanFull(),

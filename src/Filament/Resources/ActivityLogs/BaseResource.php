@@ -65,7 +65,7 @@ abstract class BaseResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        // resource 只查询 默认 log_name 的日志
+        // Only query logs of the default log_name
         return parent::getEloquentQuery()->where('log_name', config('activitylog.default_log_name'));
     }
 }

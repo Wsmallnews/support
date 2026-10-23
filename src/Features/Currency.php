@@ -12,9 +12,7 @@ use Money\Money as MoneyMoney;
 use Wsmallnews\Support\Exceptions\SupportException;
 
 /**
- * @deprecated 旧货币服务：输入口径混杂、格式化与运算职责不分。
- *  新代码一律使用 Wsmallnews\Support\Features\Money\MoneyManager（sn_money()），
- *  旧调用点（order 管道等）随阶段 C 改造迁移后本类整体删除。
+ * @deprecated Legacy money helper with mixed input semantics; use MoneyManager (sn_money()).
  */
 class Currency
 {
@@ -25,7 +23,7 @@ class Currency
     public function __construct()
     {
         $this->filamentFormState = function (Component $component, ?Model $record, $state): ?float {
-            // 这里 state 被转数组了
+            // $state arrives as an array here
             if ($record && $record->{$component->getName()} instanceof CknowMoney) {
                 return $record->{$component->getName()}->formatByDecimal();
             }
@@ -39,7 +37,7 @@ class Currency
     }
 
     /**
-     * 加法运算
+     * Add values.
      *
      * @param  CknowMoney|int|string|float  ...$moneys
      * @return CknowMoney
@@ -55,7 +53,7 @@ class Currency
     }
 
     /**
-     * 减法运算
+     * Subtract values.
      *
      * @param  CknowMoney|int|string|float  ...$moneys
      * @return CknowMoney
@@ -71,7 +69,7 @@ class Currency
     }
 
     /**
-     * 乘法运算
+     * Multiply a value.
      *
      * @param  CknowMoney|int|string|float  $money
      * @param  int|string|float  $multiplier
@@ -85,7 +83,7 @@ class Currency
     }
 
     /**
-     * 除法运算
+     * Divide a value.
      *
      * @param  CknowMoney|int|string|float  $money
      * @param  int|string|float  $divisor
@@ -99,7 +97,7 @@ class Currency
     }
 
     /**
-     * 是否等于 0
+     * Whether the value is zero.
      *
      * @param  CknowMoney|int|string|float  $money
      * @return bool
@@ -112,7 +110,7 @@ class Currency
     }
 
     /**
-     * 是否大于 0
+     * Whether the value is positive.
      *
      * @param  CknowMoney|int|string|float  $money
      * @return bool
@@ -125,7 +123,7 @@ class Currency
     }
 
     /**
-     * 是否小于 0
+     * Whether the value is negative.
      *
      * @param  CknowMoney|int|string|float  $money
      * @return bool
@@ -138,7 +136,7 @@ class Currency
     }
 
     /**
-     * 格式化操作金额
+     * Normalise scalars to Money, leaving Money instances untouched.
      *
      * @param  CknowMoney|int|string|float|array  $originalMoneys
      * @return CknowMoney|array
@@ -156,7 +154,7 @@ class Currency
 
     public function getSymbol($money = null)
     {
-        // 当前货币
+        // Currency of the value, or the default one
         $currency = ($money instanceof CknowMoney || $money instanceof MoneyMoney) ? $money->getCurrency() : $this->getCurrency();
 
         $formatCurrency = Number::currency(0, $currency);
@@ -181,7 +179,7 @@ class Currency
     }
 
     /**
-     * 从数组中格式化金额 这个数组来自于 CknowMoney 或者 CknowMoney toArray 的结果
+     * Format a Money instance or a Money toArray() payload.
      *
      * @param  array  $originalMoney
      */
@@ -199,7 +197,7 @@ class Currency
     }
 
     /**
-     * 格式化操作金额
+     * Format values as decimal strings.
      *
      * @param  CknowMoney|int|string|float|array  $originalMoneys
      */

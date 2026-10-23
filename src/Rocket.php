@@ -7,30 +7,18 @@ use Illuminate\Support\Collection;
 use JsonSerializable;
 
 /**
- * 管道数据总线（参考 yansongda/artful 的 Rocket 模式）：三段式数据载体。
- *
- * - params：调用方传入的原始参数（只读语义，管道不写回）
- * - radars：管道处理过程中的中间态（读写自由）
- * - payloads：阶段产出物（summary/creating 等收尾阶段写入，落单/展示用）
- *
- * 注意：radars 可能持有 Eloquent Model 实例（如 relate_items 中的商品），
- * 队列/缓存场景禁止整体序列化 Rocket——只允许携带标量（如 order id）。
+ * Three-stage pipeline payload: params (read-only input), radars (mutable intermediates) and
+ * payloads (final results). Never serialise a whole Rocket: radars may hold Eloquent models.
  */
 class Rocket implements ArrayAccess, JsonSerializable
 {
-    /**
-     * 传入的数据
-     */
+    /** Input data. */
     protected array $params = [];
 
-    /**
-     * 处理过程中产生的数据
-     */
+    /** Intermediate values. */
     protected array $radars = [];
 
-    /**
-     * 最终处理好的数据
-     */
+    /** Final results. */
     protected ?Collection $payloads = null;
 
     public function getParams(): array
@@ -39,12 +27,12 @@ class Rocket implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * 获取指定传入参数.
-     *
-     * @param  string  $name
-     * @param  mixed  $default
-     * @return mixed
-     */
+    * Read an input parameter.
+    *
+    * @param  string  $name
+    * @param  mixed  $default
+    * @return mixed
+    */
     public function getParam($name, $default = null)
     {
         return $this->params[$name] ?? $default;
@@ -89,10 +77,10 @@ class Rocket implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * @deprecated version 1.0.0 合并里面的子项数组 (这个方法准备 删掉，这个是往 radar 数组的一个元素合并子数组)
-     *
-     * @param  string  $field
-     */
+    * @deprecated 1.0.0 Merges a sub-array into one radar entry; scheduled for removal.
+    *
+    * @param  string  $field
+    */
     public function mergeRadarField(array $value, $field): Rocket
     {
         $current = $this->getRadar($field, []);
@@ -130,11 +118,11 @@ class Rocket implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * 合并payload.
-     *
-     * @param  array  $payload
-     * @return $this
-     */
+    * Merge into the payload.
+    *
+    * @param  array  $payload
+    * @return $this
+    */
     public function mergePayloads(array $payloads): Rocket
     {
         $this->payloads = $this->payloads
@@ -144,9 +132,7 @@ class Rocket implements ArrayAccess, JsonSerializable
         return $this;
     }
 
-    /**
-     * 数组访问代理到 payloads（管道产物的便捷读取）
-     */
+    /** Array access proxies to payloads. */
     public function offsetExists(mixed $offset): bool
     {
         return $this->payloads?->offsetExists($offset) ?? false;
@@ -170,9 +156,7 @@ class Rocket implements ArrayAccess, JsonSerializable
         }
     }
 
-    /**
-     * 序列化输出三段数据（调试/日志用）
-     */
+    /** Serialise all three stages for debugging or logging. */
     public function jsonSerialize(): array
     {
         return [

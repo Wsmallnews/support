@@ -58,7 +58,7 @@ class MediaObserver
             return;
         }
 
-        // 只删除数据库记录，不删除文件 (比如：删除产品时，产品图片还需要在订单 item 中使用)
+        // Drop only the database record: order items may still reference the file
 
         /** @var Filesystem $filesystem */
         // $filesystem = app(Filesystem::class);

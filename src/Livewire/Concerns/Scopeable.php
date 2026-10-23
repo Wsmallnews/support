@@ -27,17 +27,13 @@ trait Scopeable
         return ['scope_type' => $this->scopeType, 'scope_id' => $this->scopeId];
     }
 
-    /**
-     * Get the scope type.
-     */
+    /** Get the scope type. */
     public function getScopeType(): string
     {
         return $this->scopeType;
     }
 
-    /**
-     * Get the scope ID.
-     */
+    /** Get the scope ID. */
     public function getScopeId(): int
     {
         return $this->scopeId;

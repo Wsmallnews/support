@@ -5,24 +5,19 @@ namespace Wsmallnews\Support\Features\Concerns;
 use Illuminate\Support\Collection;
 
 /**
- * 模块域名过滤（SitemapRegistry / FeedRegistry 共用）：模块经 config(模块, ['domain' => ...])
- * 声明绑定域名后，与当前请求域名不匹配的模块不参与输出（未声明域名的模块始终参与）。
- * 支持路由式域名模式（{tenant:slug}.example.com，占位符按「非点号任意段」匹配）。
- *
- * 使用方需提供 $configs 属性（[模块名 => 模块选项数组]，域名声明在其 domain 键）
- * 与 isDomainFilterEnabled()（各自的 domain_filter 配置值）。
+ * Domain filtering shared by SitemapRegistry and FeedRegistry. Consumers must provide
+ * $configs (module => options, with a domain key) and isDomainFilterEnabled().
  *
  * @property Collection<string, array<string, mixed>> $configs
  */
 trait MatchesDomain
 {
-    /**
-     * 域名过滤开关（默认开启）：关闭时不按域名过滤，模块始终参与输出。
-     */
+    /** Whether domain filtering is on (default true). */
     abstract protected function isDomainFilterEnabled(): bool;
 
     /**
-     * 模块是否参与当前请求的输出：域名过滤关闭、模块未声明域名、或域名与当前请求匹配时参与。
+     * Whether a module takes part in the current output: filtering off, no declared domain,
+     * or a domain matching the request.
      */
     protected function moduleMatchesDomain(string $module): bool
     {
@@ -36,7 +31,8 @@ trait MatchesDomain
     }
 
     /**
-     * 域名模式匹配：精确匹配，或路由式域名模式（{tenant:slug}.example.com，占位符按「非点号任意段」匹配）。
+     * Match the request host against an exact domain or a route pattern such as
+     * {tenant:slug}.example.com, where placeholders match any dot-free segment.
      */
     protected function hostMatches(string $pattern, string $host): bool
     {

@@ -2,9 +2,7 @@
 
 namespace Wsmallnews\Support\Filament\Resources\Concerns\Pages;
 
-/**
- * 可以方便的读取 resource 中设置的 scope 信息
- */
+/** Convenience access to the scope configured on the resource. */
 trait Scopeable
 {
     public static function getScopeType(): string

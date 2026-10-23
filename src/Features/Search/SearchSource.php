@@ -11,35 +11,17 @@ use Wsmallnews\Support\Helpers\FilamentModelHelper;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
- * 单个可搜索来源：模型 + 注册项配置的封装，负责默认值解析与展示映射。
- *
- * 注册项支持的选项：
- * - key: 来源标识（默认 morph 别名/类名）
- * - model: 模型类名或 morph 别名（必填）
- * - group: 分组标签（默认模型 label）
- * - fields: LIKE 搜索字段（默认 resolveKeywordSearchFields() 剔除含 '.' 的关联字段）
- * - limit: 返回条数（默认 config('sn-support.search.results_limit')）
- * - sort: 来源排序（越小越靠前）
- * - query: LIKE 引擎的查询修饰闭包（状态/业务过滤）
- * - scout: Scout 引擎的索引过滤闭包（此时 query/scopeable/fields 不生效）
- * - scopeable: LIKE 引擎的 scope 过滤 ['scope_type' => ..., 'scope_id' => ...]
- * - title / description / cover / badge / url: 展示映射闭包（url 仅由注册方提供，默认无链接）
- * - view: 自定义条目视图（接收 $result（含 ->record 原始模型）、$query 关键词；高亮用 text_highlight() 助手）；
- *   未声明时 itemView() 兜底返回 DEFAULT_ITEM_VIEW 默认统一模板
- * - render: 自定义条目渲染闭包 fn ($result, $query) => HtmlString|string（优先于 view）
- * - visible: 来源是否参与本次搜索的闭包
- * - results: 完全自定义结果闭包（绕过引擎，返回 SearchResult 集合）
+ * One searchable source: model plus registration options, with defaults resolved.
+ * For the option list see the Search section of the README.
  */
 class SearchSource
 {
-    /**
-     * 默认条目视图（注册方未声明 view 时的兜底）
-     */
+    /** Fallback item view when the source declares none. */
     public const DEFAULT_ITEM_VIEW = 'sn-support::livewire.components.search-result';
 
     public function __construct(protected array $options)
     {
-        // model 归一化为类名（支持 morph 别名）
+        // Normalise the model to a class name; morph aliases are supported
         if (isset($this->options['model'])) {
             $this->options['model'] = FilamentModelHelper::getModelClassName($this->options['model']);
         }
@@ -50,9 +32,7 @@ class SearchSource
         return $this->options;
     }
 
-    /**
-     * 合并覆盖项（如组件的 limit 覆盖），返回新实例。
-     */
+    /** Return a new instance with the overrides merged in. */
     public function merge(array $overrides): static
     {
         return new static(array_merge($this->options, $overrides));
@@ -84,7 +64,8 @@ class SearchSource
     }
 
     /**
-     * LIKE 搜索字段：默认取模型搜索字段，并剔除含 '.' 的关联路径字段（默认不做关联查询）。
+     * LIKE fields: model defaults minus dotted relation paths, which are not queried by default.
+     *
      *
      * @return array<int, string>
      */
@@ -122,7 +103,7 @@ class SearchSource
     }
 
     /**
-     * 完全自定义结果（绕过引擎）。
+     * Fully custom results, bypassing the engine.
      *
      * @return Collection<SearchResult>
      */
@@ -131,9 +112,7 @@ class SearchSource
         return collect(($this->options['results'])($query));
     }
 
-    /**
-     * LIKE 引擎：应用 scopeable 过滤与 query 修饰闭包。
-     */
+    /** LIKE engine: apply the scopeable filter and the query modifier. */
     public function modifyQuery(Builder $query): Builder
     {
         $scopeable = $this->options['scopeable'] ?? null;
@@ -149,9 +128,7 @@ class SearchSource
         return $query;
     }
 
-    /**
-     * Scout 引擎：应用 scout 修饰闭包。
-     */
+    /** Scout engine: apply the scout modifier. */
     public function modifyScoutBuilder(mixed $builder): mixed
     {
         if (($modifier = $this->options['scout'] ?? null) instanceof Closure) {
@@ -176,9 +153,7 @@ class SearchSource
         return $this->resolveDisplay('cover', $record, FilamentModelHelper::getCoverUrl($record));
     }
 
-    /**
-     * 跳转链接仅由注册方 url 闭包提供，默认无链接（前端搜索永不产生 panel 地址）。
-     */
+    /** Links come only from the registrant's url closure, so a frontend search never yields a panel URL. */
     public function url(Model $record): ?string
     {
         return $this->resolveDisplay('url', $record);
@@ -204,9 +179,7 @@ class SearchSource
         );
     }
 
-    /**
-     * 条目视图：注册方声明优先，未声明兜底默认统一模板。
-     */
+    /** Declared item view, or the default template. */
     public function itemView(): string
     {
         $view = $this->options['view'] ?? null;
@@ -214,9 +187,7 @@ class SearchSource
         return filled($view) ? (string) $view : static::DEFAULT_ITEM_VIEW;
     }
 
-    /**
-     * 自定义条目渲染闭包 fn ($result, $query)（优先于视图，null = 未声明）。
-     */
+    /** Custom render closure fn ($result, $query), which wins over the view. */
     public function itemRender(): ?Closure
     {
         $render = $this->options['render'] ?? null;

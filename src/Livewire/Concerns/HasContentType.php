@@ -8,9 +8,7 @@ trait HasContentType
 {
     public ContentType $contentType = ContentType::Textarea;
 
-    /**
-     * 是否是 格式化编辑器
-     */
+    /** Whether the content type is a rich editor. */
     public function isFormattedContent(): bool
     {
         return in_array($this->contentType, [ContentType::Richtext, ContentType::Markdown]);

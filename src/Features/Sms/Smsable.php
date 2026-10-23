@@ -22,9 +22,9 @@ trait Smsable
     {
         $easySms = app(EasySms::class);
 
-        // 注册
+        // Register
         $easySms->extend($gateway, function ($gatewayConfig) use ($callback) {
-            // $gatewayConfig 来自配置文件里的 `gateways.mygateway`
+            // $gatewayConfig comes from `gateways.mygateway` in the config
             return $callback($gatewayConfig);
         });
     }
@@ -34,22 +34,22 @@ trait Smsable
         $easySms = app(EasySms::class);
 
         try {
-            // 支持国际短信
+            // International SMS
             $mobile = is_array($mobile) ? $mobile : [$mobile, 86];
             $mobileInstance = new PhoneNumber($mobile[0], $mobile[1] ?? 86);
 
             $result = $easySms->send($mobileInstance, (new CodeMessage)->init($mobileInstance, $event), $gateways);
         } catch (NoGatewayAvailableException $e) {
-            // 记录发送结果日志
+            // Log the result
             exception_log($e, 'smsNoGatewayExceptionError', json_encode($e->getLastException()->getMessage(), JSON_UNESCAPED_UNICODE));
 
-            // 抛出异常
+            // Rethrow
             throw new SupportException($e->getLastException()->getMessage());
         } catch (\Exception $e) {
-            // 记录错误结果日志
+            // Log the failure
             exception_log($e, 'smsEasysmsError');
 
-            // 抛出异常
+            // Rethrow
             throw new SupportException(__('sn-support::support.sms.send_failed'));
         }
 
@@ -58,7 +58,7 @@ trait Smsable
 
     public static function checkSmsCode(string | array $mobile, string $event, string $code, bool $exception = true)
     {
-        // 支持国际短信
+        // International SMS
         $mobile = is_array($mobile) ? $mobile : [$mobile, 86];
         $mobileInstance = new PhoneNumber($mobile[0], $mobile[1] ?? 86);
 
