@@ -15,21 +15,17 @@ class SupportModel extends Model implements HasModelLabel
 {
     use Scopeable;
 
-    /**
-     * 默认模型名称
-     */
+    /** Default model label. */
     public static function getModelLabel(): string
     {
         return class_basename(static::class);
     }
 
-    /**
-     * Scope query to current tenant.
-     */
+    /** Scope query to current tenant. */
     public function scopeScopeTenant(Builder $query): Builder
     {
         if (has_tenancy()) {
-            return $query->where('team_id', current_tenant()->id);
+            return $query->where('team_id', current_tenant()?->getKey());
         }
 
         return $query->whereNull('team_id');
@@ -44,9 +40,7 @@ class SupportModel extends Model implements HasModelLabel
         return $query->scopeable($scope_type, $scope_id)->scopeTenant();
     }
 
-    /**
-     * Boot the model and apply default scope attributes.
-     */
+    /** Boot the model and apply default scope attributes. */
     // protected static function boot(): void
     // {
     //     parent::boot();
