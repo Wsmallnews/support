@@ -1,9 +1,7 @@
 /*
- * support 包样式入口。
- * - utilities.css：公共 sn-* 工具类（跨扩展包 / 前后台通用），内含 tokens.css 设计令牌
- * - content.css：内容排版（sn-prose 等）
- * - 本文件其余部分：support 组件自有样式（如全局搜索按钮 sn-search-submit）
- * 其他扩展包的 index.css 只放包自有样式，公共 sn-* 类一律放 utilities.css。
+ Style entry point: utilities.css holds the shared sn-* layer plus design tokens,
+ content.css handles prose, filament.css overrides Filament internals, and the rest
+ below is support-owned component styling.
  */
 
 @source "../views/**/*";
@@ -11,19 +9,15 @@
 
 @import './utilities.css';
 @import './content.css';
+@import './filament.css';
 
-/*
- * Alpine x-cloak 兜底：必须在头部阻塞加载的样式表里定义（Filament 的定义随脚本在页尾注入，首绘会闪）。
- * 所有 x-cloak 元素从第一帧起隐藏，Alpine 初始化后按 x-show 恢复。
- */
+/* x-cloak must be declared in a blocking stylesheet, or elements flash before Alpine runs. */
 [x-cloak] {
     display: none !important;
 }
 
-/* 搜索框一体化提交按钮（x-filament::input.wrapper 的 suffix 区域内渲染）。
-   按钮模式下 wrapper 以非 inline suffix 渲染：自带竖向分割线（border-s），按钮左侧直角贴住分割线、
-   右侧圆角随 wrapper。下面用 :has 定位含按钮的 suffix 容器，去内边距让按钮占满整个 suffix 区
-   （满高、贴分割线与输入框右缘），label span 链路同步撑高供按钮 h-full 生效 */
+/* Inline search submit button rendered in the input wrapper suffix; it fills the
+ whole suffix area so it sits flush against the divider and the field edge. */
 .fi-input-wrp .fi-input-wrp-suffix:has(.sn-search-submit) {
     @apply p-0;
 }
@@ -35,8 +29,7 @@
 .sn-search-submit {
     @apply inline-flex h-full shrink-0 cursor-pointer items-center justify-center;
     @apply rounded-e-lg px-4;
-    /* 色阶与导航（sn-primary-bg / sn-cms-nav）同一体系：表面亮 500 / 暗 600，hover 提亮 400；
-       dark:hover 必须显式声明，否则 dark: 变体在输出序上压过 hover: 导致暗色下 hover 不提亮 */
+    /* Same palette as sn-primary-bg; dark:hover must be explicit or dark wins over hover. */
     @apply bg-primary-500 hover:bg-primary-400 dark:bg-primary-600 dark:hover:bg-primary-400;
     @apply text-sm font-medium text-white;
     @apply transition-colors duration-75;
