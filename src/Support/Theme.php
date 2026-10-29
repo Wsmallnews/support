@@ -9,10 +9,10 @@ namespace Wsmallnews\Support\Support;
 class Theme
 {
     /**
-    * Overridable token keys without the --sn- prefix; _lg is the desktop step.
-    *
-    * @var array<int, string>
-    */
+     * Overridable token keys without the --sn- prefix; _lg is the desktop step.
+     *
+     * @var array<int, string>
+     */
     public const TOKENS = [
         'radius_card',
         'radius_control',

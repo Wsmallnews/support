@@ -19,9 +19,9 @@ class Page extends Base
     public ?string $slug = null;
 
     /**
-         * Injected page instance, preferred over the slug lookup. Avoid naming it $page, which
-         * would collide with the view data.
-         */
+     * Injected page instance, preferred over the slug lookup. Avoid naming it $page, which
+     * would collide with the view data.
+     */
     public ?PageModel $pageRecord = null;
 
     public bool $withSeo = true;

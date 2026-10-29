@@ -6,15 +6,15 @@ use Wsmallnews\Support\Http\Controllers\SitemapController;
 use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Support Routes
-    |--------------------------------------------------------------------------
-    |
-    | Site-level endpoints (sitemap.xml, robots.txt, feed). Modules only register
-    | content sources with the registries; the endpoints live here.
-    |
-    */
+/*
+|--------------------------------------------------------------------------
+| Support Routes
+|--------------------------------------------------------------------------
+|
+| Site-level endpoints (sitemap.xml, robots.txt, feed). Modules only register
+| content sources with the registries; the endpoints live here.
+|
+*/
 
 // Root-level endpoints: no domain restriction and no module prefix, so a site with a
 // single module still exposes them.

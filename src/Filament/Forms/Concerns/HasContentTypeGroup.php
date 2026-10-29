@@ -19,18 +19,18 @@ trait HasContentTypeGroup
     // ------------------------- Public factories -------------------------
 
     /**
-    * Content type group bound to a morphOne content relation: content_type switches the
-    * editor (textarea, richtext, markdown or images) and everything is stored in the related
-    * content column; images are stored as a JSON array of paths. Saving is internal, so
-    * Create and Edit pages need no content handling.
-    *
-    * @param  array<int, ContentType|string>|null  $types  Allowed types; null uses the global config or every type
-    * @param  ContentType|string|null  $defaultType  Default type; null uses the global config or Richtext
-    * @param  string  $relationship  Relation name
-    * @param  string|null  $label  Field label, defaults to the support translation
-    * @param  string|null  $directory  Upload directory for editor attachments and images
-    * @param  bool  $required  Whether content is mandatory (false deletes the related record when empty)
-    */
+     * Content type group bound to a morphOne content relation: content_type switches the
+     * editor (textarea, richtext, markdown or images) and everything is stored in the related
+     * content column; images are stored as a JSON array of paths. Saving is internal, so
+     * Create and Edit pages need no content handling.
+     *
+     * @param  array<int, ContentType|string>|null  $types  Allowed types; null uses the global config or every type
+     * @param  ContentType|string|null  $defaultType  Default type; null uses the global config or Richtext
+     * @param  string  $relationship  Relation name
+     * @param  string|null  $label  Field label, defaults to the support translation
+     * @param  string|null  $directory  Upload directory for editor attachments and images
+     * @param  bool  $required  Whether content is mandatory (false deletes the related record when empty)
+     */
     public static function contentTypeGroup(
         ?array $types = null,
         ContentType | string | null $defaultType = null,
@@ -157,11 +157,11 @@ trait HasContentTypeGroup
     // ------------------------- Type resolution -------------------------
 
     /**
-    * Resolve the allowed types: explicit argument, then form_components.content.types, then all.
-    *
-    * @param  array<int, ContentType|string>|null  $types
-    * @return array<int, ContentType>
-    */
+     * Resolve the allowed types: explicit argument, then form_components.content.types, then all.
+     *
+     * @param  array<int, ContentType|string>|null  $types
+     * @return array<int, ContentType>
+     */
     protected static function resolveContentTypes(?array $types): array
     {
         $configTypes = $types ?? SupportUtils::getConfig('form_components.content.types');
@@ -177,11 +177,11 @@ trait HasContentTypeGroup
     }
 
     /**
-    * Resolve the default type: explicit argument, then form_components.content.default_type,
-    * then Richtext, always constrained to the allowed list.
-    *
-    * @param  array<int, ContentType>  $types
-    */
+     * Resolve the default type: explicit argument, then form_components.content.default_type,
+     * then Richtext, always constrained to the allowed list.
+     *
+     * @param  array<int, ContentType>  $types
+     */
     protected static function resolveContentTypeDefault(ContentType | string | null $defaultType, array $types): ContentType
     {
         $defaultType = static::normalizeContentType($defaultType)
@@ -204,11 +204,11 @@ trait HasContentTypeGroup
     // ------------------------- Virtual field mapping -------------------------
 
     /**
-    * Map the related content column onto the virtual field of the current type (images decoded).
-    *
-    * @param  array<string, mixed>  $data
-    * @return array<string, mixed>
-    */
+     * Map the related content column onto the virtual field of the current type (images decoded).
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     protected static function fillVirtualContentField(array $data): array
     {
         $type = static::normalizeContentType($data['content_type'] ?? null);
@@ -231,11 +231,11 @@ trait HasContentTypeGroup
     }
 
     /**
-    * Map the virtual field back onto the content column (images encoded as JSON).
-    *
-    * @param  array<string, mixed>  $data
-    * @return array<string, mixed>
-    */
+     * Map the virtual field back onto the content column (images encoded as JSON).
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     protected static function mapVirtualContentField(array $data, ContentType $type): array
     {
         $value = $data['content_' . $type->value] ?? null;

@@ -38,10 +38,8 @@ trait HasActivityLog
     }
 
     /**
-    * Activity log options.
-    *
-    * @return LogOptions
-    */
+     * Activity log options.
+     */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -52,11 +50,11 @@ trait HasActivityLog
     }
 
     /**
-    * Build the log description.
-    *
-    * @param  string  $eventName  Event name
-    * @return string Description
-    */
+     * Build the log description.
+     *
+     * @param  string  $eventName  Event name
+     * @return string Description
+     */
     protected function getActivityDescription(string $eventName): string
     {
         $label = ActivityLogEvent::tryFrom($eventName)?->getLabel() ?? Str::studly($eventName);

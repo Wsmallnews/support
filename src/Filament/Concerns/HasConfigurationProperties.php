@@ -64,15 +64,15 @@ trait HasConfigurationProperties
     protected int | Closure | null $scopeId = null;
 
     /**
-    * Scopeable instance key declared under the module's config scopeables, e.g. 'footer';
-    * defaults to main. It replaces the explicit scopeType/scopeId pair and takes priority.
-    */
+     * Scopeable instance key declared under the module's config scopeables, e.g. 'footer';
+     * defaults to main. It replaces the explicit scopeType/scopeId pair and takes priority.
+     */
     protected string | Closure | null $scopeable = null;
 
     /**
-    * Module id owning this resource, used to address module-level registries. Orthogonal to
-    * scope: scope isolates data, module says where capabilities come from. Injected at registration.
-    */
+     * Module id owning this resource, used to address module-level registries. Orthogonal to
+     * scope: scope isolates data, module says where capabilities come from. Injected at registration.
+     */
     protected string | Closure | null $moduleId = null;
 
     protected array $customProperties = [];

@@ -27,12 +27,12 @@ class Rocket implements ArrayAccess, JsonSerializable
     }
 
     /**
-    * Read an input parameter.
-    *
-    * @param  string  $name
-    * @param  mixed  $default
-    * @return mixed
-    */
+     * Read an input parameter.
+     *
+     * @param  string  $name
+     * @param  mixed  $default
+     * @return mixed
+     */
     public function getParam($name, $default = null)
     {
         return $this->params[$name] ?? $default;
@@ -77,10 +77,10 @@ class Rocket implements ArrayAccess, JsonSerializable
     }
 
     /**
-    * @deprecated 1.0.0 Merges a sub-array into one radar entry; scheduled for removal.
-    *
-    * @param  string  $field
-    */
+     * @deprecated 1.0.0 Merges a sub-array into one radar entry; scheduled for removal.
+     *
+     * @param  string  $field
+     */
     public function mergeRadarField(array $value, $field): Rocket
     {
         $current = $this->getRadar($field, []);
@@ -118,11 +118,11 @@ class Rocket implements ArrayAccess, JsonSerializable
     }
 
     /**
-    * Merge into the payload.
-    *
-    * @param  array  $payload
-    * @return $this
-    */
+     * Merge into the payload.
+     *
+     * @param  array  $payload
+     * @return $this
+     */
     public function mergePayloads(array $payloads): Rocket
     {
         $this->payloads = $this->payloads

@@ -32,11 +32,11 @@ class IdentifyTenant
     }
 
     /**
-    * Resolve the tenant by id.
-    *
-    * @param  int  $tenantId
-    * @return void
-    */
+     * Resolve the tenant by id.
+     *
+     * @param  int  $tenantId
+     * @return void
+     */
     protected function getTenant($tenantId)
     {
         $tenantModel = SupportUtils::getTenantModel();

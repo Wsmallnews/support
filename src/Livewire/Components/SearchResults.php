@@ -47,9 +47,9 @@ class SearchResults extends Base
     }
 
     /**
-    * Submit button precedence: component property, module, then global. The results page is
-    * always page-shaped, so display does not gate it.
-    */
+     * Submit button precedence: component property, module, then global. The results page is
+     * always page-shaped, so display does not gate it.
+     */
     public function isShowButton(): bool
     {
         if ($this->showButton !== null) {
@@ -60,9 +60,9 @@ class SearchResults extends Base
     }
 
     /**
-    * Explicit search for the button and Enter: Livewire applies deferred updates before
-    * actions, so the pending query is already current here.
-    */
+     * Explicit search for the button and Enter: Livewire applies deferred updates before
+     * actions, so the pending query is already current here.
+     */
     public function search(): void {}
 
     /** Submit button HTML rendered in the wrapper suffix; clicking calls search(). */

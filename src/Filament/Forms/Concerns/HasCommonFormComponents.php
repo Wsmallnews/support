@@ -11,13 +11,13 @@ use Filament\Forms;
 trait HasCommonFormComponents
 {
     /**
-    * Enum ToggleButtons (inline, grouped, defaulting to the first case). Intended for status
-    * fields; other enums should override the label at the call site.
-    *
-    * @param  class-string<\BackedEnum>  $enumClass  Enum class
-    * @param  string  $field  Column name
-    * @param  string | null  $label  Field label, defaults to the translation
-    */
+     * Enum ToggleButtons (inline, grouped, defaulting to the first case). Intended for status
+     * fields; other enums should override the label at the call site.
+     *
+     * @param  class-string<\BackedEnum>  $enumClass  Enum class
+     * @param  string  $field  Column name
+     * @param  string | null  $label  Field label, defaults to the translation
+     */
     public static function enumsToggleButtons(string $enumClass, string $field = 'status', ?string $label = null): Forms\Components\ToggleButtons
     {
         return Forms\Components\ToggleButtons::make($field)
@@ -29,11 +29,11 @@ trait HasCommonFormComponents
     }
 
     /**
-    * order_column input (integer, min 0, left empty to append at the end).
-    *
-    * @param  string  $field  Column name
-    * @param  string | null  $label  Field label, defaults to the translation
-    */
+     * order_column input (integer, min 0, left empty to append at the end).
+     *
+     * @param  string  $field  Column name
+     * @param  string | null  $label  Field label, defaults to the translation
+     */
     public static function orderColumnInput(string $field = 'order_column', ?string $label = null): Forms\Components\TextInput
     {
         return Forms\Components\TextInput::make($field)

@@ -11,10 +11,10 @@ trait HasEditorComponents
     // ------------------------- Editors -------------------------
 
     /**
-    * Markdown editor.
-    *
-    * @param  string  $name  Column name
-    */
+     * Markdown editor.
+     *
+     * @param  string  $name  Column name
+     */
     public static function markdownEditor(string $name): Forms\Components\MarkdownEditor
     {
         $component = Forms\Components\MarkdownEditor::make($name);
@@ -23,10 +23,10 @@ trait HasEditorComponents
     }
 
     /**
-    * Rich text editor.
-    *
-    * @param  string  $name  Column name
-    */
+     * Rich text editor.
+     *
+     * @param  string  $name  Column name
+     */
     public static function richEditor(string $name): Forms\Components\RichEditor
     {
         $component = Forms\Components\RichEditor::make($name);

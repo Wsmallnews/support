@@ -90,12 +90,12 @@ class CompositionRegistry
     }
 
     /**
-    * Re-registering a purpose replaces the array form; the string form only overrides its label.
-    * Prefer closure labels (fn () => __('...')) so translation happens at consumption time.
-    *
-    * @param  string  $module  Module id
-    * @param  array<string, string|array{label: string|Closure, positions?: array, default?: string, layout_mode?: string, context?: Closure}>  $purposes
-    */
+     * Re-registering a purpose replaces the array form; the string form only overrides its label.
+     * Prefer closure labels (fn () => __('...')) so translation happens at consumption time.
+     *
+     * @param  string  $module  Module id
+     * @param  array<string, string|array{label: string|Closure, positions?: array, default?: string, layout_mode?: string, context?: Closure}>  $purposes
+     */
     public function registerPurposes(string $module, array $purposes): static
     {
         $metas = $this->getPurposesMeta($module);
@@ -117,7 +117,6 @@ class CompositionRegistry
 
     /**
      * @return Collection<string, string> purpose => resolved label
-     *
      * @return Collection<string, string>
      */
     public function getPurposes(string $module): Collection
@@ -126,10 +125,10 @@ class CompositionRegistry
     }
 
     /**
-    * Purpose meta with label/positions already resolved to strings.
-    *
-    * @return array|null{label: string, positions: array<string, string>, default: ?string, layout_mode: ?string, context: ?Closure} Null when unregistered
-    */
+     * Purpose meta with label/positions already resolved to strings.
+     *
+     * @return array|null{label: string, positions: array<string, string>, default: ?string, layout_mode: ?string, context: ?Closure} Null when unregistered
+     */
     public function getPurpose(string $module, string $purpose): ?array
     {
         $meta = $this->getPurposesMeta($module)->get($purpose);
