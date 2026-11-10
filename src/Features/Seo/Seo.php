@@ -5,6 +5,8 @@ namespace Wsmallnews\Support\Features\Seo;
 use Closure;
 use Illuminate\Support\HtmlString;
 use Stringable;
+use Wsmallnews\Support\Features\Site\Site;
+use Wsmallnews\Support\Features\Site\SiteContext;
 
 /**
  * SEO renderer: per-module site defaults plus the current page context (rebuilt by init()).
@@ -23,7 +25,7 @@ use Stringable;
 class Seo implements Stringable
 {
     /**
-     * @var array<string, array|Closure> module => defaults, closures resolved lazily
+     * @var array<string, array<string, array|Closure>> module => siteId => defaults, closures resolved lazily
      */
     protected array $configs = [];
 
@@ -38,6 +40,9 @@ class Seo implements Stringable
      */
     protected ?array $resolvedDefaults = null;
 
+    /** Cache marker: defaults are per site + module, so switching either invalidates them. */
+    protected ?string $resolvedFor = null;
+
     /** Page-level SEO value object. */
     protected SeoPage $page;
 
@@ -50,25 +55,26 @@ class Seo implements Stringable
      * ---------- Module registration and resolution ----------
      */
 
-    /** Declare module defaults; repeated calls merge. Call from packageBooted(). */
-    public function config(string $module, array | Closure $config): static
+    /** Declare defaults for one site; repeated calls merge. */
+    public function config(string $module, array | Closure $config, Site $site): static
     {
-        if (! isset($this->configs[$module])) {
-            $this->configs[$module] = $config;      // stored as-is so closures stay lazy
-        } else {
-            $this->configs[$module] = array_merge($this->resolveConfig($this->configs[$module]), $this->resolveConfig($config));
-        }
+        $current = $this->configs[$module][$site->id()] ?? null;
+
+        $this->configs[$module][$site->id()] = $current === null
+            ? $config                                   // stored as-is so closures stay lazy
+            : array_merge($this->resolveConfig($current), $this->resolveConfig($config));
 
         $this->resolvedDefaults = null;
 
         return $this;
     }
 
-    /** Start a page: rebuild the page context and bind its module. Called by the seo-init middleware. */
+    /** Start a page: rebuild the page context and bind its module. Called by the sn-resolve-seo middleware. */
     public function init(?string $module = null): static
     {
         $this->forModule = $module;
         $this->resolvedDefaults = null;
+        $this->resolvedFor = null;
         $this->page = new SeoPage;
 
         return $this;
@@ -88,7 +94,15 @@ class Seo implements Stringable
      */
     public function defaults(): array
     {
-        return $this->resolvedDefaults ??= $this->resolveDefaults();
+        $site = app(SiteContext::class)->site();
+        $marker = ($site?->id() ?? '-') . '|' . ($this->forModule ?? '-');
+
+        if ($this->resolvedDefaults === null || $this->resolvedFor !== $marker) {
+            $this->resolvedDefaults = $this->resolveDefaults();
+            $this->resolvedFor = $marker;
+        }
+
+        return $this->resolvedDefaults;
     }
 
     /**
@@ -97,7 +111,15 @@ class Seo implements Stringable
     protected function resolveDefaults(): array
     {
         $module = $this->forModule;
-        $config = ($module !== null && isset($this->configs[$module])) ? $this->resolveConfig($this->configs[$module]) : [];
+        $site = app(SiteContext::class)->site();
+
+        $config = [];
+
+        if ($module !== null && $site !== null) {
+            $stored = $this->configs[$module][$site->id()] ?? null;
+
+            $config = $stored !== null ? $this->resolveConfig($stored) : [];
+        }
 
         return [
             'site_name' => $config['site_name'] ?? config('app.name'),

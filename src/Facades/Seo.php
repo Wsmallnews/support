@@ -7,7 +7,7 @@ use Illuminate\Support\HtmlString;
 use Wsmallnews\Support\Features\Seo\SeoPage;
 
 /**
- * @method static static config(string $module, array|\Closure $config)
+ * @method static static config(string $module, array|\Closure $config, Site $site)
  * @method static static init(?string $module = null)
  * @method static ?string getFor()
  * @method static array defaults()

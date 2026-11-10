@@ -8,8 +8,12 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
-use Wsmallnews\Support\Features\Concerns\MatchesDomain;
+use InvalidArgumentException;
+use Wsmallnews\Support\Features\Site\Site;
+use Wsmallnews\Support\Features\Site\SiteRegistry;
+use Wsmallnews\Support\Http\Controllers\SitemapController;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
@@ -18,59 +22,62 @@ use Wsmallnews\Support\Support\Utils as SupportUtils;
  */
 class SitemapRegistry
 {
-    use MatchesDomain;
-
-    /**
-     * @var Collection<string, array<string, mixed>> module => options
-     */
-    protected Collection $configs;
-
-    /**
-     * @var Collection<string, Collection<int, array<string, mixed>>> module => sources
-     */
-    protected Collection $modules;
-
     /**
      * @var Collection<string, array<string, mixed>> module => robots rules
      */
     protected Collection $robotsRules;
 
+    /**
+     * @var Collection<string, Collection<string, array<string, mixed>>> module => siteId => options
+     */
+    protected Collection $configs;
+
+    /**
+     * @var Collection<string, Collection<string, Collection<int, array<string, mixed>>>> module => siteId => sources
+     */
+    protected Collection $sources;
+
     public function __construct()
     {
-        $this->configs = collect();
-        $this->modules = collect();
         $this->robotsRules = collect();
+        $this->configs = collect();
+        $this->sources = collect();
     }
 
     /*
      * ---------- Registration ----------
      */
 
-    /** Declare module options (merged shallowly, later calls win). Chainable. */
-    public function config(string $module, array $config): static
+    /** Declare options for one site (merged shallowly, later calls win). Chainable. */
+    public function config(string $module, array $config, Site $site): static
     {
-        $this->configs->put($module, array_merge($this->configs->get($module, []), $config));
+        $this->assertOwnership($module, $site);
+
+        $sites = $this->configs->get($module, collect());
+        $sites->put($site->id(), array_merge($sites->get($site->id(), []), $config));
+        $this->configs->put($module, $sites);
 
         return $this;
     }
 
-    /** Register one URL source for a module. Chainable. */
-    public function register(string $module, array $source): static
+    /** Register one URL source for a site. Chainable. */
+    public function register(string $module, array $source, Site $site): static
     {
-        if (blank($source['key'] ?? null) || ! ($source['urls'] ?? null) instanceof Closure) {
-            throw new \InvalidArgumentException(sprintf('Sitemap 来源必须包含 key 与 urls 闭包（模块 %s）', $module));
-        }
+        $this->assertOwnership($module, $site);
+        $this->assertSource($module, $source);
 
-        $this->modules->put($module, ($this->modules->get($module, collect()))->push($source));
+        $sites = $this->sources->get($module, collect());
+        $sites->put($site->id(), ($sites->get($site->id(), collect()))->push($source));
+        $this->sources->put($module, $sites);
 
         return $this;
     }
 
-    /** Register several URL sources at once. */
-    public function registers(string $module, array $sources): static
+    /** Register several URL sources for a site at once. */
+    public function registers(string $module, array $sources, Site $site): static
     {
         foreach ($sources as $source) {
-            $this->register($module, $source);
+            $this->register($module, $source, $site);
         }
 
         return $this;
@@ -84,43 +91,64 @@ class SitemapRegistry
         return $this;
     }
 
-    /** Remove every source, option and rule of a module. */
-    public function forget(string $module): static
+    /** Only the module owning the site may register on it. */
+    protected function assertOwnership(string $module, Site $site): void
     {
-        $this->configs->forget($module);
-        $this->modules->forget($module);
-        $this->robotsRules->forget($module);
+        if ($module !== $site->pluginId) {
+            throw new InvalidArgumentException(
+                "Sitemap module [{$module}] cannot register on site [{$site->id()}] owned by [{$site->pluginId}]."
+            );
+        }
+    }
 
-        return $this;
+    /** Register the site sitemap endpoint. Must be called inside the site route group. */
+    public function routes(string $module, Site $site): void
+    {
+        $this->assertOwnership($module, $site);
+
+        Route::get('sitemap.xml', [SitemapController::class, 'sitemap'])
+            ->defaults('sitemap_module', $module)
+            ->defaults('sitemap_site', $site->id())
+            ->name('sitemap');
     }
 
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    public function getSources(string $module): Collection
+    public function getSources(string $module, Site $site): Collection
     {
-        return $this->modules->get($module, collect());
+        return $this->sources->get($module, collect())->get($site->id(), collect());
     }
 
-    /**
-     * @return array<int, string> modules that registered at least one source
-     */
-    public function getModules(): array
+    /** Read module options of one site. */
+    public function getConfig(string $module, Site $site, ?string $key = null, mixed $default = null): mixed
     {
-        return $this->modules->keys()->values()->all();
+        $config = (array) $this->configs->get($module, collect())->get($site->id(), []);
+
+        return $key === null ? $config : ($config[$key] ?? $default);
+    }
+
+    /** Resolve in order: module declaration, global sn-support.sitemap.*, then $default. */
+    public function resolveConfig(string $module, string $key, Site $site, mixed $default = null): mixed
+    {
+        return $this->getConfig($module, $site, $key)
+            ?? SupportUtils::getSitemapConfig($key, $default);
     }
 
     /*
      * ---------- Rendering ----------
      */
 
-    /** Render the sitemap XML for sources matching the current domain (cached as a whole). */
-    public function render(): HtmlString
+    /** Render the sitemap XML of one module on one site (cached as a whole). */
+    public function render(string $module, Site $site): HtmlString
     {
-        $ttl = SupportUtils::getSitemapConfig('cache_ttl', 3600);
-        $xml = ($ttl === null || $ttl <= 0)
-            ? $this->compile()
-            : Cache::remember($this->cacheKey(), $ttl, fn (): string => $this->compile());
+        $this->assertOwnership($module, $site);
+
+        // TTL 解析链：模块声明（站点 sitemap.* 透传）> sn-support.sitemap.cache_ttl
+        $ttl = (int) $this->resolveConfig($module, 'cache_ttl', $site, 3600);
+        $xml = $ttl <= 0
+            ? $this->compile($module, $site)
+            : Cache::remember($this->cacheKey($module, $site), $ttl, fn (): string => $this->compile($module, $site));
 
         return new HtmlString($xml);
     }
@@ -137,12 +165,7 @@ class SitemapRegistry
             }
         }
 
-        // Module rules also respect the domain filter
-        foreach ($this->robotsRules as $module => $rules) {
-            if (! $this->moduleMatchesDomain($module)) {
-                continue;
-            }
-
+        foreach ($this->robotsRules as $rules) {
             foreach ($rules['disallow'] ?? [] as $path) {
                 if (filled($path)) {
                     $lines[] = 'Disallow: /' . trim($path, '/');
@@ -151,15 +174,30 @@ class SitemapRegistry
         }
 
         $lines[] = '';
-        $lines[] = 'Sitemap: ' . route('sn-support.sitemap');
+
+        // One Sitemap line per registered frontend site (there is no root sitemap).
+        foreach (app(SiteRegistry::class)->all() as $site) {
+            if (! $site->routable) {
+                continue;
+            }
+
+            $routeName = $site->routeNamePrefix . 'sitemap';
+            $route = app('router')->getRoutes()->getByName($routeName);
+
+            // Path-tenant sites need a concrete tenant in the URL; root robots cannot
+            // know it, so only parameterless sitemap routes are advertised here.
+            if ($route && $route->parameterNames() === []) {
+                $lines[] = 'Sitemap: ' . sn_route($routeName);
+            }
+        }
 
         return implode("\n", array_values(array_unique($lines))) . "\n";
     }
 
-    /** Drop the cached sitemap, for callers to invoke after content changes. */
-    public function flush(): static
+    /** Drop the cached sitemap of one module on one site. */
+    public function flush(string $module, Site $site): static
     {
-        Cache::forget($this->cacheKey());
+        Cache::forget($this->cacheKey($module, $site));
 
         return $this;
     }
@@ -168,38 +206,32 @@ class SitemapRegistry
      * ---------- Internals ----------
      */
 
-    /** Cache key carries tenant, host and module set, so entries never bleed across contexts. */
-    protected function cacheKey(): string
+    /** Cache key carries tenant, site, host and module, so entries never bleed across contexts. */
+    protected function cacheKey(string $module, Site $site): string
     {
-        $tenant = function_exists('has_tenancy') && has_tenancy() ? (current_tenant()?->id ?? 'none') : 'global';
+        $tenant = current_tenant()?->getKey() ?? 'global';
         $host = request()->getHost();
 
-        return 'sn-support:sitemap:' . $tenant . ':' . $host . ':' . md5(implode(',', $this->getModules()));
+        return 'sn-support:sitemap:' . $tenant . ':' . $site->id() . ':' . $module . ':' . $host;
     }
 
-    /** Aggregate domain-matching sources and build the XML (uncached, runs every urls closure). */
-    protected function compile(): string
+    /** Build the XML from the module's registered sources (uncached, runs every urls closure). */
+    protected function compile(string $module, Site $site): string
     {
         $lines = [
             '<?xml version="1.0" encoding="UTF-8"?>',
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
         ];
 
-        foreach ($this->modules as $module => $sources) {
-            if (! $this->moduleMatchesDomain($module)) {
-                continue;
-            }
-
-            foreach ($sources as $source) {
-                foreach (($source['urls'])() as $url) {
-                    $loc = e($url['loc'] ?? '');
-                    if (blank($loc)) {
-                        continue;
-                    }
-
-                    $lastmod = $this->formatLastmod($url['lastmod'] ?? null);
-                    $lines[] = '    <url><loc>' . $loc . '</loc>' . ($lastmod ? '<lastmod>' . $lastmod . '</lastmod>' : '') . '</url>';
+        foreach ($this->getSources($module, $site) as $source) {
+            foreach (($source['urls'])() as $url) {
+                $loc = e($url['loc'] ?? '');
+                if (blank($loc)) {
+                    continue;
                 }
+
+                $lastmod = $this->formatLastmod($url['lastmod'] ?? null);
+                $lines[] = '    <url><loc>' . $loc . '</loc>' . ($lastmod ? '<lastmod>' . $lastmod . '</lastmod>' : '') . '</url>';
             }
         }
 
@@ -208,10 +240,12 @@ class SitemapRegistry
         return implode("\n", $lines);
     }
 
-    /** Domain filter switch (config sn-support.sitemap.domain_filter, on by default). */
-    protected function isDomainFilterEnabled(): bool
+    /** @param  array<string, mixed>  $source */
+    protected function assertSource(string $module, array $source): void
     {
-        return SupportUtils::getSitemapConfig('domain_filter', true) === true;
+        if (blank($source['key'] ?? null) || ! ($source['urls'] ?? null) instanceof Closure) {
+            throw new \InvalidArgumentException(sprintf('Sitemap 来源必须包含 key 与 urls 闭包（模块 %s）', $module));
+        }
     }
 
     /** Normalise lastmod to a W3C date; drop the field when unparsable. */

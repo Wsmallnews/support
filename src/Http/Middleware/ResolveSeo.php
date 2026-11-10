@@ -9,9 +9,9 @@ use Wsmallnews\Support\Features\Seo\Seo;
 /**
  * Rebuild the page SEO context for the current request. A normal route middleware, never a
  * persistent Livewire one: only first renders output <head>, and update requests skip it.
- * Usage: Route::middleware('seo-init:sn-cms').
+ * Usage: Route::middleware('sn-resolve-seo:sn-cms').
  */
-class InitializeSeo
+class ResolveSeo
 {
     public function handle(Request $request, Closure $next, ?string $module = null): mixed
     {

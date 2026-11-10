@@ -4,48 +4,51 @@ namespace Wsmallnews\Support\Http\Controllers;
 
 use Illuminate\Http\Response;
 use Wsmallnews\Support\Facades\Feed;
+use Wsmallnews\Support\Features\Site\Site;
+use Wsmallnews\Support\Features\Site\SiteContext;
+use Wsmallnews\Support\Features\Site\SiteRegistry;
 
 /**
- * Site-level RSS endpoints (/feed and /feed/{name}); modules register their own endpoints
- * inside their route group and tag them with ->defaults('feed_module', '<plugin id>').
+ * Module feed endpoints ({prefix}/feed and {prefix}/feed/{name}).
+ *
+ * Routes are registered by Feed::routes() with two defaults: feed_module (the owning
+ * module) and feed_site (the site id). Both are asserted against the resolved context,
+ * so a route reused outside its site fails loudly instead of serving an empty feed.
  */
 class FeedController
 {
-    /** Site aggregate: merges every visible feed, newest first. */
-    public function index(): Response
-    {
-        return $this->response(Feed::render()->toHtml());
-    }
-
-    /** Named feed; 404 when unknown or hidden by the domain filter. */
-    public function show(string $name): Response
-    {
-        abort_if(Feed::getFeed($name) === null, 404);
-
-        return $this->response(Feed::render($name)->toHtml());
-    }
-
-    /**
-     * Module aggregate: merges only that module's visible feeds.
-     *
-     * feed_module is read from the route rather than injected by position: defaults and URI
-     * segments do not line up reliably through positional injection.
-     */
+    /** Module aggregate: merges only that module's visible feeds. */
     public function moduleIndex(): Response
     {
-        $module = (string) request()->route()->parameter('feed_module');
-
-        return $this->response(Feed::renderModule($module)->toHtml());
+        return $this->render();
     }
 
-    /** Module named feed; 404 when the feed belongs to another module or is invisible. */
-    public function moduleShow(string $name): Response
+    /** Named feed; 404 when the name is unknown on this site. */
+    public function moduleShow(): Response
     {
-        $module = (string) request()->route()->parameter('feed_module');
+        return $this->render((string) request()->route()->parameter('name'));
+    }
 
-        abort_if(Feed::getFeed($name, $module) === null, 404);
+    protected function render(?string $name = null): Response
+    {
+        $route = request()->route();
+        $module = (string) $route->parameter('feed_module');
+        $site = app(SiteRegistry::class)->get((string) $route->parameter('feed_site'));
 
-        return $this->response(Feed::renderModule($module, $name)->toHtml());
+        if (! $site instanceof Site) {
+            abort(404);
+        }
+
+        // sn-resolve-site must have bound the same site the route was registered for.
+        if (app(SiteContext::class)->site()?->id() !== $site->id()) {
+            abort(404);
+        }
+
+        if ($name !== null && Feed::getFeed($name, $module, $site) === null) {
+            abort(404);
+        }
+
+        return $this->response(Feed::render($module, $site, $name)->toHtml());
     }
 
     protected function response(string $xml): Response

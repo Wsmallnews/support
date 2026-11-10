@@ -82,7 +82,7 @@ class SearchSource
 
     public function limit(): int
     {
-        return (int) ($this->options['limit'] ?? SupportUtils::getSearchConfig('results_limit', 8));
+        return (int) ($this->options['limit'] ?? SupportUtils::getSearchConfig('limit', 8));
     }
 
     public function sort(): int
@@ -116,6 +116,11 @@ class SearchSource
     public function modifyQuery(Builder $query): Builder
     {
         $scopeable = $this->options['scopeable'] ?? null;
+
+        // A closure keeps the scope per-request (one panel may host several sites).
+        if ($scopeable instanceof Closure) {
+            $scopeable = $scopeable();
+        }
 
         if ($scopeable && method_exists($this->options['model'], 'scopeScopeable')) {
             $query->scopeable($scopeable['scope_type'], $scopeable['scope_id']);

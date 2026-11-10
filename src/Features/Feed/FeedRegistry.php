@@ -8,27 +8,32 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
-use Wsmallnews\Support\Features\Concerns\MatchesDomain;
+use InvalidArgumentException;
+use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Http\Controllers\FeedController;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
-/** Named RSS feed registry; see the Feed section of the README for registration options. */
+/**
+ * Named RSS feed registry.
+ *
+ * A site's feed space belongs to exactly one module (the plugin that owns the
+ * site), so every write and read pairs a module with its own site. Reads take
+ * the site explicitly — there is no ambient fallback.
+ */
 class FeedRegistry
 {
-    use MatchesDomain;
-
     /**
-     * @var Collection<string, array<string, mixed>> module name => options
+     * @var Collection<string, Collection<string, array<string, mixed>>> module => siteId => options
      */
     protected Collection $configs;
 
     /**
-     * @var Collection<string, array<string, mixed>> feed name => definition
+     * @var Collection<string, Collection<string, Collection<string, array<string, mixed>>>> module => siteId => name => feed
      */
     protected Collection $feeds;
 
     /**
-     * @var array<string, string> module => fully-prefixed route name (e.g. sn-cms.feed.show)
+     * @var array<string, array<string, string>> module => siteId => fully-prefixed route name
      */
     protected array $moduleRouteNames = [];
 
@@ -42,47 +47,71 @@ class FeedRegistry
      * ---------- Registration ----------
      */
 
-    /** Declare module options (merged shallowly, later calls win). Chainable. */
-    public function config(string $module, array $config): static
+    /** Declare module options for one site (merged shallowly, later calls win). */
+    public function config(string $module, array $config, Site $site): static
     {
-        $this->configs->put($module, array_merge($this->configs->get($module, []), $config));
+        $this->assertOwnership($module, $site);
+
+        $sites = $this->configs->get($module, collect());
+        $sites->put($site->id(), array_merge($sites->get($site->id(), []), $config));
+        $this->configs->put($module, $sites);
 
         return $this;
     }
 
     /**
-     * Register a named feed. The name is a URL segment and must be globally unique.
+     * Batch of named feeds: one ownership check, then the same write as register()
+     * per entry (a repeated name overrides, an empty array registers nothing).
      *
-     * @param  array{title?: Closure|string, label?: Closure|string, description?: Closure|string|null, link?: Closure|string, limit?: Closure|int, items: Closure}  $feed
+     * @param  array<string, array<string, mixed>>  $feeds  name => definition
      */
-    public function register(string $module, string $name, array $feed): static
+    public function registers(string $module, array $feeds, Site $site): static
     {
-        if (! preg_match('/^[a-z0-9\-]+$/', $name)) {
-            throw new \InvalidArgumentException(__('sn-support::support.feed.name_invalid', ['name' => $name]));
+        $this->assertOwnership($module, $site);
+
+        foreach ($feeds as $name => $feed) {
+            $this->putFeed($module, (string) $name, $feed, $site);
         }
-
-        if (! ($feed['items'] ?? null) instanceof Closure) {
-            throw new \InvalidArgumentException(__('sn-support::support.feed.items_missing', ['module' => $module, 'name' => $name]));
-        }
-
-        if ($this->feeds->has($name)) {
-            $owner = $this->feeds->get($name)['module'] ?? '?';
-
-            throw new \InvalidArgumentException(__('sn-support::support.feed.name_duplicated', ['name' => $name, 'module' => $owner]));
-        }
-
-        $feed['module'] = $module;
-        $this->feeds->put($name, $feed);
 
         return $this;
     }
 
-    /** Remove a named feed. */
-    public function forget(string $name): static
+    /**
+     * Register a named feed, replacing the previous definition when the name repeats.
+     *
+     * @param  array{title?: Closure|string, label?: Closure|string, description?: Closure|string|null, link?: Closure|string, limit?: Closure|int, items: Closure}  $feed
+     */
+    public function register(string $module, string $name, array $feed, Site $site): static
     {
-        $this->feeds->forget($name);
+        $this->assertOwnership($module, $site);
+
+        $this->putFeed($module, $name, $feed, $site);
 
         return $this;
+    }
+
+    /**
+     * A feed occupies the site's URL space ({prefix}/feed/{name}) and its route name
+     * comes from the site group, so a second module on the same site would shadow the
+     * first. Only the module owning the site may register feeds on it.
+     */
+    protected function assertOwnership(string $module, Site $site): void
+    {
+        if ($module !== $site->pluginId) {
+            throw new InvalidArgumentException(
+                "Feed module [{$module}] cannot register on site [{$site->id()}] owned by [{$site->pluginId}]."
+            );
+        }
+    }
+
+    /** @param  array<string, mixed>  $feed */
+    protected function putFeed(string $module, string $name, array $feed, Site $site): void
+    {
+        $sites = $this->feeds->get($module, collect());
+        $moduleFeeds = $sites->get($site->id(), collect());
+        $moduleFeeds->put($name, $this->prepare($module, $name, $feed, $site));
+        $sites->put($site->id(), $moduleFeeds);
+        $this->feeds->put($module, $sites);
     }
 
     /*
@@ -90,82 +119,81 @@ class FeedRegistry
      */
 
     /**
-     * Register module-scoped feed routes ({prefix}/feed and {prefix}/feed/{name}).
+     * Register this module's feed routes inside one site group ({prefix}/feed and
+     * {prefix}/feed/{name}), each tagged with feed_module and feed_site defaults.
      *
-     * Must be called inside the module route group, and before catch-all dynamic
+     * Must be called inside the site route group, and before catch-all dynamic
      * segments such as navigation/{slug}, otherwise the static segment is swallowed.
      */
-    public function routes(string $module): void
+    public function routes(string $module, Site $site): void
     {
-        $uri = trim((string) SupportUtils::getFeedsConfig('uri', 'feed'), '/');
+        $this->assertOwnership($module, $site);
+
+        // Module declaration (the site's feed.* section passed through) wins, then sn-support.feeds.
+        $uri = trim((string) $this->resolveConfig($module, 'uri', $site, 'feed'), '/');
 
         Route::get($uri, [FeedController::class, 'moduleIndex'])
             ->defaults('feed_module', $module)
+            ->defaults('feed_site', $site->id())
             ->name('feed');
 
         $show = Route::get($uri . '/{name}', [FeedController::class, 'moduleShow'])
             ->defaults('feed_module', $module)
+            ->defaults('feed_site', $site->id())
             ->where('name', '[a-z0-9\-]+')
             ->name('feed.show');
 
-        // Capture the group-prefixed route name for feedUrl() and autodiscoveryTags()
-        $this->moduleRouteNames[$module] = (string) $show->getName();
+        // One route per module and site; feedUrl() looks it up directly.
+        $this->moduleRouteNames[$module][$site->id()] = (string) $show->getName();
     }
 
     /*
      * ---------- Reads ----------
      */
 
-    /**
-     * All feeds visible to the current request (site-wide view), keyed by feed name.
-     *
-     * @return Collection<string, array<string, mixed>>
-     */
-    public function available(): Collection
+    /** Read module options of one site. */
+    public function getConfig(string $module, Site $site, ?string $key = null, mixed $default = null): mixed
     {
-        if (SupportUtils::getFeedsConfig('enabled', true) !== true) {
-            return collect();
-        }
+        $config = (array) $this->configs->get($module, collect())->get($site->id(), []);
 
-        return $this->feeds->filter(fn (array $feed): bool => $this->moduleMatchesDomain($feed['module']));
+        return $key === null ? $config : ($config[$key] ?? $default);
+    }
+
+    /** Resolve in order: module declaration, global sn-support.feeds.*, then $default. */
+    public function resolveConfig(string $module, string $key, Site $site, mixed $default = null): mixed
+    {
+        return $this->getConfig($module, $site, $key)
+            ?? SupportUtils::getFeedsConfig($key, $default);
     }
 
     /**
-     * Feeds of a single module that are visible to the current request.
+     * Feeds of one module on one site, keyed by feed name.
      *
      * @return Collection<string, array<string, mixed>>
      */
-    public function moduleFeeds(string $module): Collection
+    public function moduleFeeds(string $module, Site $site): Collection
     {
-        if (SupportUtils::getFeedsConfig('enabled', true) !== true) {
-            return collect();
-        }
-
-        return $this->feeds->filter(fn (array $feed): bool => $feed['module'] === $module && $this->moduleMatchesDomain($module));
+        return $this->feeds->get($module, collect())->get($site->id(), collect());
     }
 
-    /** Subscription URL: module endpoint when registered, site endpoint otherwise. */
-    public function feedUrl(string $name): string
+    /** Subscription URL for one feed of the given site. */
+    public function feedUrl(string $name, Site $site): string
     {
-        $feed = $this->feeds->get($name);
+        $routeName = $this->resolveFeedRouteName($site->pluginId, $site);
 
-        $routeName = ($feed && isset($this->moduleRouteNames[$feed['module']]))
-            ? $this->moduleRouteNames[$feed['module']]
-            : 'sn-support.feed.show';
-
-        return sn_route($routeName, ['name' => $name]);
+        return $routeName ? sn_route($routeName, ['name' => $name]) : '';
     }
 
     /** RSS autodiscovery <link> tags for one module, one per feed. */
-    public function autodiscoveryTags(string $module): HtmlString
+    public function autodiscoveryTags(string $module, Site $site): HtmlString
     {
         $lines = [];
 
-        foreach ($this->moduleFeeds($module) as $name => $feed) {
+        foreach ($this->moduleFeeds($module, $site) as $name => $feed) {
             $lines[] = sprintf(
                 '<link rel="alternate" type="application/rss+xml" title="%s" href="%s" />',
                 e((string) value($feed['title'] ?? null ?: config('app.name'))),
-                e($this->feedUrl($name)),
+                e($this->feedUrl($name, $site)),
             );
         }
 
@@ -173,59 +201,47 @@ class FeedRegistry
     }
 
     /**
-     * Resolve a visible feed by name; null when missing, domain-mismatched or owned by another module.
+     * Resolve a feed of the given site by name; null when missing.
      *
      * @return array<string, mixed>|null
      */
-    public function getFeed(string $name, ?string $module = null): ?array
+    public function getFeed(string $name, string $module, Site $site): ?array
     {
-        $feed = $this->feeds->get($name);
-
-        if (! $feed || ($module !== null && $feed['module'] !== $module)) {
-            return null;
-        }
-
-        return $this->moduleMatchesDomain($feed['module']) ? $feed : null;
+        return $this->moduleFeeds($module, $site)->get($name);
     }
 
     /*
      * ---------- Rendering ----------
      */
 
-    /** Render RSS 2.0 for the site: aggregate stream when name is null, single feed otherwise. */
-    public function render(?string $name = null): HtmlString
+    /** Render RSS 2.0: the module's aggregate stream when name is null, its named feed otherwise. */
+    public function render(string $module, Site $site, ?string $name = null): HtmlString
     {
-        return $this->memoizedRender($name, null);
+        $ttl = (int) $this->resolveConfig($module, 'cache_ttl', $site, 3600);
+        $xml = ($ttl === null || $ttl <= 0)
+            ? $this->compile($module, $site, $name)
+            : Cache::remember($this->cacheKey($module, $site, $name), $ttl, fn (): string => $this->compile($module, $site, $name));
+
+        return new HtmlString($xml);
     }
 
-    /** Render RSS 2.0 for one module: its aggregate stream when name is null, its named feed otherwise. */
-    public function renderModule(string $module, ?string $name = null): HtmlString
-    {
-        return $this->memoizedRender($name, $module);
-    }
-
-    /** Drop the render cache of every endpoint (root and modules, aggregate and named). */
+    /** Drop the render cache of every registered site. */
     public function flush(): static
     {
-        $modules = $this->feeds->map(fn (array $feed): string => $feed['module'])->unique()->values()->all();
-        $names = $this->feeds->keys()->all();
+        $siteIds = [];
 
-        foreach ($modules as $module) {
-            // Module aggregate endpoint
-            Cache::forget($this->cacheKey(null, $module));
-
-            // Module named endpoints
-            foreach ($names as $name) {
-                Cache::forget($this->cacheKey($name, $module));
-            }
+        foreach ($this->feeds as $sites) {
+            $siteIds = array_merge($siteIds, $sites->keys()->all());
         }
 
-        // Root aggregate and root named endpoints
-        foreach ($names as $name) {
-            Cache::forget($this->cacheKey($name));
+        $host = request()->getHost();
+        $tenant = current_tenant()?->getKey() ?? 'global';
+
+        foreach (array_unique($siteIds) as $siteId) {
+            $this->flushScope($tenant, (string) $siteId, $host);
         }
 
-        Cache::forget($this->cacheKey(null));
+        $this->flushScope($tenant, 'global', $host);
 
         return $this;
     }
@@ -234,76 +250,101 @@ class FeedRegistry
      * ---------- Internals ----------
      */
 
-    protected function memoizedRender(?string $name, ?string $module): HtmlString
+    /** @param  array<string, mixed>  $feed */
+    protected function prepare(string $module, string $name, array $feed, Site $site): array
     {
-        $ttl = SupportUtils::getFeedsConfig('cache_ttl', 3600);
-        $xml = ($ttl === null || $ttl <= 0)
-            ? $this->compile($name, $module)
-            : Cache::remember($this->cacheKey($name, $module), $ttl, fn (): string => $this->compile($name, $module));
+        if (! preg_match('/^[a-z0-9\-]+$/', $name)) {
+            throw new InvalidArgumentException(__('sn-support::support.feed.name_invalid', ['name' => $name]));
+        }
 
-        return new HtmlString($xml);
+        if (! ($feed['items'] ?? null) instanceof Closure) {
+            throw new InvalidArgumentException(__('sn-support::support.feed.items_missing', ['module' => $module, 'name' => $name]));
+        }
+
+        return ['module' => $module, 'site' => $site->id()] + $feed;
     }
 
-    /** Domain filter switch (config sn-support.feeds.domain_filter, on by default). */
-    protected function isDomainFilterEnabled(): bool
+    /** Route name of this module on the given site; null when the site has no feed route. */
+    protected function resolveFeedRouteName(string $module, Site $site): ?string
     {
-        return SupportUtils::getFeedsConfig('domain_filter', true) === true;
+        return $this->moduleRouteNames[$module][$site->id()] ?? null;
     }
 
-    /** Cache key carries tenant, host, module and feed, so entries never bleed across contexts. */
-    protected function cacheKey(?string $name, ?string $module = null): string
+    /** Cache key carries tenant, site, host, module and feed, so entries never bleed across contexts. */
+    protected function cacheKey(string $module, Site $site, ?string $name): string
     {
-        $tenant = function_exists('has_tenancy') && has_tenancy() ? (current_tenant()?->id ?? 'none') : 'global';
+        $tenant = current_tenant()?->getKey() ?? 'global';
         $host = request()->getHost();
 
-        return 'sn-support:feed:' . $tenant . ':' . $host . ':' . ($module ?? '-') . ':' . ($name ?? '-aggregate');
+        return 'sn-support:feed:' . $tenant . ':' . $site->id() . ':' . $host . ':' . $module . ':' . ($name ?? '-aggregate');
     }
 
-    /** Build the RSS 2.0 XML for one of the four endpoint shapes (site/module x aggregate/named). */
-    protected function compile(?string $name = null, ?string $module = null): string
+    /** Forget every cached shape of one scope. */
+    protected function flushScope(string $tenant, string $siteId, string $host): void
     {
-        $items = [];
+        $prefix = 'sn-support:feed:' . $tenant . ':' . $siteId . ':' . $host . ':';
 
-        if ($name === null && $module === null) {
-            // Site aggregate: merge every visible feed
-            foreach ($this->available() as $feed) {
-                $items = array_merge($items, $this->resolveItems($feed));
+        foreach ($this->moduleNames() as $module) {
+            Cache::forget($prefix . $module . ':-aggregate');
+
+            foreach ($this->allFeedNames() as $name) {
+                Cache::forget($prefix . $module . ':' . $name);
             }
+        }
+    }
 
-            $channel = [
-                'title' => config('app.name'),
-                'description' => null,
-                'link' => url('/'),
-            ];
-        } elseif ($name === null) {
-            // Module aggregate: merge this module's visible feeds only
-            foreach ($this->moduleFeeds($module) as $feed) {
-                $items = array_merge($items, $this->resolveItems($feed));
+    /** @return list<string> */
+    protected function allFeedNames(): array
+    {
+        $names = [];
+
+        foreach ($this->feeds as $sites) {
+            foreach ($sites as $feeds) {
+                $names = array_merge($names, $feeds->keys()->all());
             }
+        }
 
-            $config = $this->configs->get($module, []);
+        return array_values(array_unique($names));
+    }
 
-            $channel = [
-                'title' => (string) (value($config['title'] ?? null) ?: config('app.name')),
-                'description' => value($config['description'] ?? null),
-                'link' => (string) (value($config['link'] ?? null) ?: url('/')),
-            ];
-        } else {
-            // Named feed; getFeed() already validated ownership and domain
-            $feed = $this->getFeed($name, $module) ?? [];
-            $items = $this->resolveItems($feed);
+    /** @return list<string> */
+    protected function moduleNames(): array
+    {
+        return array_values(array_unique([
+            ...$this->configs->keys()->all(),
+            ...$this->feeds->keys()->all(),
+        ]));
+    }
 
+    /** Build the RSS 2.0 XML: the module's aggregate stream, or one named feed. */
+    protected function compile(string $module, Site $site, ?string $name): string
+    {
+        if ($name !== null) {
+            $feed = $this->getFeed($name, $module, $site) ?? [];
+            $items = $this->resolveItems($module, $feed, $site);
             $channel = [
                 'title' => (string) value($feed['title'] ?? null ?: config('app.name')),
                 'description' => value($feed['description'] ?? null),
                 'link' => (string) value($feed['link'] ?? null ?: url('/')),
             ];
-        }
+        } else {
+            $items = [];
 
-        // Aggregate streams sort by updated_at desc and truncate; named feeds keep their own order and limit
-        if ($name === null) {
+            foreach ($this->moduleFeeds($module, $site) as $feed) {
+                $items = array_merge($items, $this->resolveItems($module, $feed, $site));
+            }
+
+            $config = $this->getConfig($module, $site);
+            $channel = [
+                'title' => (string) (value($config['title'] ?? null) ?: config('app.name')),
+                'description' => value($config['description'] ?? null),
+                'link' => (string) (value($config['link'] ?? null) ?: url('/')),
+            ];
+
+            // Aggregate streams sort by updated_at desc and truncate by the override chain.
             usort($items, fn (array $a, array $b): int => $this->timestamp($b['updated_at'] ?? null) <=> $this->timestamp($a['updated_at'] ?? null));
-            $items = array_slice($items, 0, (int) SupportUtils::getFeedsConfig('limit', 50));
+            $limit = (int) $this->resolveConfig($module, 'aggregate_limit', $site, 50);
+            $items = array_slice($items, 0, $limit);
         }
 
         $lines = [
@@ -345,14 +386,16 @@ class FeedRegistry
 
     /**
      * Run the items closure, drop entries without a URL, then apply the feed limit.
+     * Cap chain: the definition's own limit > module declaration (feed.limit) >
+     * sn-support.feeds.limit.
      *
      * @param  array<string, mixed>  $feed
      * @return array<int, array<string, mixed>>
      */
-    protected function resolveItems(array $feed): array
+    protected function resolveItems(string $module, array $feed, Site $site): array
     {
         $items = ($feed['items'] ?? null) ? ($feed['items'])() : [];
-        $limit = (int) value($feed['limit'] ?? 50);
+        $limit = (int) value($feed['limit'] ?? $this->resolveConfig($module, 'limit', $site, 50));
 
         $resolved = [];
 
