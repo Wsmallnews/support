@@ -8,6 +8,15 @@ use Filament\Panel;
 use Filament\Resources\ResourceConfiguration;
 use Illuminate\Support\Str;
 
+/**
+ * Legacy per-package registration via the global `panel_register` config.
+ *
+ * cms and category migrated to RegistersSites (per-panel Fluent API); the
+ * remaining packages still use this trait and are scheduled for the same
+ * migration. Do not add new users.
+ *
+ * @deprecated Use RegistersSites for new plugins.
+ */
 trait RegistersConfigurable
 {
     /**

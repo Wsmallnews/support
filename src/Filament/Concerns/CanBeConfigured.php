@@ -9,11 +9,23 @@ use Filament\Resources\ResourceConfiguration;
 use Illuminate\Support\Str;
 use UnitEnum;
 use Wsmallnews\Support\Exceptions\InvalidScopeException;
+use Wsmallnews\Support\Features\Site\Site;
+use Wsmallnews\Support\Features\Site\SiteRegistry;
 use Wsmallnews\Support\Helpers\FilamentModelHelper;
-use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 trait CanBeConfigured
 {
+    /**
+     * Sub-scope this component belongs to, e.g. "footer". Null means the site's
+     * main scope. Declared by overriding this method on the class (a property
+     * cannot be redeclared over a trait); a registration entry may override it
+     * with `'scope_suffix' => '...'`.
+     */
+    public static function getScopeSuffix(): ?string
+    {
+        return null;
+    }
+
     // ========================================================================
     // Navigation getters
     // ========================================================================
@@ -147,9 +159,9 @@ trait CanBeConfigured
     // ========================================================================
 
     /**
-     * Resolve the scopeable for this resource or page: instance key, then explicit pair,
-     * then the module's main instance. Missing both module and pair throws, because a broken
-     * scope must fail during development instead of silently falling back to 'default'.
+     * Resolve the scope for this resource or page: the pair injected at
+     * registration. A component registered directly on a panel without one
+     * throws — a broken scope must fail instead of silently falling back.
      *
      * @return array{scope_type: string, scope_id: int}
      *
@@ -157,12 +169,6 @@ trait CanBeConfigured
      */
     public static function getScopeable(): array
     {
-        $instanceKey = static::getConfigurationValue('scopeable');
-
-        if (filled($instanceKey)) {
-            return static::resolveScopeableInstance($instanceKey);
-        }
-
         $scopeType = static::getConfigurationValue('scopeType');
 
         if (filled($scopeType)) {
@@ -172,24 +178,7 @@ trait CanBeConfigured
             ];
         }
 
-        // No instance declared: use the module's main instance
-        return static::resolveScopeableInstance('main');
-    }
-
-    /**
-     * Resolve a scopeable instance within a module (moduleId is the config root).
-     *
-     * @throws InvalidScopeException
-     */
-    protected static function resolveScopeableInstance(string $key): array
-    {
-        $configRoot = static::getConfigurationValue('moduleId');
-
-        if (blank($configRoot)) {
-            throw InvalidScopeException::unresolvableScope(static::class, $key);
-        }
-
-        return SupportUtils::getScopeFromInstances("{$configRoot}.scopeables", $key)->toArray();
+        throw InvalidScopeException::missingSiteBinding(static::class);
     }
 
     public static function getScopeType(): string
@@ -200,6 +189,17 @@ trait CanBeConfigured
     public static function getScopeId(): int
     {
         return static::getScopeable()['scope_id'];
+    }
+
+    /**
+     * Site this component was registered for; null for components registered directly
+     * on the panel. Backend code reads the site from here, never from SiteContext.
+     */
+    public static function getSite(): ?Site
+    {
+        $siteId = static::getConfigurationValue('siteId');
+
+        return $siteId === null ? null : app(SiteRegistry::class)->get($siteId);
     }
 
     /**
@@ -242,15 +242,13 @@ trait CanBeConfigured
         return $default;
     }
 
-    /** Safely read the current config. */
+    /** Read the configuration for the current route; null when no key is bound. */
     protected static function getSafeConfiguration(): PageConfiguration | ResourceConfiguration | null
     {
         try {
-            $config = static::getConfiguration();
+            return static::getConfiguration();
         } catch (\Throwable) {
-            $config = null;
+            return null;
         }
-
-        return $config;
     }
 }

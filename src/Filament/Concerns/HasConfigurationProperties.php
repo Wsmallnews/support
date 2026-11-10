@@ -64,18 +64,30 @@ trait HasConfigurationProperties
     protected int | Closure | null $scopeId = null;
 
     /**
-     * Scopeable instance key declared under the module's config scopeables, e.g. 'footer';
-     * defaults to main. It replaces the explicit scopeType/scopeId pair and takes priority.
-     */
-    protected string | Closure | null $scopeable = null;
-
-    /**
      * Module id owning this resource, used to address module-level registries. Orthogonal to
      * scope: scope isolates data, module says where capabilities come from. Injected at registration.
      */
     protected string | Closure | null $moduleId = null;
 
+    /**
+     * Site this component was registered for ("plugin:key"). Null for components registered
+     * directly on the panel (activity logs, non-site modules) — those have no site context.
+     */
+    protected ?string $siteId = null;
+
     protected array $customProperties = [];
+
+    public function siteId(?string $siteId): static
+    {
+        $this->siteId = $siteId;
+
+        return $this;
+    }
+
+    public function getSiteId(): ?string
+    {
+        return $this->siteId;
+    }
 
     public function navigationGroup(string | UnitEnum | Closure | null $group): static
     {
@@ -407,19 +419,6 @@ trait HasConfigurationProperties
     public function getScopeId(): ?int
     {
         return $this->evaluate($this->scopeId);
-    }
-
-    public function scopeable(string | Closure | null $key): static
-    {
-        $this->scopeable = $key;
-
-        return $this;
-    }
-
-    /** The referenced scopeable instance key; getScopeable() on the resource resolves it. */
-    public function getScopeable(): ?string
-    {
-        return $this->evaluate($this->scopeable);
     }
 
     // ========================================================================
