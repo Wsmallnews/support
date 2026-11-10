@@ -8,7 +8,12 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
-class IdentifyTenant
+/**
+ * Resolve the route's {tenant} parameter into the request attributes consumed by
+ * current_tenant(). Must run before sn-resolve-site, which copies the tenant into
+ * SiteContext. Also registered as a Livewire persistent middleware.
+ */
+class ResolveTenant
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -16,8 +21,9 @@ class IdentifyTenant
             return $next($request);
         }
 
-        if (! $request->route()->hasParameter('tenant')) {
-            // Without a tenant in the URL the check is skipped, so every tenant request must carry one
+        if (! $request->route()?->hasParameter('tenant')) {
+            // Without a tenant in the path or domain the check is skipped, so every
+            // tenant request must declare {tenant} in its route signature.
             return $next($request);
         }
 

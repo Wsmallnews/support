@@ -30,6 +30,38 @@ class InvalidScopeException extends Exception
         return new self($message);
     }
 
+    /** Create exception for a site without a resolved scopeable. */
+    public static function missingSiteScopeable(string $siteId): self
+    {
+        return new self("Site [{$siteId}] has no scopeable.");
+    }
+
+    /** Create exception for an aggregate site referencing an unknown source. */
+    public static function missingSourceSite(string $siteId, string $sourceSiteId): self
+    {
+        return new self("Site [{$siteId}] references unknown source site [{$sourceSiteId}].");
+    }
+
+    /** Component was introduced directly on a panel without a declared scope. */
+    public static function missingSiteBinding(string $class): self
+    {
+        return new self(
+            "Component [{$class}] has no scope: it was not registered for a site and declares no scopeable. "
+            . "When introducing it directly on a panel, pass ['scopeable' => ['scope_type' => ..., 'scope_id' => ...]]."
+        );
+    }
+
+    /** No registered component on this site declares the requested sub-scope. */
+    public static function unknownScopeSuffix(string $siteId, string $suffix, array $available): self
+    {
+        $known = $available === [] ? 'none' : implode(', ', $available);
+
+        return new self(
+            "Site [{$siteId}] has no sub-scope [{$suffix}]. Declared sub-scopes: {$known}. "
+            . 'Declare it on the component class via getScopeSuffix() or a scope_suffix override.'
+        );
+    }
+
     /** Create exception for missing configuration. */
     public static function configNotFound(string $configKey): self
     {
@@ -40,17 +72,5 @@ class InvalidScopeException extends Exception
     public static function unknownInstance(string $configKey, string $key): self
     {
         return new self("Unknown scopeable instance [{$key}] in configuration key: {$configKey}");
-    }
-
-    /**
-     * Create exception when a class cannot resolve its scopeable context:
-     * no module context (moduleId) and no explicit scope_type/scope_id configured.
-     */
-    public static function unresolvableScope(string $class, string $key): self
-    {
-        return new self(
-            "Cannot resolve scopeable instance [{$key}] for [{$class}]: "
-            . 'no module context (moduleId) is available and no explicit scope_type/scope_id is configured.'
-        );
     }
 }

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Wsmallnews\Support\Support;
 
-use Wsmallnews\Support\Data\ScopeableContext;
-use Wsmallnews\Support\Exceptions\InvalidScopeException;
 use Wsmallnews\Support\Exceptions\SupportException;
 
 /** Utility class for support package configuration. */
@@ -148,13 +146,15 @@ class Utils
         return self::getConfig('theme' . ($name ? '.' . $name : ''), $default);
     }
 
-    /** Get the tenant model class. */
+    /** Get the tenant model class; an empty config value counts as "tenancy disabled". */
     public static function getTenantModel(): ?string
     {
-        return self::getConfig('tenant_model');
+        $model = self::getConfig('tenant_model');
+
+        return is_string($model) && $model !== '' ? $model : null;
     }
 
-    /** Check if tenancy is enabled. */
+    /** Whether the deployment runs in multi-tenant mode (tenant_model configured). */
     public static function isTenancyEnabled(): bool
     {
         return self::getTenantModel() !== null;
@@ -164,61 +164,5 @@ class Utils
     public static function getFilesystemDisk(): ?string
     {
         return self::getConfig('filesystem_disk') ?: config('filament.default_filesystem_disk');
-    }
-
-    /**
-     * Resolve a scope from a module's scopeables config, e.g. sn-cms.scopeables with a
-     * mandatory main instance and optional variants. A missing instance, a missing main or a
-     * duplicate scope_type/scope_id pair throws InvalidScopeException.
-     *
-     * @param  string  $configKey  Instance config key, e.g. sn-cms.scopeables
-     * @param  string|null  $key  Instance key; null selects main
-     *
-     * @throws InvalidScopeException
-     */
-    public static function getScopeFromInstances(string $configKey, ?string $key = null): ScopeableContext
-    {
-        $key ??= 'main';
-        $instances = config($configKey);
-
-        if (! is_array($instances) || $instances === []) {
-            throw InvalidScopeException::configNotFound($configKey);
-        }
-
-        if (! array_key_exists('main', $instances)) {
-            throw InvalidScopeException::invalidConfiguration($configKey, 'instance [main] is required');
-        }
-
-        if (! array_key_exists($key, $instances)) {
-            throw InvalidScopeException::unknownInstance($configKey, $key);
-        }
-
-        $fingerprints = [];
-        foreach ($instances as $instanceKey => $instance) {
-            $instanceConfigKey = "{$configKey}.{$instanceKey}";
-
-            if (! is_array($instance)) {
-                throw InvalidScopeException::invalidConfiguration($instanceConfigKey, 'instance must be an array with scope_type and scope_id');
-            }
-
-            if (blank($instance['scope_type'] ?? null)) {
-                throw InvalidScopeException::missingType($instanceConfigKey);
-            }
-
-            if (! isset($instance['scope_id'])) {
-                throw InvalidScopeException::missingId($instanceConfigKey);
-            }
-
-            $fingerprint = $instance['scope_type'] . ':' . $instance['scope_id'];
-            if (isset($fingerprints[$fingerprint])) {
-                throw InvalidScopeException::invalidConfiguration(
-                    $configKey,
-                    "instances [{$fingerprints[$fingerprint]}] and [{$instanceKey}] share the same partition ({$fingerprint})"
-                );
-            }
-            $fingerprints[$fingerprint] = $instanceKey;
-        }
-
-        return ScopeableContext::fromArray($instances[$key]);
     }
 }

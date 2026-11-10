@@ -31,10 +31,13 @@ use Wsmallnews\Support\Features\Modules\Module;
 use Wsmallnews\Support\Features\Modules\ModuleRegistry;
 use Wsmallnews\Support\Features\Search\SearchRegistry;
 use Wsmallnews\Support\Features\Seo\Seo;
+use Wsmallnews\Support\Features\Site\SiteContext;
+use Wsmallnews\Support\Features\Site\SiteRegistry;
 use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
 use Wsmallnews\Support\Helpers\ScheduleHelper;
-use Wsmallnews\Support\Http\Middleware\IdentifyTenant;
-use Wsmallnews\Support\Http\Middleware\InitializeSeo;
+use Wsmallnews\Support\Http\Middleware\ResolveSeo;
+use Wsmallnews\Support\Http\Middleware\ResolveSite;
+use Wsmallnews\Support\Http\Middleware\ResolveTenant;
 use Wsmallnews\Support\Settings\Listeners\LogSettingsActivity;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
@@ -97,8 +100,24 @@ class SupportServiceProvider extends PackageServiceProvider
             return new FeedRegistry;
         });
 
-        // seo-init:{module} rebuilds the page SEO context; a normal, non-persistent middleware
-        $this->app['router']->aliasMiddleware('seo-init', InitializeSeo::class);
+        // Site registry (filled by Filament plugins while panels are constructed)
+        $this->app->singleton(SiteRegistry::class, function (): SiteRegistry {
+            return new SiteRegistry;
+        });
+
+        // Request-scoped site context (reset per request, Octane-safe)
+        $this->app->scoped(SiteContext::class, function (): SiteContext {
+            return new SiteContext;
+        });
+
+        // sn-resolve-seo:{module} rebuilds the page SEO context; a normal, non-persistent middleware
+        $this->app['router']->aliasMiddleware('sn-resolve-seo', ResolveSeo::class);
+
+        // Resolve the route {tenant} parameter into the request attributes (before sn-resolve-site)
+        $this->app['router']->aliasMiddleware('sn-resolve-tenant', ResolveTenant::class);
+
+        // Resolve the frontend site from the matched route name into SiteContext
+        $this->app['router']->aliasMiddleware('sn-resolve-site', ResolveSite::class);
 
         // Runtime token overrides (config sn-support.theme), emitted with @snTheme
         Blade::directive('snTheme', function (): string {
@@ -110,9 +129,10 @@ class SupportServiceProvider extends PackageServiceProvider
             return '<?php echo app(\Wsmallnews\Support\Features\Seo\Seo::class)->render(); ?>';
         });
 
-        // Per-module autodiscovery links, emitted with @snFeeds('sn-cms')
+        // Per-module autodiscovery links, emitted with @snFeeds('sn-cms') inside a site layout
         Blade::directive('snFeeds', function (string $expression): string {
-            return "<?php echo app(\Wsmallnews\Support\Features\Feed\FeedRegistry::class)->autodiscoveryTags({$expression}); ?>";
+            return "<?php \$__snSite = app(\Wsmallnews\Support\Features\Site\SiteContext::class)->site();"
+                . " echo \$__snSite === null ? '' : app(\Wsmallnews\Support\Features\Feed\FeedRegistry::class)->autodiscoveryTags({$expression}, \$__snSite)->toHtml(); ?>";
         });
 
         // Analytics snippet, emitted with @snSeoAnalytics before </body>
@@ -176,7 +196,7 @@ class SupportServiceProvider extends PackageServiceProvider
 
         // Global tenant middleware for frontend requests
         Livewire::addPersistentMiddleware([
-            IdentifyTenant::class,
+            ResolveTenant::class,
             // Record route history
             LivewireUrlsMiddleware::class,
         ]);
@@ -290,6 +310,7 @@ class SupportServiceProvider extends PackageServiceProvider
     {
         return [
             // 'create_sn_sms_logs_table',
+            'create_teams_table',
             'create_sn_team_settings_table',
             'create_sn_contents_table',
             'create_sn_scheduled_tasks_table',
