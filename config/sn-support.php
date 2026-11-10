@@ -32,6 +32,9 @@ return [
     | Firstly, the panel where the current plugin is located should support multi tenancy before you can set this option.
     | Secondly, The tenant model should be set as a panel model.
     |
+    | Leave null to disable tenancy. Use \Wsmallnews\Support\Models\Team::class,
+    | or a host subclass of it (recommended), to enable.
+    |
     */
     'tenant_model' => null,
 
@@ -264,7 +267,7 @@ return [
         'page' => null,
 
         /** Results per source. */
-        'results_limit' => 8,
+        'limit' => 8,
 
         /** Split the query on whitespace; terms are OR-ed across fields. */
         'split_terms' => true,
@@ -291,18 +294,15 @@ return [
         |
         */
     'sitemap' => [
-        /** Register the /sitemap.xml and /robots.txt routes. */
+        /** Register the root /robots.txt route. Site sitemap endpoints live in site route groups. */
         'enabled' => true,
 
-        /** Endpoint paths, registered at the root and available on every bound domain. */
-        'sitemap_uri' => 'sitemap.xml',
+        /** robots.txt path at the root. */
         'robots_uri' => 'robots.txt',
 
         /** Seconds the rendered sitemap is cached; call Sitemap::flush() after content changes. */
         'cache_ttl' => 3600,
 
-        /** Hide modules whose declared domain does not match the request host. */
-        'domain_filter' => true,
     ],
 
     /*
@@ -314,20 +314,17 @@ return [
         |
         */
     'feeds' => [
-        /** Register the /feed and /feed/{name} routes. */
-        'enabled' => true,
-
-        /** Path segment used by the root endpoints and by Feed::routes() inside a module group. */
+        /** Default path segment for Feed::routes(); a site overrides it via feed.uri. */
         'uri' => 'feed',
 
-        /** Entry cap for the merged /feed stream; named streams declare their own limit. */
+        /** Fallback cap per named stream; a site overrides it via feed.limit. */
         'limit' => 50,
+
+        /** Fallback cap for the merged aggregate stream; a site overrides it via feed.aggregate_limit. */
+        'aggregate_limit' => 50,
 
         /** Seconds each rendered stream is cached; call Feed::flush() after content changes. */
         'cache_ttl' => 3600,
-
-        /** Hide modules whose declared domain does not match the request host. */
-        'domain_filter' => true,
     ],
 
     /*

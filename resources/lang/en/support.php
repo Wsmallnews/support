@@ -85,4 +85,8 @@ return [
         'switch_success' => 'Switch successful',
         'switch_failure' => 'Switch failed',
     ],
+    'team_status' => [
+        'enabled' => 'Enabled',
+        'disabled' => 'Disabled',
+    ],
 ];

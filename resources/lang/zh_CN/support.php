@@ -85,4 +85,8 @@ return [
         'switch_success' => '切换成功',
         'switch_failure' => '切换失败',
     ],
+    'team_status' => [
+        'enabled' => '启用',
+        'disabled' => '停用',
+    ],
 ];
