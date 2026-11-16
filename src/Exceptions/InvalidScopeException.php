@@ -46,8 +46,18 @@ class InvalidScopeException extends Exception
     public static function missingSiteBinding(string $class): self
     {
         return new self(
-            "Component [{$class}] has no scope: it was not registered for a site and declares no scopeable. "
-            . "When introducing it directly on a panel, pass ['scopeable' => ['scope_type' => ..., 'scope_id' => ...]]."
+            "Component [{$class}] has no resolved scope. Register it on a site through the host plugin "
+            . '(resources()/pages()) so the scope is derived from the site registration, and a consumer-built '
+            . 'component must use CanBeConfigured (its base declares $configurationClass).'
+        );
+    }
+
+    /** A registration-derived value (module id, ...) was requested on an unconfigured component. */
+    public static function missingComponentConfiguration(string $class, string $what): self
+    {
+        return new self(
+            "Component [{$class}] cannot resolve its {$what}: it was not registered with a configuration. "
+            . 'Register it through the host plugin, or use CanBeConfigured on a consumer-built component.'
         );
     }
 
@@ -60,6 +70,31 @@ class InvalidScopeException extends Exception
             "Site [{$siteId}] has no sub-scope [{$suffix}]. Declared sub-scopes: {$known}. "
             . 'Declare it on the component class via getScopeSuffix() or a scope_suffix override.'
         );
+    }
+
+    /** Frontend scope derivation was attempted inside a panel (no site is bound there). */
+    public static function siteContextInPanel(string $class): self
+    {
+        return new self(
+            "Panel query on [{$class}] cannot use siteContext(): panels carry no site. "
+            . 'Use panelContext($this->getScopeable()) for the registration-declared scope.'
+        );
+    }
+
+    /** Panel scope entry point called outside a panel request. */
+    public static function panelContextOutsidePanel(): self
+    {
+        return new self(
+            'panelContext() is only available inside a panel. '
+            . 'On a frontend site use siteContext() or siteContext(\'sub-scope\'); '
+            . 'in console/queue use forScopeable() or SiteContext::run().'
+        );
+    }
+
+    /** An explicit-scope query was called without a scopeable pair. */
+    public static function missingScopeable(string $reason): self
+    {
+        return new self("Missing scopeable: {$reason}.");
     }
 
     /** Create exception for missing configuration. */

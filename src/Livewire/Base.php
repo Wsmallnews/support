@@ -7,10 +7,12 @@ use Filament\Pages\Concerns\CanUseDatabaseTransactions;
 use Filament\Support\Exceptions\Halt;
 use Livewire\Component;
 use Throwable;
+use Wsmallnews\Support\Livewire\Concerns\ScopedBySite;
 
 class Base extends Component
 {
     use CanUseDatabaseTransactions;
+    use ScopedBySite;
 
     /**
      * Run the callback in a database transaction when $hasDatabaseTransactions is on. A Halt

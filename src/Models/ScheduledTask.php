@@ -23,10 +23,10 @@ class ScheduledTask extends SupportModel
     {
         parent::boot();
 
-        // Auto-fill team_id on creation if tenancy is enabled
+        // Auto-fill team_id from the current context (null on platform surfaces)
         static::creating(function ($model) {
-            if (has_tenancy() && ! isset($model->team_id)) {
-                $model->team_id = current_tenant()?->id;
+            if (! isset($model->team_id)) {
+                $model->team_id = current_tenant()?->getKey();
             }
         });
     }

@@ -111,21 +111,16 @@ final class SiteConfig
 
     /**
      * Sub-scope pairs resolved from registered components (suffix => pair).
-     * Filled by the site registrar, not by hand.
+     * Filled by the site registrar from class declarations
+     * (`getScopeSuffix()`) and `scope_suffix` registration overrides.
+     *
+     * @internal
      *
      * @param  array<string, array{scope_type: string, scope_id: int}>  $scopes
      */
     public function scopes(array $scopes): static
     {
         $this->scopes = $this->scopes + $scopes;
-
-        return $this;
-    }
-
-    /** @param  array{scope_type: string, scope_id: int}  $pair */
-    public function scope(string $suffix, array $pair): static
-    {
-        $this->scopes[$suffix] = $pair;
 
         return $this;
     }

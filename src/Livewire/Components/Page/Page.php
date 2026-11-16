@@ -4,7 +4,6 @@ namespace Wsmallnews\Support\Livewire\Components\Page;
 
 use Wsmallnews\Support\Facades\Seo;
 use Wsmallnews\Support\Livewire\Base;
-use Wsmallnews\Support\Livewire\Concerns\Scopeable;
 use Wsmallnews\Support\Models\Page as PageModel;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
@@ -14,7 +13,6 @@ use Wsmallnews\Support\Support\Utils as SupportUtils;
  */
 class Page extends Base
 {
-    use Scopeable;
 
     public ?string $slug = null;
 
@@ -34,7 +32,7 @@ class Page extends Base
         $page = $this->pageRecord
             ?? SupportUtils::getPageModel()::query()
                 ->published()
-                ->snScope($this->scopeType, $this->scopeId)
+                ->siteContext()
                 ->slug($this->slug ?? '')
                 ->with('content')
                 ->first();

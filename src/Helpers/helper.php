@@ -6,18 +6,18 @@ use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
-use Wsmallnews\Support\Data\ScopeableContext;
+use Wsmallnews\Support\Exceptions\InvalidSiteException;
 use Wsmallnews\Support\Features\Currency;
 use Wsmallnews\Support\Features\Money\MoneyManager;
-use Wsmallnews\Support\Helpers\ScopeableHelper;
+use Wsmallnews\Support\Features\Site\SiteContext;
 use Wsmallnews\Support\Support\Utils;
 
 if (! function_exists('get_sn')) {
@@ -192,54 +192,23 @@ if (! function_exists('filter_richeditor')) {
     }
 }
 
-if (! function_exists('frontend_has_tenancy')) {
-    /**
-     * Whether the current frontend request is tenant-scoped.
-     *
-     * @return bool
-     */
-    function frontend_has_tenancy()
-    {
-        return request()->attributes->get('has_tenancy', false);
-    }
-}
-
-if (! function_exists('frontend_current_tenant')) {
-    /**
-     * Tenant of the current frontend request.
-     *
-     * @return Model
-     */
-    function frontend_current_tenant()
-    {
-        return request()->attributes->get('current_tenant', null);
-    }
-}
-
-if (! function_exists('has_tenancy')) {
-    /** Whether a tenant is active in either the panel or the frontend. */
-    function has_tenancy(): bool
-    {
-        return is_null(current_tenant()) ? false : true;
-    }
-}
-
 if (! function_exists('current_tenant')) {
-    /** Current tenant, resolved from the panel first and the frontend second. */
+    /**
+     * Tenant of the current execution context.
+     *
+     * Panel: the Filament tenant. Frontend: the tenant SiteContext resolved from
+     * the site (and its mode). There is no third source — code that runs outside
+     * both contexts has no tenant.
+     */
     function current_tenant(): ?Model
     {
-        $teannt = null;
         if (Filament::getCurrentPanel()) {
-            // Inside a panel
-            $teannt = Filament::getTenant();
-        } else {
-            // Frontend
-            if (frontend_has_tenancy()) {
-                $teannt = frontend_current_tenant();
-            }
+            return Filament::getTenant();
         }
 
-        return $teannt;
+        $tenant = app(SiteContext::class)->tenant();
+
+        return $tenant instanceof Model ? $tenant : null;
     }
 }
 
@@ -282,7 +251,11 @@ if (! function_exists('tree_to_flatten')) {
 
 if (! function_exists('sn_route')) {
     /**
-     * Generate a route, injecting the current tenant when tenancy is active.
+     * Generate a route, injecting the current tenant when the route declares one.
+     *
+     * Tenant routes must use {tenant:slug}: the tenant is always resolved by
+     * slug (see ResolveSiteContext), so a field-less {tenant} would generate a
+     * URL the middleware can never bind.
      *
      * @param  string  $name
      * @param  mixed  $parameters
@@ -290,12 +263,21 @@ if (! function_exists('sn_route')) {
      */
     function sn_route($name, $parameters = [], $absolute = true): string
     {
-        if (has_tenancy()) {
+        $route = Route::getRoutes()->getByName($name);
+
+        // Gate on the route signature: a route without {tenant} would get the
+        // value appended as a query string. A tenant route without a tenant is
+        // a configuration error, not a URL to generate.
+        if ($route && in_array('tenant', $route->parameterNames(), true)) {
+            if ($route->bindingFieldFor('tenant') !== 'slug') {
+                throw InvalidSiteException::tenantRouteMustUseSlug($name);
+            }
+
             $parameters = Arr::wrap($parameters);
 
             if (! isset($parameters['tenant'])) {        // never overwrite an explicit tenant
-                $tenant = current_tenant();
-                $parameters['tenant'] = $tenant;
+                $parameters['tenant'] = current_tenant()
+                    ?? throw InvalidSiteException::tenantMissingForRoute($name);
             }
         }
 
@@ -324,32 +306,6 @@ if (! function_exists('remove_query_param_from_url')) {
             . (($parts['port'] ?? '') ? ':' . $parts['port'] : '')
             . ($parts['path'] ?? '')
             . ($newQuery ? '?' . $newQuery : '');
-    }
-}
-
-if (! function_exists('scopeable_context')) {
-    /**
-     * Create a ScopeableContext instance from various inputs.
-     *
-     * @param  mixed  $input  Array or ScopeableContext
-     */
-    function scopeable_context(mixed $input): ScopeableContext
-    {
-        return ScopeableHelper::resolve($input);
-    }
-}
-
-if (! function_exists('scopeable_query')) {
-    /**
-     * Apply scope to a query builder.
-     *
-     * @param  Builder  $query
-     * @param  mixed  $scope  Array or ScopeableContext
-     * @return Builder
-     */
-    function scopeable_query($query, mixed $scope)
-    {
-        return ScopeableHelper::applyToQuery($query, $scope);
     }
 }
 

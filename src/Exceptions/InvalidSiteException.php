@@ -59,6 +59,44 @@ class InvalidSiteException extends InvalidArgumentException
         );
     }
 
+    /** A Tenant-mode site resolved without a tenant: the route must declare {tenant}. */
+    public static function tenantRequired(string $siteId): self
+    {
+        return new self(
+            "Site [{$siteId}] is in [tenant] mode but no tenant was resolved for this request. "
+            . 'Declare the {tenant} route parameter (e.g. prefix "cms/{tenant:slug}") '
+            . 'and make sure a tenant model is configured.'
+        );
+    }
+
+    /** Panel tenancy and the package tenant model must be the same class. */
+    public static function tenantModelMismatch(string $panelId, string $panelModel, string $configModel): self
+    {
+        return new self(
+            "Panel [{$panelId}] uses tenant model [{$panelModel}] but sn-support.tenant_model is [{$configModel}]. "
+            . 'Two different models mean two different tenants: point both at the same class.'
+        );
+    }
+
+    /** Tenant routes must bind by slug, which is how the middleware resolves them. */
+    public static function tenantRouteMustUseSlug(string $route): self
+    {
+        return new self(
+            "Route [{$route}] declares a tenant parameter without a binding field. "
+            . 'Declare it as {tenant:slug}: tenants are resolved by slug, so any other binding generates an unresolvable URL.'
+        );
+    }
+
+    /** A tenant route was generated while no tenant is active. */
+    public static function tenantMissingForRoute(string $route): self
+    {
+        return new self(
+            "Route [{$route}] requires a tenant, but none is active in this context. "
+            . 'Generate the URL inside a Tenant-mode site (SiteContext::run), pass the tenant explicitly, '
+            . 'or check that the route prefix declares {tenant:slug}.'
+        );
+    }
+
     /** Two non-aggregate sites, in any plugin, must not share one data space. */
     public static function duplicateScopeable(string $siteId, string $otherSiteId, string $scopeType, int $scopeId): self
     {

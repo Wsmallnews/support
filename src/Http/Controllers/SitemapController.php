@@ -18,7 +18,7 @@ class SitemapController
     /**
      * Render one module's sitemap. The route carries sitemap_module / sitemap_site
      * defaults (see SitemapRegistry::routes); the site must match the one bound by
-     * sn-resolve-site, otherwise 404.
+     * sn-resolve-site-context, otherwise 404.
      */
     public function sitemap(): Response
     {

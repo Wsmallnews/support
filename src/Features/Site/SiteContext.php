@@ -2,6 +2,7 @@
 
 namespace Wsmallnews\Support\Features\Site;
 
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Wsmallnews\Support\Exceptions\InvalidScopeException;
@@ -27,7 +28,11 @@ final class SiteContext
     public function set(Site $site, ?Model $tenant = null, array $scopeable = []): void
     {
         $this->site = $site;
-        $this->tenant = $tenant;
+
+        // The site mode decides whether a tenant participates at all: Platform and
+        // Aggregate sites must never carry one, whatever the caller passes.
+        $this->tenant = $site->mode->isTenant() ? $tenant : null;
+
         $this->scopeable = $scopeable ?: ($site->scopeable() ?? app(SiteRegistry::class)->scopeableFor($site));
     }
 
@@ -86,48 +91,41 @@ final class SiteContext
     /**
      * Effective module scope for the current request.
      *
-     * With a resolved site, the site scope wins and an unresolved site fails
-     * closed (no silent fallback to the module default). Without a site context
-     * (console, queue, seeders) the module default is used.
+     * The site scope wins; an unresolved scope fails closed. There is no
+     * fallback: components live inside sites, and code running without a site
+     * context (console, queue) passes an explicit scopeable to
+     * applyDeclaredScope() instead of relying on implicit derivation.
      *
      * @return array{scope_type: string, scope_id: int}
      *
-     * @throws InvalidScopeException when a site is bound but has no resolved scope
+     * @throws InvalidScopeException when no site is bound, or a bound site has
+     *                               no resolved scopeable, or the suffix is unknown
      */
-    public function scopeableOrDefault(string $defaultType, ?string $suffix = null): array
+    public function scopeableOrDefault(?string $suffix = null): array
     {
-        if ($this->scopeable === []) {
-            if ($this->site !== null) {
-                throw InvalidScopeException::invalidConfiguration(
-                    $this->site->id(),
-                    'the bound site has no resolved scopeable',
-                );
-            }
+        if ($this->site === null) {
+            throw InvalidSiteException::noCurrentSite('scope resolution');
+        }
 
-            $scopeable = ['scope_type' => $defaultType, 'scope_id' => 0];
-        } else {
-            $scopeable = $this->scopeable;
+        if ($this->scopeable === []) {
+            throw InvalidScopeException::invalidConfiguration(
+                $this->site->id(),
+                'the bound site has no resolved scopeable',
+            );
         }
 
         if (blank($suffix)) {
-            return $scopeable;
+            return $this->scopeable;
         }
 
-        // With a site, sub-scopes come from the map built at registration: an
-        // explicit override on the component may differ from a naive derivation.
-        if ($this->site !== null) {
-            return $this->site->getScope($suffix)
-                ?? throw InvalidScopeException::unknownScopeSuffix(
-                    $this->site->id(),
-                    $suffix,
-                    array_keys($this->site->scopes),
-                );
-        }
-
-        // Console / queue: no site, derive from the module default.
-        $scopeable['scope_type'] = "{$scopeable['scope_type']}::{$suffix}";
-
-        return $scopeable;
+        // Sub-scopes come from the map built at registration: an explicit
+        // override on the component may differ from a naive derivation.
+        return $this->site->getScope($suffix)
+            ?? throw InvalidScopeException::unknownScopeSuffix(
+                $this->site->id(),
+                $suffix,
+                array_keys($this->site->scopes),
+            );
     }
 
     public function tenant(): ?Model
@@ -149,22 +147,73 @@ final class SiteContext
     }
 
     /**
-     * Apply the site's scopeable and tenant condition to a query.
+     * Frontend query: the site's own scope (or a registered sub-scope) plus the
+     * site mode rule — Tenant fails closed without a tenant, Platform only reads
+     * tenant-less rows, Aggregate reads every tenant's rows of the scope.
      *
-     * Tenant mode fails closed when no tenant is resolved; platform only reads
-     * tenant-less rows; aggregate reads every tenant's rows of the same scope.
+     * Rendering without a bound site is a development error: pass an explicit
+     * scopeable via applyDeclaredScope() when the caller owns the conditions.
+     *
+     * @throws InvalidSiteException when no site is bound
      */
-    public function applyScope(Builder $query): Builder
+    public function applySiteScope(Builder $query, ?string $suffix = null): Builder
     {
-        if (! $this->site) {
+        $scopeable = $this->scopeableOrDefault($suffix);
+
+        $query->where('scope_type', $scopeable['scope_type'])
+            ->where('scope_id', $scopeable['scope_id']);
+
+        return $this->applyMode($query);
+    }
+
+    /**
+     * Explicit-scope query: the caller knows the data space (panel declaration,
+     * a record's own scope, a console/queue batch).
+     *
+     * With a site: scope plus the site mode rule. Without one: scope plus the
+     * tenant rule of the current context (panel tenancy / platform rows).
+     * Pass $withTenant = false for a record-relation query where the parent
+     * already fixes the tenant: the scope pair is then the only condition.
+     *
+     * @param  array{scope_type: string, scope_id: int}  $scopeable
+     *
+     * @throws InvalidScopeException when the scopeable is empty or has no scope type
+     */
+    public function applyDeclaredScope(Builder $query, array $scopeable, bool $withTenant = true): Builder
+    {
+        if (blank($scopeable['scope_type'] ?? null)) {
+            throw InvalidScopeException::missingScopeable(
+                'the explicit query has no scope_type (a component without a declared scope?)'
+            );
+        }
+
+        $query->where('scope_type', $scopeable['scope_type'])
+            ->where('scope_id', $scopeable['scope_id'] ?? 0);
+
+        if (! $withTenant) {
             return $query;
         }
 
-        if ($this->scopeable !== []) {
-            $query->where('scope_type', $this->scopeable['scope_type'])
-                ->where('scope_id', $this->scopeable['scope_id']);
+        if ($this->site) {
+            return $this->applyMode($query);
         }
 
+        // A tenancy panel already scopes every resource model through a global scope
+        // named after the panel; adding ours would duplicate the same predicate.
+        // Resource queries pass withTenant: false themselves — a resource with
+        // isScopedToTenant(false) has no such global scope but must stay unfiltered.
+        $panel = Filament::getCurrentPanel();
+
+        if ($panel?->hasTenancy() && $query->getModel()::hasGlobalScope($panel->getTenancyScopeName())) {
+            return $query;
+        }
+
+        return $query->scopeTenant();
+    }
+
+    /** Site ownership rule: who owns the rows this site may read. */
+    protected function applyMode(Builder $query): Builder
+    {
         return match ($this->site->mode) {
             SiteMode::Tenant => $this->tenant
                 ? $query->where('team_id', $this->tenant->getKey())

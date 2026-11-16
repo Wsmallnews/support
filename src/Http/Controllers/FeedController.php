@@ -39,7 +39,7 @@ class FeedController
             abort(404);
         }
 
-        // sn-resolve-site must have bound the same site the route was registered for.
+        // sn-resolve-site-context must have bound the same site the route was registered for.
         if (app(SiteContext::class)->site()?->id() !== $site->id()) {
             abort(404);
         }

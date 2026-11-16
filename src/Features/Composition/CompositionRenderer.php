@@ -65,7 +65,7 @@ class CompositionRenderer
         $composition = Utils::getCompositionModel()::query()
             ->published()
             ->where('purpose', $purpose)
-            ->snScope($scopeType, $scopeId)
+            ->forScopeable(['scope_type' => $scopeType, 'scope_id' => $scopeId])
             ->orderByDesc('order_column')
             ->first();
 

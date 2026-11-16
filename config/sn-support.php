@@ -2,6 +2,7 @@
 
 use Wsmallnews\Support\Enums\ContentType;
 use Wsmallnews\Support\Models;
+use Wsmallnews\Support\Models\Team;
 
 return [
     /*
@@ -26,17 +27,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Multi-Tenancy
+    | Tenant model
     |--------------------------------------------------------------------------
     |
-    | Firstly, the panel where the current plugin is located should support multi tenancy before you can set this option.
-    | Secondly, The tenant model should be set as a panel model.
+    | Every deployment ships the teams table, so a tenant model is always
+    | configured. Whether a request is tenant-scoped is decided by the site mode
+    | (frontend) or the panel's tenancy (admin), never by this option.
     |
-    | Leave null to disable tenancy. Use \Wsmallnews\Support\Models\Team::class,
-    | or a host subclass of it (recommended), to enable.
+    | Use the built-in \Wsmallnews\Support\Models\Team::class, or a host subclass
+    | that adds relations/behaviour. When a panel declares tenancy it must point
+    | at the same model, otherwise tenant binding and tenant filtering disagree.
     |
     */
-    'tenant_model' => null,
+    'tenant_model' => Team::class,
 
     /*
     |--------------------------------------------------------------------------

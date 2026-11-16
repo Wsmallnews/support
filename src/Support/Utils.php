@@ -154,12 +154,6 @@ class Utils
         return is_string($model) && $model !== '' ? $model : null;
     }
 
-    /** Whether the deployment runs in multi-tenant mode (tenant_model configured). */
-    public static function isTenancyEnabled(): bool
-    {
-        return self::getTenantModel() !== null;
-    }
-
     /** Get the filesystem disk for file storage. */
     public static function getFilesystemDisk(): ?string
     {

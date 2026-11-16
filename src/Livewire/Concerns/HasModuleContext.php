@@ -4,6 +4,7 @@ namespace Wsmallnews\Support\Livewire\Concerns;
 
 use Livewire\Attributes\Locked;
 use Wsmallnews\Support\Features\Modules\ModuleRegistry;
+use Wsmallnews\Support\Features\Site\SiteContext;
 
 /**
  * Module context for components reused by another module: scope props isolate data, module
@@ -40,16 +41,20 @@ trait HasModuleContext
     /** Read config: the consuming module's section first, then the owner's. */
     public function moduleConfig(string $path, mixed $default = null): mixed
     {
-        if ($this->hasConsumerModule()) {
-            $value = config("{$this->module}.{$path}");
+        $context = app(SiteContext::class);
+        $site = $context->site();
+        $consumer = (string) $this->module;
+
+        // The consumer module owns the current site: its site options may apply.
+        // Otherwise only static options are read — never another site's context.
+        if ($this->hasConsumerModule() && $site !== null && $site->pluginId === $consumer) {
+            $value = $site->getOption($path);
 
             if ($value !== null) {
                 return $value;
             }
         }
 
-        $value = config($this->getOwnerModule() . ".{$path}");
-
-        return $value ?? $default;
+        return config($this->getOwnerModule() . '.options.' . $path, $default);
     }
 }
