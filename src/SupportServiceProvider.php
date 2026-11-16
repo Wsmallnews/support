@@ -36,8 +36,7 @@ use Wsmallnews\Support\Features\Site\SiteRegistry;
 use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
 use Wsmallnews\Support\Helpers\ScheduleHelper;
 use Wsmallnews\Support\Http\Middleware\ResolveSeo;
-use Wsmallnews\Support\Http\Middleware\ResolveSite;
-use Wsmallnews\Support\Http\Middleware\ResolveTenant;
+use Wsmallnews\Support\Http\Middleware\ResolveSiteContext;
 use Wsmallnews\Support\Settings\Listeners\LogSettingsActivity;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
@@ -113,11 +112,8 @@ class SupportServiceProvider extends PackageServiceProvider
         // sn-resolve-seo:{module} rebuilds the page SEO context; a normal, non-persistent middleware
         $this->app['router']->aliasMiddleware('sn-resolve-seo', ResolveSeo::class);
 
-        // Resolve the route {tenant} parameter into the request attributes (before sn-resolve-site)
-        $this->app['router']->aliasMiddleware('sn-resolve-tenant', ResolveTenant::class);
-
-        // Resolve the frontend site from the matched route name into SiteContext
-        $this->app['router']->aliasMiddleware('sn-resolve-site', ResolveSite::class);
+        // Resolve the frontend site (and its tenant, when the site mode calls for one) into SiteContext
+        $this->app['router']->aliasMiddleware('sn-resolve-site-context', ResolveSiteContext::class);
 
         // Runtime token overrides (config sn-support.theme), emitted with @snTheme
         Blade::directive('snTheme', function (): string {
@@ -160,13 +156,11 @@ class SupportServiceProvider extends PackageServiceProvider
             LogSettingsActivity::class,
         );
 
-        // With tenancy, create tenant settings automatically
-        if (SupportUtils::isTenancyEnabled()) {
-            Event::listen(
-                SavingSettings::class,
-                SavingSettingsAutoCreate::class,
-            );
-        }
+        // Create missing settings rows automatically (platform and tenant repositories alike)
+        Event::listen(
+            SavingSettings::class,
+            SavingSettingsAutoCreate::class,
+        );
 
         // Register the builder macros
         BuilderMacros::register();
@@ -196,7 +190,7 @@ class SupportServiceProvider extends PackageServiceProvider
 
         // Global tenant middleware for frontend requests
         Livewire::addPersistentMiddleware([
-            ResolveTenant::class,
+            ResolveSiteContext::class,
             // Record route history
             LivewireUrlsMiddleware::class,
         ]);
