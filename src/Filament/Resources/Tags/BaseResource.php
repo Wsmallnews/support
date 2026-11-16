@@ -9,14 +9,17 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
-use Wsmallnews\Support\Filament\Resources\Concerns\Scopeable;
+use Wsmallnews\Support\Filament\Resources\Concerns\ScopedQueries;
+use Wsmallnews\Support\Filament\Resources\ResourceConfiguration;
 use Wsmallnews\Support\Filament\Resources\Tags\Schemas\TagForm;
 use Wsmallnews\Support\Filament\Resources\Tags\Tables\TagsTable;
 use Wsmallnews\Support\Models\Tag;
 
 abstract class BaseResource extends Resource
 {
-    use Scopeable;
+    use ScopedQueries;
+
+    protected static ?string $configurationClass = ResourceConfiguration::class;
 
     protected static ?string $model = Tag::class;
 
@@ -55,6 +58,6 @@ abstract class BaseResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return static::applyScopeableToQuery(parent::getEloquentQuery());
+        return static::applyScopeToQuery(parent::getEloquentQuery());
     }
 }

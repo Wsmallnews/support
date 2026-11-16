@@ -8,11 +8,12 @@ use Filament\Panel;
 use Filament\Resources\ResourceConfiguration;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Wsmallnews\Support\Exceptions\InvalidSiteException;
 use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Features\Site\SiteConfig;
 use Wsmallnews\Support\Features\Site\SiteMode;
 use Wsmallnews\Support\Features\Site\SiteRegistry;
-use Wsmallnews\Support\Exceptions\InvalidSiteException;
+use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
  * Registers a plugin's resources and pages once per site.
@@ -89,7 +90,7 @@ trait RegistersSites
     protected function registerSiteComponents(Panel $panel): void
     {
         // Plugins using this trait own frontend sites; panel-introduced
-        // components (category, comment) go through IntroducesComponents.
+        // Ability-package components (category, comment) are listed by the host directly.
         if ($this->siteConfigs === []) {
             throw new InvalidArgumentException(
                 "Plugin [{$this->getId()}] must declare at least one site()."
@@ -241,6 +242,7 @@ trait RegistersSites
 
             $this->applySiteDefaults($config, $panel);
             $this->validateSiteMode($config, $panel);
+            $this->validateTenantModel($panel);
 
             $keyed[$key] = $config;
         }
@@ -345,6 +347,28 @@ trait RegistersSites
     }
 
     /**
+     * A tenant-scoped panel and the package tenant model must be one and the
+     * same class: two different models mean two different tenants, silently.
+     */
+    protected function validateTenantModel(Panel $panel): void
+    {
+        if (! $panel->hasTenancy()) {
+            return;
+        }
+
+        $panelModel = $panel->getTenantModel();
+        $configModel = SupportUtils::getTenantModel();
+
+        if ($panelModel !== $configModel) {
+            throw InvalidSiteException::tenantModelMismatch(
+                $panel->getId(),
+                (string) $panelModel,
+                (string) $configModel,
+            );
+        }
+    }
+
+    /**
      * Configuration key. Explicit keys are kept (site-prefixed when several
      * sites share the panel); otherwise a deterministic key is generated from
      * panel + plugin + site + class, so two plugins registering the same class
@@ -425,6 +449,16 @@ trait RegistersSites
                     . "or pass a 'scope_suffix' override instead."
                 );
             }
+        }
+
+        // A registration may override the class-level related-scope map; without
+        // an override the declaration on the class still applies.
+        if (
+            method_exists($configuration, 'relatedScopeSuffix')
+            && blank($configuration->getRelatedScopeSuffix())
+            && method_exists($class, 'getRelatedScopeSuffixes')
+        ) {
+            $configuration->relatedScopeSuffix($class::getRelatedScopeSuffixes());
         }
 
         if (method_exists($configuration, 'scopeType')) {
@@ -623,7 +657,7 @@ trait RegistersSites
     protected function assertShareableDefaults(array $defaults, string $source): void
     {
         foreach (array_keys($defaults) as $name) {
-            if (in_array($name, ['key', 'slug', 'scope_suffix', 'scope_type', 'scope_id'], true)) {
+            if (in_array($name, ['key', 'slug', 'scope_suffix', 'related_scope_suffix', 'scope_type', 'scope_id'], true)) {
                 throw new InvalidArgumentException(
                     "Shared default [{$name}] in {$source} cannot be declared: "
                     . 'it identifies one registration, not all of them.'
@@ -665,5 +699,4 @@ trait RegistersSites
             $site === null ? [] : $this->entryDefaults($site),
         );
     }
-
 }

@@ -13,6 +13,7 @@ return [
         'slug' => 'Slug',
         'slug_helper' => 'A unique URL segment, e.g. about-us for /pages/about-us',
         'composition' => 'Bound Composition',
+        'composition_invalid' => 'The selected composition is not available in this data space. Please choose another one',
         'composition_helper' => 'The frontend renders the bound composition instead of page content; leave empty to edit page content below. Generic compositions only - purpose-slot compositions (e.g. post sidebar) are not listed',
     ],
 

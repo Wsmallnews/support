@@ -192,6 +192,60 @@ trait CanBeConfigured
     }
 
     /**
+     * Default related-scope map declared on the class. A registration entry may
+     * override it with 'related_scope_suffix'.
+     *
+     * @return array<string, string>
+     */
+    public static function getRelatedScopeSuffixes(): array
+    {
+        return [];
+    }
+
+    /** Scope of the site itself, without this component's own sub-scope suffix. */
+    public static function getBaseScopeable(): array
+    {
+        $scopeable = static::getScopeable();
+        $separator = strpos($scopeable['scope_type'], '::');
+
+        if ($separator === false) {
+            return $scopeable;
+        }
+
+        return [
+            'scope_type' => substr($scopeable['scope_type'], 0, $separator),
+            'scope_id' => $scopeable['scope_id'],
+        ];
+    }
+
+    /** Suffix declared for one related key, if any. */
+    public static function getRelatedScopeSuffix(string $related): ?string
+    {
+        $suffixes = static::getConfigurationValue('relatedScopeSuffix') ?? [];
+        $suffix = $suffixes[$related] ?? null;
+
+        return filled($suffix) ? (string) $suffix : null;
+    }
+
+    /**
+     * Data space for reading one related resource's rows: the site's base scope
+     * plus the declared suffix, or the base scope when none is declared. The
+     * suffix is not validated here — a suffix that names no registered sub-scope
+     * simply matches no rows.
+     *
+     * @return array{scope_type: string, scope_id: int}
+     */
+    public static function getRelatedScopeable(string $related): array
+    {
+        $base = static::getBaseScopeable();
+        $suffix = static::getRelatedScopeSuffix($related);
+
+        return $suffix === null
+            ? $base
+            : ['scope_type' => "{$base['scope_type']}::{$suffix}", 'scope_id' => $base['scope_id']];
+    }
+
+    /**
      * Site this component was registered for; null for components registered directly
      * on the panel. Backend code reads the site from here, never from SiteContext.
      */

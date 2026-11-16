@@ -5,11 +5,11 @@ namespace Wsmallnews\Support\Filament\Resources\Compositions\Pages;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Wsmallnews\Support\Filament\Resources\Compositions\CompositionResource;
-use Wsmallnews\Support\Filament\Resources\Concerns\Pages\Scopeable;
+use Wsmallnews\Support\Filament\Resources\Concerns\Pages\ForwardsResourceScope;
 
 class ListCompositions extends ListRecords
 {
-    use Scopeable;
+    use ForwardsResourceScope;
 
     protected static string $resource = CompositionResource::class;
 

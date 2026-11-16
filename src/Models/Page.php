@@ -99,6 +99,9 @@ class Page extends SupportModel implements HasSnSubject
      * Resolve the composition channel into renderable rows; an invalid binding returns an
      * empty array so the caller can fall back to content or the empty state.
      *
+     * The binding is validated on save (data space + tenant), so reading only needs the
+     * row identity: a deleted, unpublished, or purpose-slot composition resolves to nothing.
+     *
      * @return array CompositionRenderer::resolveRows() output
      */
     public function resolveRows(string $module, array $pageContext = []): array
@@ -106,7 +109,9 @@ class Page extends SupportModel implements HasSnSubject
         $composition = $this->composition_id
             ? Utils::getCompositionModel()::query()
                 ->published()
-                ->find($this->composition_id)
+                ->whereKey($this->composition_id)
+                ->whereNull('purpose')
+                ->first()
             : null;
 
         if (! $composition) {

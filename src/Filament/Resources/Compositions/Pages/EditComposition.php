@@ -7,11 +7,11 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Wsmallnews\Support\Filament\Resources\Compositions\CompositionResource;
-use Wsmallnews\Support\Filament\Resources\Concerns\Pages\Scopeable;
+use Wsmallnews\Support\Filament\Resources\Concerns\Pages\ForwardsResourceScope;
 
 class EditComposition extends EditRecord
 {
-    use Scopeable;
+    use ForwardsResourceScope;
 
     protected static string $resource = CompositionResource::class;
 

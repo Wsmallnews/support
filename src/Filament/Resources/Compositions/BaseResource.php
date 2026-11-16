@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 use Wsmallnews\Support\Filament\Resources\Compositions\Schemas\CompositionForm;
 use Wsmallnews\Support\Filament\Resources\Compositions\Tables\CompositionsTable;
-use Wsmallnews\Support\Filament\Resources\Concerns\Scopeable;
+use Wsmallnews\Support\Filament\Resources\Concerns\ScopedQueries;
+use Wsmallnews\Support\Filament\Resources\ResourceConfiguration;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
@@ -22,7 +23,9 @@ use Wsmallnews\Support\Support\Utils as SupportUtils;
  */
 abstract class BaseResource extends Resource
 {
-    use Scopeable;
+    use ScopedQueries;
+
+    protected static ?string $configurationClass = ResourceConfiguration::class;
 
     protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedSquares2x2;
 
@@ -72,7 +75,7 @@ abstract class BaseResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return static::applyScopeableToQuery(parent::getEloquentQuery())
+        return static::applyScopeToQuery(parent::getEloquentQuery())
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);

@@ -9,13 +9,10 @@ use Wsmallnews\Support\Filament\Concerns\CanBeConfigured;
 use Wsmallnews\Support\Filament\Resources\Compositions\Pages\CreateComposition;
 use Wsmallnews\Support\Filament\Resources\Compositions\Pages\EditComposition;
 use Wsmallnews\Support\Filament\Resources\Compositions\Pages\ListCompositions;
-use Wsmallnews\Support\Filament\Resources\ResourceConfiguration;
 
 final class CompositionResource extends BaseResource
 {
     use CanBeConfigured;
-
-    protected static ?string $configurationClass = ResourceConfiguration::class;
 
     public static function getPages(): array
     {

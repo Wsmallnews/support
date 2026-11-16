@@ -4,11 +4,11 @@ namespace Wsmallnews\Support\Filament\Resources\Tags\Pages;
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Wsmallnews\Support\Filament\Resources\Concerns\Pages\Scopeable;
+use Wsmallnews\Support\Filament\Resources\Concerns\Pages\ForwardsResourceScope;
 
 class ListTags extends ListRecords
 {
-    use Scopeable;
+    use ForwardsResourceScope;
 
     protected function getHeaderActions(): array
     {

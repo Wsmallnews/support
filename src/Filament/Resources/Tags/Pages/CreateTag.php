@@ -3,11 +3,11 @@
 namespace Wsmallnews\Support\Filament\Resources\Tags\Pages;
 
 use Filament\Resources\Pages\CreateRecord;
-use Wsmallnews\Support\Filament\Resources\Concerns\Pages\Scopeable;
+use Wsmallnews\Support\Filament\Resources\Concerns\Pages\ForwardsResourceScope;
 
 class CreateTag extends CreateRecord
 {
-    use Scopeable;
+    use ForwardsResourceScope;
 
     /**
      * Mutate the form data before creating a record.

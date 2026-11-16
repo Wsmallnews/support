@@ -9,13 +9,10 @@ use Wsmallnews\Support\Filament\Concerns\CanBeConfigured;
 use Wsmallnews\Support\Filament\Resources\Pages\Pages\CreatePage;
 use Wsmallnews\Support\Filament\Resources\Pages\Pages\EditPage;
 use Wsmallnews\Support\Filament\Resources\Pages\Pages\ListPages;
-use Wsmallnews\Support\Filament\Resources\ResourceConfiguration;
 
 final class PageResource extends BaseResource
 {
     use CanBeConfigured;
-
-    protected static ?string $configurationClass = ResourceConfiguration::class;
 
     public static function getPages(): array
     {

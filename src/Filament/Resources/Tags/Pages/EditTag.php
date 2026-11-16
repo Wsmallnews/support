@@ -6,11 +6,11 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
-use Wsmallnews\Support\Filament\Resources\Concerns\Pages\Scopeable;
+use Wsmallnews\Support\Filament\Resources\Concerns\Pages\ForwardsResourceScope;
 
 class EditTag extends EditRecord
 {
-    use Scopeable;
+    use ForwardsResourceScope;
 
     protected function getHeaderActions(): array
     {

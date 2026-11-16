@@ -64,6 +64,14 @@ trait HasConfigurationProperties
     protected int | Closure | null $scopeId = null;
 
     /**
+     * Sub-scope suffix per related key (e.g. ['composition' => 'post']), used when this
+     * component reads another resource's rows. A missing key means the site's base scope.
+     *
+     * @var array<string, string>|Closure|null
+     */
+    protected array | Closure | null $relatedScopeSuffix = null;
+
+    /**
      * Module id owning this resource, used to address module-level registries. Orthogonal to
      * scope: scope isolates data, module says where capabilities come from. Injected at registration.
      */
@@ -419,6 +427,27 @@ trait HasConfigurationProperties
     public function getScopeId(): ?int
     {
         return $this->evaluate($this->scopeId);
+    }
+
+    /**
+     * Related-scope suffix map: key is the related resource key the caller uses
+     * (e.g. 'composition'), value is the suffix that resource lives in.
+     *
+     * @param  array<string, string>|Closure|null  $suffixes
+     */
+    public function relatedScopeSuffix(array | Closure | null $suffixes): static
+    {
+        $this->relatedScopeSuffix = $suffixes;
+
+        return $this;
+    }
+
+    /** @return array<string, string> */
+    public function getRelatedScopeSuffix(): array
+    {
+        $suffixes = $this->evaluate($this->relatedScopeSuffix);
+
+        return is_array($suffixes) ? $suffixes : [];
     }
 
     // ========================================================================

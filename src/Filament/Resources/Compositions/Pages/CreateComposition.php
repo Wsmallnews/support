@@ -4,11 +4,11 @@ namespace Wsmallnews\Support\Filament\Resources\Compositions\Pages;
 
 use Filament\Resources\Pages\CreateRecord;
 use Wsmallnews\Support\Filament\Resources\Compositions\CompositionResource;
-use Wsmallnews\Support\Filament\Resources\Concerns\Pages\Scopeable;
+use Wsmallnews\Support\Filament\Resources\Concerns\Pages\ForwardsResourceScope;
 
 class CreateComposition extends CreateRecord
 {
-    use Scopeable;
+    use ForwardsResourceScope;
 
     protected static string $resource = CompositionResource::class;
 

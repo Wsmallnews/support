@@ -2,6 +2,7 @@
 
 namespace Wsmallnews\Support\Filament\Resources\Pages\Schemas;
 
+use Closure;
 use Filament\Forms;
 use Filament\Schemas;
 use Filament\Schemas\Components\Utilities\Get;
@@ -34,7 +35,7 @@ class PageForm
                     ->required()
                     ->maxLength(100)
                     ->scopedUnique(modifyQueryUsing: function (Builder $query, Component $livewire): Builder {
-                        return $query->scopeable($livewire::getScopeType(), $livewire::getScopeId());
+                        return $query->forScopeable($livewire::getScopeable());
                     })
                     ->helperText(__('sn-support::page.form.slug_helper')),
 
@@ -45,16 +46,38 @@ class PageForm
                 // content, and the two are mutually exclusive. Only generic compositions are listed.
                 Forms\Components\Select::make('composition_id')->label(__('sn-support::page.form.composition'))
                     ->options(function (Component $livewire): array {
-                        // Create and Edit pages both use Pages\Scopeable, so the scope is readable directly
-                        $scopeable = $livewire->getScopeable();
-
+                        // Compositions live in their own data space: a resource maps
+                        // the 'composition' key to a sub-scope, otherwise the site's
+                        // base scope applies.
                         return SupportUtils::getCompositionModel()::query()
-                            ->where('scope_type', $scopeable['scope_type'] ?? null)
-                            ->where('scope_id', $scopeable['scope_id'] ?? 0)
+                            ->published()
+                            ->forScopeable($livewire::getRelatedScopeable('composition'))
                             ->whereNull('purpose')
                             ->orderBy('order_column')
                             ->pluck('title', 'id')
                             ->all();
+                    })
+                    // The bound value may be a draft or hidden composition: resolve its
+                    // label separately so editing never falls back to a raw id.
+                    ->getOptionLabelUsing(fn ($value): ?string => SupportUtils::getCompositionModel()::query()
+                        ->withTrashed()
+                        ->whereKey($value)
+                        ->value('title'))
+                    ->rules(fn (Component $livewire): Closure => function (string $attribute, mixed $value, Closure $fail) use ($livewire): void {
+                        if (blank($value)) {
+                            return;
+                        }
+
+                        // Reading trusts the binding, so the data space is enforced here.
+                        $exists = SupportUtils::getCompositionModel()::query()
+                            ->whereKey($value)
+                            ->whereNull('purpose')
+                            ->forScopeable($livewire::getRelatedScopeable('composition'))
+                            ->exists();
+
+                        if (! $exists) {
+                            $fail(__('sn-support::page.form.composition_invalid'));
+                        }
                     })
                     ->searchable()
                     ->preload()
