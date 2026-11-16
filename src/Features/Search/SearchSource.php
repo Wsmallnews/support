@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
+use LogicException;
+use Wsmallnews\Support\Features\Site\Site;
+use Wsmallnews\Support\Features\Site\SiteRegistry;
 use Wsmallnews\Support\Helpers\FilamentModelHelper;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
@@ -19,12 +22,23 @@ class SearchSource
     /** Fallback item view when the source declares none. */
     public const DEFAULT_ITEM_VIEW = 'sn-support::livewire.components.search-result';
 
-    public function __construct(protected array $options)
+    public function __construct(protected array $options, protected ?Site $site = null)
     {
         // Normalise the model to a class name; morph aliases are supported
         if (isset($this->options['model'])) {
             $this->options['model'] = FilamentModelHelper::getModelClassName($this->options['model']);
         }
+    }
+
+    /** Bind the site this source belongs to; done by the registry on registration. */
+    public function forSite(Site $site): static
+    {
+        return new static($this->options, $site);
+    }
+
+    public function site(): ?Site
+    {
+        return $this->site;
     }
 
     public function options(): array
@@ -35,12 +49,36 @@ class SearchSource
     /** Return a new instance with the overrides merged in. */
     public function merge(array $overrides): static
     {
-        return new static(array_merge($this->options, $overrides));
+        return new static(array_merge($this->options, $overrides), $this->site);
     }
 
     public function modelClass(): string
     {
         return $this->options['model'];
+    }
+
+    /**
+     * Whether rows are isolated by the source's site. Every table is scoped by
+     * default; a public model whose table has no scope columns declares
+     * 'site_scoped' => false. A missing column surfaces as a database error on
+     * the first query, which the developer fixes at the registration site.
+     */
+    public function isSiteScoped(): bool
+    {
+        return (bool) ($this->options['site_scoped'] ?? true);
+    }
+
+    /**
+     * Data space of this source, derived from its site: a non-aggregate site's
+     * own pair, an aggregate site's resolved source pair.
+     *
+     * @return array{scope_type: string, scope_id: int}
+     */
+    public function scopeable(): array
+    {
+        return app(SiteRegistry::class)->scopeableFor(
+            $this->site ?? throw new LogicException('A search source must be bound to a site before querying.')
+        );
     }
 
     public function key(): string
@@ -112,22 +150,15 @@ class SearchSource
         return collect(($this->options['results'])($query));
     }
 
-    /** LIKE engine: apply the scopeable filter and the query modifier. */
+    /** LIKE engine: apply the site's data space, then the query modifier. */
     public function modifyQuery(Builder $query): Builder
     {
-        $scopeable = $this->options['scopeable'] ?? null;
-
-        // A closure keeps the scope per-request (one panel may host several sites).
-        if ($scopeable instanceof Closure) {
-            $scopeable = $scopeable();
-        }
-
-        if ($scopeable && method_exists($this->options['model'], 'scopeScopeable')) {
-            $query->scopeable($scopeable['scope_type'], $scopeable['scope_id']);
+        if ($this->isSiteScoped()) {
+            $query->forScopeable($this->scopeable());
         }
 
         if (($modifier = $this->options['query'] ?? null) instanceof Closure) {
-            $query = $modifier($query) ?? $query;
+            $query = $modifier($query, $this->site) ?? $query;
         }
 
         return $query;

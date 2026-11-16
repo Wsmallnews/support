@@ -5,6 +5,8 @@ namespace Wsmallnews\Support\Livewire\Components;
 use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Url;
 use Wsmallnews\Support\Facades\Search as SearchFacade;
+use Wsmallnews\Support\Features\Site\Site;
+use Wsmallnews\Support\Features\Site\SiteContext;
 use Wsmallnews\Support\Livewire\Base;
 use Wsmallnews\Support\Livewire\Concerns\CanBeContained;
 
@@ -20,8 +22,8 @@ class SearchResults extends Base
     #[Url(as: 'q', except: '')]
     public ?string $query = null;
 
-    /** Bound module id; null searches every enabled module. */
-    public ?string $module = null;
+    /** Bound module id; the caller must set it, an empty or unknown id fails the search. */
+    public string $module = '';
 
     /** Per-source result limit; null uses the source or global config. */
     public ?int $limit = null;
@@ -36,12 +38,18 @@ class SearchResults extends Base
         $this->placeholder = $this->placeholder ?: __('sn-support::search.placeholder');
     }
 
+    /** Site the component renders in; fail-closed — embedding requires a site context. */
+    public function site(): Site
+    {
+        return app(SiteContext::class)->requireSite();
+    }
+
     public function render()
     {
         return view('sn-support::livewire.components.search-results', [
-            'groups' => SearchFacade::search($this->module, (string) $this->query, $this->limit),
-            'debounce' => (string) SearchFacade::resolveConfig($this->module, 'debounce', '300ms'),
-            'itemRenderers' => SearchFacade::itemRenderers($this->module),
+            'groups' => SearchFacade::search($this->module, (string) $this->query, $this->site(), $this->limit),
+            'debounce' => (string) SearchFacade::resolveConfig($this->module, 'debounce', $this->site(), '300ms'),
+            'itemRenderers' => SearchFacade::itemRenderers($this->module, $this->site()),
             'showSearchButton' => $this->isShowButton(),
         ]);
     }
@@ -56,7 +64,7 @@ class SearchResults extends Base
             return $this->showButton;
         }
 
-        return (bool) SearchFacade::resolveConfig($this->module, 'show_search_button', false);
+        return (bool) SearchFacade::resolveConfig($this->module, 'show_search_button', $this->site(), false);
     }
 
     /**

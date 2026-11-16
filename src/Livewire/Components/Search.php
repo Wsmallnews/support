@@ -5,6 +5,8 @@ namespace Wsmallnews\Support\Livewire\Components;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Support\HtmlString;
 use Wsmallnews\Support\Facades\Search as SearchFacade;
+use Wsmallnews\Support\Features\Site\Site;
+use Wsmallnews\Support\Features\Site\SiteContext;
 use Wsmallnews\Support\Livewire\Base;
 use Wsmallnews\Support\Livewire\Concerns\HasProperties;
 
@@ -18,8 +20,8 @@ class Search extends Base
 
     public ?string $query = null;
 
-    /** Bound module id; null searches every enabled module. */
-    public ?string $module = null;
+    /** Bound module id; the caller must set it, an empty or unknown id fails the search. */
+    public string $module = '';
 
     /** Per-source result limit; null uses the source or global config. */
     public ?int $limit = null;
@@ -38,19 +40,25 @@ class Search extends Base
 
         // Resolved into the property at mount so the view can read $display directly; a public
         // property would shadow any same-named view data.
-        $this->display = $this->display ?? (string) SearchFacade::resolveConfig($this->module, 'display', 'dropdown');
+        $this->display = $this->display ?? (string) SearchFacade::resolveConfig($this->module, 'display', $this->site(), 'dropdown');
+    }
+
+    /** Site the component renders in; fail-closed — embedding requires a site context. */
+    public function site(): Site
+    {
+        return app(SiteContext::class)->requireSite();
     }
 
     public function render()
     {
         $groups = $this->isDropdownDisplay()
-            ? SearchFacade::search($this->module, (string) $this->query, $this->limit)
+            ? SearchFacade::search($this->module, (string) $this->query, $this->site(), $this->limit)
             : collect();
 
         return view('sn-support::livewire.components.search', [
             'groups' => $groups,
-            'debounce' => (string) SearchFacade::resolveConfig($this->module, 'debounce', '300ms'),
-            'itemRenderers' => SearchFacade::itemRenderers($this->module),
+            'debounce' => (string) SearchFacade::resolveConfig($this->module, 'debounce', $this->site(), '300ms'),
+            'itemRenderers' => SearchFacade::itemRenderers($this->module, $this->site()),
             'showSearchButton' => $this->isShowButton(),
         ]);
     }
@@ -65,7 +73,7 @@ class Search extends Base
     public function getDisplay(): string
     {
         return $this->display
-            ?? (string) SearchFacade::resolveConfig($this->module, 'display', 'dropdown');
+            ?? (string) SearchFacade::resolveConfig($this->module, 'display', $this->site(), 'dropdown');
     }
 
     /** Whether to render the submit button (page mode only), same precedence as display. */
@@ -79,7 +87,7 @@ class Search extends Base
             return $this->showButton;
         }
 
-        return (bool) SearchFacade::resolveConfig($this->module, 'show_search_button', false);
+        return (bool) SearchFacade::resolveConfig($this->module, 'show_search_button', $this->site(), false);
     }
 
     /** Submit button HTML passed to the wrapper suffix; clicking equals pressing Enter. */
@@ -100,7 +108,7 @@ class Search extends Base
             return;
         }
 
-        $url = SearchFacade::resolvePage($this->module, $term);
+        $url = SearchFacade::resolvePage($this->module, $this->site(), $term);
 
         if (blank($url)) {
             return;

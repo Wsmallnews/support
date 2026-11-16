@@ -68,8 +68,9 @@ class SearchRegistry
 
     public function register(string $module, array | SearchSource $source, Site $site): static
     {
-        // Prefer passing a SearchSource instance (held as-is); arrays are normalized by the constructor
-        $candidate = $source instanceof SearchSource ? $source : new SearchSource($source);
+        // Prefer passing a SearchSource instance (held as-is); arrays are normalized by the constructor.
+        // The site is bound here so the source derives its own data space, never the request context.
+        $candidate = ($source instanceof SearchSource ? $source : new SearchSource($source))->forSite($site);
 
         if (blank($candidate->options()['model'] ?? null)) {
             throw new SupportException(__('sn-support::search.exceptions.model_required', ['module' => $module]));
