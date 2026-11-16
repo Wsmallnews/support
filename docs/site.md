@@ -34,7 +34,7 @@ CmsPlugin::make()
 2. 面板插件 `register()` 时解析所有站点，`toSite()` 冻结为 `Site`；
 3. `SiteRegistry::register()` 做全局去重（id / 前台地址 / scope 三元组）；
 4. `app->booted` 后，各模块的 `SiteServicePipeline` 按站点执行服务注册；
-5. 前台请求由 `ResolveSite` 中间件按路由名前缀匹配站点，写入 `SiteContext`。
+5. 前台请求由 `ResolveSiteContext` 中间件一遍解析站点与租户（先按路由名前缀匹配站点，再按站点模式决定是否解析租户），写入 `SiteContext`。
 
 ## 4. 数据结构
 

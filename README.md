@@ -9,6 +9,8 @@ Base package for the Wsmallnews Filament ecosystem: shared models, component fac
 
 Every other Wsmallnews package builds on this one. Package-specific conventions for AI agents live in [`resources/boost/guidelines/core.blade.php`](resources/boost/guidelines/core.blade.php).
 
+Repository-only per-feature docs (excluded from release archives): [`docs/README.md`](docs/README.md).
+
 ## Requirements
 
 - PHP 8.2+
@@ -69,8 +71,8 @@ All keys live in `config/sn-support.php`:
 
 ### Base model layer
 
-- **SupportModel** — base class for every package model, with `Scopeable` and tenant awareness.
-- **Scopeable** — `scopeType()`, `scopeId()`, `scopeable()`, `snScope()` query scopes.
+- **SupportModel** — base class for every package model, with `SiteScope` and tenant awareness.
+- **SiteScope** — `siteContext()`, `panelContext()` and `forScopeable()` query scopes, plus the tenant axis.
 - **Content** — polymorphic content storage for `textarea`, `richtext`, `markdown` and `images`.
 - **Composition**, **Page**, **Tag**, **ScheduledTask**, **SmsLog**, **Activity** models.
 
@@ -94,7 +96,7 @@ Factories apply `config('sn-support.*')` defaults. When you use a factory, do no
 | `HasAuth` | Auth user management, `authUser()` / `hasAuthUser()` |
 | `CanPagination` | Scroll, paginator and manual modes; includes `WithPagination` |
 | `CanBeContained` | Whether the component renders its own container |
-| `Scopeable` | `#[Locked]` scope type and id |
+| `ScopedBySite` | `#[Locked]` `$siteId` / `$tenantId` / `$scopeable`; scope derived from the site |
 | `HasModuleContext` | Config lookup for a component reused by another module |
 
 ### Eloquent casts
@@ -111,7 +113,7 @@ Factories apply `config('sn-support.*')` defaults. When you use a factory, do no
 - **SMS** — `Features\Sms` on top of `overtrue/easy-sms`.
 - **Tenant settings** — a database settings repository for `spatie/laravel-settings`.
 - **Observers** — activity log and media library observers.
-- **Middleware** — `IdentifyTenant` and `InitializeSeo`.
+- **Middleware** — `ResolveSiteContext` (site + tenant in one pass) and `ResolveSeo` (aliases `sn-resolve-site-context` / `sn-resolve-seo`).
 
 ## Usage
 
@@ -125,15 +127,15 @@ class Post extends SupportModel
     protected $table = 'posts';
 }
 
-Post::scopeable('blog', 1)->get();   // scope filter
-Post::snScope('blog', 1)->get();     // scope plus current tenant
+Post::query()->forScopeable(['scope_type' => 'blog', 'scope_id' => 1])->get();   // scope + context tenant
+Post::query()->siteContext()->get();                                             // current site's scope
 
 $post->getScopeType();               // 'blog'
 $post->getScopeId();                 // 1
 $post->getScopeable();               // ['scope_type' => 'blog', 'scope_id' => 1]
 ```
 
-`scope_id` may be `0`, which means "every record of this scope type". Because `0` is a real value, queries must use `scopeScopeId(0)` (internally `whereIn`) rather than `where('scope_id', 0)`.
+`scope_id` may be `0`, which means "every record of this scope type". Pass it through `forScopeable()` instead of hand-writing `where('scope_id', 0)` so the tenant rule stays in the query.
 
 ### Component factories
 
@@ -207,24 +209,24 @@ $this->halt();   // stop and roll back
 
 `withPagination()` caches by page and fingerprint, so pass a fingerprint that covers every condition affecting the result set. Call `resetPagination()` after data changes.
 
-### Scopeable
+### Scope
+
+Every site-scoped model extends `SupportModel`, which uses the `Models\Concerns\SiteScope` trait:
 
 ```php
-use Wsmallnews\Support\Data\ScopeableContext;
-
-$context = new ScopeableContext('post', 0);
-$context->isGlobal();                                            // true
-
-ScopeableContext::fromArray(['scope_type' => 'store', 'scope_id' => 5]);
-scopeable_context(['scope_type' => 'post', 'scope_id' => 0]);
-scopeable_query(Post::query(), ['scope_type' => 'post', 'scope_id' => 0]);
+Post::query()->siteContext();          // current site's scope (+ site mode rule)
+Post::query()->siteContext('footer');  // a registered sub-scope of the current site
+Post::query()->panelContext($pair);    // panel query, pair mandatory
+Post::query()->forScopeable($pair);    // explicit scope + context tenant
+Post::query()->forScopeable($pair, withTenant: false);   // record relations: scope only
 ```
 
 Filament side:
 
-- `Filament\Concerns\HasScopeableProperties` — static `scopeType()` / `scopeId()`.
-- `Filament\Resources\Concerns\Scopeable` — `applyScopeableToQuery()`.
-- `Filament\Pages\Concerns\Scopeable` — page-level scope helpers.
+- `Filament\Concerns\RequiresConfiguration` — base contract for a registered component: scope/module accessors throw a readable exception when the component was never registered.
+- `Filament\Concerns\CanBeConfigured` — resolves the scope injected at registration and fails closed when none was declared.
+- `Filament\Resources\Concerns\ScopedQueries` — `applyScopeToQuery()` scopes a resource query to its declared pair (includes the contract above).
+- `Filament\Resources\Concerns\Pages\ForwardsResourceScope` — forwards the resource's scope to its pages.
 
 A misconfigured scope throws `InvalidScopeException` instead of falling back to a `default` instance.
 
@@ -232,13 +234,10 @@ A misconfigured scope throws `InvalidScopeException` instead of falling back to 
 
 ```php
 use Wsmallnews\Support\Filament\Concerns\CanBeConfigured;
-use Wsmallnews\Support\Filament\Resources\ResourceConfiguration;
 
 final class PostResource extends BaseResource
 {
     use CanBeConfigured;
-
-    protected static ?string $configurationClass = ResourceConfiguration::class;
 }
 ```
 
@@ -348,23 +347,22 @@ ModuleRegistry::register(new Module(
 
 ```php
 use Wsmallnews\Support\Facades\Search;
+use Wsmallnews\Support\Features\Search\SearchSource;
 
 Search::config('sn-cms', [
     'display' => 'page',
     'page' => fn (?string $query) => route('cms.search', ['q' => $query]),
-])->registers('sn-cms', [
-    [
+], $site)->registers('sn-cms', [
+    new SearchSource([
         'key' => 'post',
         'model' => Post::class,
         'group' => 'Posts',
         'query' => fn ($query) => $query->published(),
-        'scopeable' => ['scope_type' => 'sn-cms', 'scope_id' => 0],
         'url' => fn ($record) => route('cms.posts.show', $record),
-    ],
-]);
+    ]),
+], $site);
 
-Search::search(null, 'keyword');      // every registered module, grouped by label
-Search::search('sn-cms', 'keyword');  // one module; an unknown module throws
+Search::search('sn-cms', 'keyword');  // one module, every source of it; an unknown module throws
 ```
 
 Source options:
@@ -377,9 +375,9 @@ Source options:
 | `fields` | LIKE columns; defaults to the model's keyword fields minus dotted relation paths |
 | `limit` | Results per source |
 | `sort` | Source order, ascending |
-| `query` | LIKE engine query modifier |
-| `scout` | Scout index modifier; overrides `query`, `scopeable` and `fields` |
-| `scopeable` | Scope filter for the LIKE engine |
+| `query` | LIKE engine query modifier; receives `($query, Site $site)` |
+| `scout` | Scout index modifier; overrides `query` and `fields` |
+| `site_scoped` | Isolate rows by the source's site; defaults to `true`. A public model whose table has no scope columns declares `false` — otherwise the first query fails on the missing column |
 | `title` / `description` / `cover` / `badge` | Display resolvers; default to `HasSnSubject` data |
 | `url` | Link resolver; **only** the registrant can provide it, otherwise items are unlinked |
 | `view` | Custom item view; falls back to `SearchSource::DEFAULT_ITEM_VIEW` |
@@ -387,7 +385,11 @@ Source options:
 | `visible` | Closure deciding whether the source takes part |
 | `results` | Fully custom results, bypassing the engine |
 
-Module options (`Search::config()`) accept **any** key from `sn-support.search`. Resolution order everywhere is component property → module declaration → global config. Passing `null` restores the global fallback. Re-registering a key overrides the previous source, which lets an app replace a package source.
+Module options (`Search::config()`) accept **any** key from `sn-support.search` and are stored per site. Resolution order is component property → site module options → global `sn-support.search` config. There is no module-level fallback: a site that registered no sources for a module simply has none. Re-registering a key overrides the previous source, which lets an app replace a package source.
+
+Search reads take the site explicitly (`Site $site` second argument) — there is no ambient fallback. Components obtain it from the bound `SiteContext` (`SiteContext::requireSite()`).
+
+The registry binds that site to every source on registration, so a source derives its own data space (`SiteRegistry::scopeableFor()`) instead of reading the ambient request context. `query` modifiers receive the same site as their second argument.
 
 Engines: `database` (default, `WHERE ... LIKE`), `scout` (requires `laravel/scout` and `Searchable` on the model), or a class implementing `Engines\Engine`. Engines implementing `ConfigurableEngine` receive the module options.
 
@@ -398,7 +400,7 @@ Search config keys:
 | `engine` | `database` | Fallback engine |
 | `display` | `dropdown` | `dropdown` or `page` |
 | `page` | `null` | Results page: string gets `?q=` appended, closure builds the URL |
-| `results_limit` | `8` | Results per source |
+| `limit` | `8` | Results per source |
 | `split_terms` | `true` | Split the query on whitespace |
 | `terms_operator` | `and` | `and` or `or` for the split terms |
 | `show_search_button` | `false` | Render a submit button (page mode only) |
@@ -416,12 +418,12 @@ Components:
 
 ### Sitemap
 
-`SitemapRegistry` (facade `Sitemap`) aggregates URL sources and robots rules. support exposes `/sitemap.xml` and `/robots.txt` at the root, so they work on every bound domain.
+`SitemapRegistry` (facade `Sitemap`) aggregates URL sources and robots rules. support exposes `/robots.txt` at the root; `sitemap.xml` belongs to a site and is registered inside that site's route group (`CmsFrontendRoutes` does this for cms).
 
 ```php
 use Wsmallnews\Support\Facades\Sitemap;
 
-Sitemap::config('sn-cms', ['domain' => 'cms.example.com'])
+Sitemap::config('sn-cms', ['domain' => 'cms.example.com'], $site)
     ->registers('sn-cms', [
         [
             'key' => 'posts',
@@ -430,15 +432,14 @@ Sitemap::config('sn-cms', ['domain' => 'cms.example.com'])
                 'lastmod' => $post->updated_at,
             ]),
         ],
-    ])
+    ], $site)
     ->robots('sn-cms', ['disallow' => ['cms/search']]);
 ```
 
-- `robots.txt` always contains the Filament panel paths, the registered disallow rules and a `Sitemap:` line for the current host.
-- Modules declaring a `domain` that does not match the request are skipped, including their robots rules. Route patterns such as `{tenant:slug}.example.com` are supported.
+- `robots.txt` contains the Filament panel paths, the registered disallow rules and one `Sitemap:` line per registered frontend site.
 - The rendered sitemap is cached as a whole; call `Sitemap::flush()` after content changes.
 
-Config keys: `enabled`, `sitemap_uri`, `robots_uri`, `cache_ttl` (`null` or `0` disables), `domain_filter`.
+Config keys: `enabled` (robots endpoint), `robots_uri`, `cache_ttl` (`null` or `0` disables).
 
 ### Feed
 
@@ -447,7 +448,7 @@ Config keys: `enabled`, `sitemap_uri`, `robots_uri`, `cache_ttl` (`null` or `0` 
 ```php
 use Wsmallnews\Support\Facades\Feed;
 
-Feed::config('sn-cms', ['domain' => 'cms.example.com'])
+Feed::config('sn-cms', [], $site)
     ->register('sn-cms', 'posts', [
         'title' => fn () => config('app.name') . ' - Posts',
         'label' => fn () => __('Posts'),
@@ -460,17 +461,19 @@ Feed::config('sn-cms', ['domain' => 'cms.example.com'])
             'description' => $post->description,
             'updated_at' => $post->published_at,
         ]),
-    ]);
+    ], $site);
 ```
 
 - `items` is required and must be a closure; every entry needs a `url`.
-- Feed names are URL segments and must be **globally unique**; duplicates throw at registration.
-- `/feed` merges every visible stream, newest first, truncated by `feeds.limit`; `/feed/{name}` serves one stream.
-- Register module-scoped endpoints inside the module route group with `Feed::routes('sn-cms')`, which adds `{prefix}/feed` and `{prefix}/feed/{name}`. Call it before catch-all segments such as `navigation/{slug}`.
-- `Feed::autodiscoveryTags($module)` returns the `<link rel="alternate">` tags for the layout head.
+- Only the module owning the site may register feeds (`$module === $site->pluginId`); a repeated name replaces the previous definition.
+- There is no root `/feed`: register the endpoints inside the site route group with `Feed::routes('sn-cms', $site)`, which adds `{prefix}/feed` (module aggregate) and `{prefix}/feed/{name}`. Call it before catch-all segments such as `navigation/{slug}`.
+- `Feed::render($module, $site, $name = null)` renders the aggregate stream (or one named feed) programmatically; the aggregate cap follows `resolveConfig`: module declaration (the site's `feed.*` section passed through) > `feeds.aggregate_limit`.
+- `Feed::getConfig($module, $site, $key = null, $default = null)` reads module options; `Feed::resolveConfig($module, $key, $site, $default = null)` resolves module declaration > `sn-support.feeds.*` > default.
+- `Feed::autodiscoveryTags($module, $site)` returns the `<link rel="alternate">` tags for the layout head (`@snFeeds`).
+- Reads take the site explicitly; there is no ambient fallback.
 - Call `Feed::flush()` after content changes.
 
-Config keys: `enabled`, `uri`, `limit`, `cache_ttl`, `domain_filter`.
+Config keys (fallbacks; a module passes its site's `feed.*` section through as the declaration): `uri`, `limit`, `aggregate_limit`, `cache_ttl` (`null` or `0` disables).
 
 ### Seo
 
@@ -479,14 +482,14 @@ Config keys: `enabled`, `uri`, `limit`, `cache_ttl`, `domain_filter`.
 ```php
 use Wsmallnews\Support\Facades\Seo;
 
-// Site defaults, once per module in packageBooted()
+// Site defaults, once per site in the site service
 Seo::config('sn-cms', [
     'site_name' => fn () => config('app.name'),
     'description' => fn () => null,
     'image' => fn () => null,
     'favicon' => fn () => '/favicon.ico',
     'analytics_code' => fn () => null,
-]);
+], $site);
 
 // Per page, in the routed page
 Seo::init('sn-cms')
@@ -497,7 +500,7 @@ Seo::init('sn-cms')
 
 Render in the layout: `@snSeo` in `<head>`, `@snSeoAnalytics` before `</body>`, `@snFeeds('sn-cms')` for autodiscovery links.
 
-- `init()` runs in the `seo-init:{module}` route middleware on first render only. Livewire update requests do not re-render the layout, so they need no re-initialisation.
+- `init()` runs in the `sn-resolve-seo:{module}` route middleware on first render only. Livewire update requests do not re-render the layout, so they need no re-initialisation.
 - `article()` assembles an Article JSON-LD node from the page data and switches `og:type` to `article`; `website()` emits the WebSite node; `jsonLd()` appends raw nodes.
 - Relative image and canonical URLs are made absolute at render time.
 
@@ -588,16 +591,33 @@ Filament resources:
 
 ### Multi-tenancy
 
-Set `sn-support.tenant_model` to enable. `IdentifyTenant` is registered as a global Livewire persistent middleware and resolves the tenant from the route's `tenant` parameter by `slug`.
+Every deployment ships the `teams` table, so `sn-support.tenant_model` is always configured. Whether a request is tenant-scoped is decided by the site mode (frontend) or the panel's tenancy (admin) — never by the config value. `ResolveSiteContext` is registered as a global Livewire persistent middleware (alias `sn-resolve-site-context`): it resolves the site from the route name (or an explicit plugin parameter) and, for Tenant-mode sites, the tenant from the route's `tenant` parameter by `slug` (narrowed by the site's `tenantType`).
+
+The package ships a base tenant model (`Wsmallnews\Support\Models\Team`) for the `teams` table (`name`, `avatar_url`, `slug`, `status`, `options`). Extend it in the host app when the tenant needs app-specific relations, then point the config at the subclass:
 
 ```php
-has_tenancy();               // whether a tenant is active
-current_tenant();            // panel or frontend tenant model
-frontend_has_tenancy();
-frontend_current_tenant();
+// config/sn-support.php
+'tenant_model' => App\Models\Team::class,
+
+// app/Models/Team.php
+class Team extends \Wsmallnews\Support\Models\Team
+{
+    public function users(): BelongsToMany { ... }
+}
+```
+
+`Team` implements Filament's `HasAvatar` / `HasName` and casts `status` to `Enums\TeamStatus` (`enabled` / `disabled`). Availability is data only — enforce it in the tenant middleware that fits your panel/frontend stack.
+
+```php
+current_tenant();            // panel: Filament tenant; frontend: SiteContext tenant
 is_in_panel();
 sn_route('page.show');       // adds the tenant parameter when needed
 ```
+
+`scopeTenant()` follows the current context: a site filters by its mode
+(Tenant / Platform / Aggregate), a panel by its tenancy, and code without
+either context reads platform rows. Use `forTenant($id)` / `allTenants()` for
+explicit console or cross-tenant reads.
 
 Tenant settings use `Tenant\Settings\Repositories\DatabaseSettingsRepository` with the `sn_team_settings` table. Register it in `config/settings.php`:
 
@@ -668,8 +688,7 @@ Conventions:
 | `Utils::getModel($name, $throw = true)` | Resolve a configured model class; `false` allows `null` |
 | `Utils::getContentModel()` / `getCompositionModel()` / `getPageModel()` / `getScheduledTaskModel()` / `getSmsLogModel()` | Configured model classes |
 | `Utils::getFilesystemDisk()` | Upload disk, falling back to Filament's default |
-| `Utils::getScopeFromInstances($configKey, $key = null)` | Resolve a `ScopeableContext` from a module's scopeables |
-| `Utils::isTenancyEnabled()` / `getTenantModel()` | Tenancy state and model |
+| `Utils::getTenantModel()` | Configured tenant model |
 | `generate_slug()` | Slug with word-boundary truncation and a random fallback |
 | `text_highlight($text, $query)` | Escaped keyword highlighting with `<mark>` |
 | `sn_badge_color()` / `sn_text_color()` | Semantic colour to class and style |

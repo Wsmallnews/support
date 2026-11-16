@@ -8,8 +8,8 @@
 
 1. **模型继承 `SupportModel`**，不要直接继承 `Illuminate\Database\Eloquent\Model`。
 2. **组件优先用工厂方法**（`FormComponents` / `FilterComponents` / `ActionComponents` / `ColumnComponents`），工厂已应用配置；用了工厂就不要再手写 `disk()` / `visibility()` 等默认值。
-3. **scopeable 资源**：模型 `use Models\Concerns\Scopeable`；Resource 查询经 `applyScopeableToQuery()`；CreatePage 必须 `mutateFormDataBeforeCreate` 合并 scope。
-4. **scope_id 可以为 0**（表示该 scope_type 下的全局作用域），因此查询一律用 `scopeScopeId()`，**禁止** `where('scope_id', 0)`。
+3. **scopeable 资源**：模型继承 `SupportModel` 即带 `SiteScope`（记录访问器 + 三类查询入口）；Resource 查询经 `applyScopeToQuery()`（内部 `panelContext()`）；CreatePage 必须 `mutateFormDataBeforeCreate` 合并 scope。
+4. **scope_id 可以为 0**（表示该 scope_type 下的全局作用域），查询走 `forScopeable(['scope_type' => ..., 'scope_id' => 0])`，**禁止**手写 `where('scope_id', 0)` 绕过租户规则。
 5. **枚举状态字段统一 `FormComponents::enumsToggleButtons()`**，禁止 Radio / Select 做状态字段；状态枚举必须实现 `HasColor` / `HasIcon` / `HasLabel` + `use EnumHelper`。
 6. **hardcode 中文 label 禁止**：一律走翻译 key（`<资源>_table.<field>` / `<资源>_form.<field>` / `<资源>_status.<case>`）。
 7. **`CanPagination` 已包含 `WithPagination`**，不要再单独 use `WithPagination`。
@@ -82,8 +82,8 @@ Resources/Xxxs/
 ```
 
 - **BaseResource**：`getModel()` 必须走 `Utils::getModel()`（模型可经 `config('包名.models.xxx')` 替换，这是资源能被复用的前提）；标签用 `static::$xxx ?? 翻译key`；`form()` / `table()` 委托给 `Schemas` / `Tables`。
-- **XxxResource**：只做 `getPages()` 与 `CanBeConfigured` + `$configurationClass = ResourceConfiguration::class`，不定义默认值。
-- **Pages**：全部 `use Wsmallnews\Support\Filament\Pages\Concerns\Scopeable`，`$resource` 写死指向 final 类。
+- **XxxResource**：只做 `getPages()` 与 `CanBeConfigured`（`$configurationClass` 与 scope 契约由 `BaseResource` 声明），不定义默认值。自定义资源继承 `BaseResource` 时只需 `use CanBeConfigured;`。
+- **Pages**：`$resource` 写死指向 final 类；具体页面用 `CanBeConfigured` 从注册声明取 scope（抽象 Base 不带 scope trait）。
 - **继承即自建 Pages**：其他包 `extends BaseResource` 时必须自建 Pages 并把 `$resource` 指向自己的类；不想自建就直接注册 `XxxResource::class` 并用插件 customProperties 覆盖 form / table。
 
 ### Table / Form 规范
@@ -136,18 +136,18 @@ return $table
 - 相同状态语义 → 相同颜色 + 相同图标。
 - 禁止 solid 常量与字符串图标；枚举结构：`enum X: string implements HasColor, HasIcon, HasLabel` + `use EnumHelper`。
 
-### SupportModel 与 Scopeable
+### SupportModel 与 SiteScope
 
 ```php
 class Post extends SupportModel
 {
-    // scopeTenant() / scopeSnScope() / getModelLabel()
+    // siteContext() / panelContext() / forScopeable() / scopeTenant() / getModelLabel()
 }
 ```
 
-- `scope_type` + `scope_id` 对应 `Models\Concerns\Scopeable`；`scope_id = 0` 表示该类型下的全局作用域（不用 Laravel 原生 morph，正是因为 0 不是可指向的记录）。
-- 值对象 `Data\ScopeableContext`：`new ScopeableContext('post', 0)`、`fromArray()`、`isGlobal()`。
-- Filament 侧：`HasScopeableProperties`（静态 scopeType/scopeId）、`Resources\Concerns\Scopeable`（`applyScopeableToQuery()`）、`Pages\Concerns\Scopeable`。
+- `scope_type` + `scope_id` 由模型 trait `Models\Concerns\SiteScope` 提供（记录访问器 `getScopeable()` / `getScopeType()` / `getScopeId()` 与查询入口）；`scope_id = 0` 表示该类型下的全局作用域（不用 Laravel 原生 morph，正是因为 0 不是可指向的记录）。
+- 查询入口按意图分三类：`siteContext($subScope = null)`（前台，从站点派生，无 site 抛异常）/ `panelContext($scopeable)`（面板，必传注册声明 scope）/ `forScopeable($scopeable, withTenant: true)`（显式，记录自身 scope、console/queue、跨 scope 嵌入；父记录已锁死租户的关联查询传 `withTenant: false`）。租户轴：`scopeTenant()` / `forTenant($id)` / `allTenants()` / `tenantAggregate()`。
+- Filament 侧：`RequiresConfiguration`（基类契约：未注册时 scope/module 抛可读异常）、`CanBeConfigured`（按注册声明解析 scope）、`Resources\Concerns\ScopedQueries`（`applyScopeToQuery()`；面板有 tenancy 时租户条件交给 Filament 的全局作用域，无 tenancy 时补 `whereNull(team_id)`）、`Resources\Concerns\Pages\ForwardsResourceScope`（页面把 scope 转发给所属资源）。
 - 公用全局资源（member、user）**不需要** scopeable；可能多份存在的资源（post、product、link）才用。
 - 资源 scope 配置错误直接抛 `InvalidScopeException`，不回落 `default`。
 
@@ -157,12 +157,28 @@ class Post extends SupportModel
 final class PostResource extends BaseResource
 {
     use CanBeConfigured;
-
-    protected static ?string $configurationClass = ResourceConfiguration::class;
 }
 ```
 
 插件侧 `use RegistersConfigurable`，在 `register()` 里调用 `registerConfigurableResources($panel)` / `registerConfigurablePages($panel)`。`module_id` 由注册插件自动注入（注册即归属），手工声明会被覆盖。
+
+### 站点插件（RegistersSites）
+
+拥有前台站点的插件用 `RegistersSites`，必须先 `site()` 再 `resources()/pages()`，每个站点各生成一份配置：
+
+```php
+CmsPlugin::make()
+    ->site('main', fn (SiteConfig $site) => $site->prefix('cms'))
+    ->resources([PostResource::class, [PostResource::class, ['key' => 'vip', 'scope_suffix' => 'vip']]])
+    ->pages([FooterNavigationPage::class]);   // 子 scope 由类的 getScopeSuffix() 自述
+```
+
+- 条目三形态：裸类名 / `Class => [overrides]` / `[Class, [overrides]]`。只有元组能表达"同一个类在本站点的第二份实例"，且必须自带 `key` 与 `scope_suffix`。
+- 配置 key 按 `panelId-pluginId-siteKey-class` 派生；同一站点内 `(class, key)` 重复抛，不同类可共用 key（Filament 按 `[class][key]` 查找）。`resources()`/`pages()` 多次调用是追加。
+- **条目禁止 `scopeable` / `scope_type` / `scope_id`**：pair 只能由站点派生（`{site.scopeType}::{suffix}`），suffix 只负责命名分区。
+- **跨资源读取用 `related_scope_suffix`**：条目可配 `['composition' => 'post']`（key 由调用方约定，Page 绑定编排固定用 `composition`）；读取时用「站点基础 scope + 该后缀」，未配置的 key 回退站点基础 scope，后缀未注册时查询为空、不抛异常。
+- 站点显式 `scopeable()` 必须带插件 id 前缀；非 aggregate 站点的 `(scope_type, scope_id)` 在 `SiteRegistry` 全局唯一，跨插件重复注册期抛。
+- 站点级后台默认值用 `$site->panelDefaults([...])`，优先级 `条目 overrides > 站点 panelDefaults > 模块 panel_register.global_default`；`navigation_group` 多站点时以 site label 兜底。
 
 ### 注册表速查（全部以模块 id 为 key）
 
@@ -197,7 +213,7 @@ final class PostResource extends BaseResource
 ### Livewire 基础设施
 
 - `Livewire\Base`：`$this->transaction(fn () => ...)` 带 Halt 感知；`$this->halt()` 停止并回滚。
-- Traits：`HasProperties`、`HasContentType`、`HasAuth`、`CanPagination`（scroll / paginator / manual）、`CanBeContained`、`Scopeable`（`#[Locked]`）、`HasModuleContext`。
+- Traits：`HasProperties`、`HasContentType`、`HasAuth`、`CanPagination`（scroll / paginator / manual）、`CanBeContained`、`ScopedBySite`（`#[Locked]` 快照 + 站点派生）、`HasModuleContext`。
 - `HasModuleContext`：`:module` 指定消费模块，`moduleConfig` 先读消费模块配置、回落组件所有方；`getOwnerModule()` 经 `ModuleRegistry` 按类名反查。
 - `HasColumns`（`Concerns\HasColumns`）提供响应式列配置，但 HTML 布局仍写在视图里。
 
@@ -216,8 +232,9 @@ final class PostResource extends BaseResource
 
 ### 多租户
 
-- 中间件 `IdentifyTenant` 已注册为全局 Livewire 持久中间件；`config('sn-support.tenant_model')` 为 `null` 即禁用。
-- 辅助函数：`has_tenancy()` / `current_tenant()` / `frontend_has_tenancy()` / `frontend_current_tenant()` / `is_in_panel()` / `sn_route()`（自动补 tenant 参数）。
+- 中间件 `ResolveSiteContext`（别名 `sn-resolve-site-context`）已注册为全局 Livewire 持久中间件：一遍解析站点与租户（先站点，租户只在 `tenant` 模式的站点上解析）。`tenant_model` 恒有值（默认 `Models\Team`），是否租户由**站点模式**（前台）或**面板 tenancy**（后台）决定，不由配置开关决定。
+- 基础租户模型 `Models\Team`（`teams` 表：`name` / `avatar_url` / `slug` / `status` / `options`，实现 `HasAvatar` + `HasName`）；**推荐宿主继承后**把 `tenant_model` 指向子类，再补 `users()` 等业务关系。状态枚举 `Enums\TeamStatus`（`enabled` / `disabled`）。
+- 辅助函数：`current_tenant()`（面板取 Filament 租户，前台取 `SiteContext::tenant()`，`?->getKey()` 取 id）/ `is_in_panel()` / `sn_route()`（仅对 `{tenant:slug}` 路由补参数；缺租户直接抛异常，非 slug 绑定也抛异常）。租户查询 scope：`scopeTenant()` 按当前上下文（站点模式 / 面板 tenancy）严格过滤，显式跨租户用 `allTenants()`，指定租户用 `forTenant($id)`。
 - 租户设置仓库 `Tenant\Settings\Repositories\DatabaseSettingsRepository`（表 `sn_team_settings`）。
 - `media-library` 的 `media_observer` 必须换成 support 的实现，否则删记录会连带删文件。
 
@@ -247,7 +264,6 @@ final class PostResource extends BaseResource
 | `Utils::getModel($name, $throw = true)` | 读模型类名，`false` 时允许 null |
 | `Utils::getContentModel()` / `getCompositionModel()` / `getPageModel()` / `getScheduledTaskModel()` | 各模型类名 |
 | `Utils::getFilesystemDisk()` | 磁盘，回落到 Filament 默认盘 |
-| `Utils::getScopeFromInstances($configKey, $key)` | 从模块 scopeables 解析 `ScopeableContext` |
 | `sn_money()` | 金额服务 |
 | `sn_route()` | 租户感知路由 |
 | `generate_slug()` | 标题转 slug（空结果兜底随机串） |
@@ -255,7 +271,6 @@ final class PostResource extends BaseResource
 | `sn_badge_color()` / `sn_text_color()` | 语义色 → class + style |
 | `href_format()` | 生成 href / target / wire:navigate |
 | `files_url()` | 文件 URL 解析 |
-| `scopeable_context()` / `scopeable_query()` | ScopeableContext 与查询过滤 |
 
 ### 命名空间速查
 
@@ -263,7 +278,7 @@ final class PostResource extends BaseResource
 |---|---|
 | 组件工厂 | `Wsmallnews\Support\Filament\{Forms,Filters,Actions,Tables}` |
 | Resources | `Wsmallnews\Support\Filament\Resources\{ActivityLogs,Compositions,Pages,ScheduledTasks,Tags}` |
-| 配置模式 | `Filament\Concerns\{CanBeConfigured,RegistersConfigurable,HasMediaFilter,HasScopeableProperties}` |
+| 配置模式 | `Filament\Concerns\{CanBeConfigured,RegistersConfigurable,HasMediaFilter}` |
 | 模型 / Casts / 枚举 | `Models\` / `Casts\` / `Enums\` |
 | 数据与契约 | `Data\` / `Contracts\` |
 | 通用 Traits | `Concerns\`（`UserIdentifiable`、`HasColumns`、`Install\`） |
@@ -275,7 +290,7 @@ final class PostResource extends BaseResource
 ### 常见错误
 
 - 用工厂方法后又手动 `->disk()` / `->visibility()` —— 重复且会被配置覆盖。
-- 用 `where('scope_id', 0)` 查全局作用域 —— 用 `scopeScopeId(0)`（内部是 `whereIn`）。
+- 用 `where('scope_id', 0)` 查全局作用域 —— 用 `forScopeable(['scope_type' => ..., 'scope_id' => 0])`（同时带租户规则）。
 - `Utils` 全部是静态方法，不要 `new Utils`。
 - `Utils::getModel()` 默认抛异常，可选模型要传 `false`。
 - 覆盖 `ActivityLogs\BaseResource::getEloquentQuery()` —— 除非清楚 causer 上的租户全局作用域逻辑。

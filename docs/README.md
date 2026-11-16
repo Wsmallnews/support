@@ -12,6 +12,7 @@ support 包按功能拆分的实现说明。每篇文档包含：定位 → 快�
 | 4 | [search.md](search.md) | 全局搜索：来源、模块选项、引擎 |
 | 5 | [seo.md](seo.md) | SEO：站点默认值 + 页面上下文 |
 | 6 | [sitemap.md](sitemap.md) | sitemap.xml 与 robots.txt |
+| 7 | [composition.md](composition.md) | 内容编排：类型/槽位注册、行槽解析、上下文传递、页面与侧栏渲染 |
 
 ## 一句话模型
 

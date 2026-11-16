@@ -49,7 +49,7 @@ Feed::render('sn-cms', $site, 'posts');
 
 ## 3. 端点与访问地址
 
-`Feed::routes($module, $site)` 只注册两个端点，路径都在**站点自己的 URL 前缀**下。端点路径经 `resolveConfig` 统一解析：模块声明（站点 `feed.*` 整节透传）> `sn-support.feeds.uri`（默认 `feed`）。每条路由带两个默认值 `feed_module`（所属模块）与 `feed_site`（站点 id），控制器会把它们与 `sn-resolve-site` 解析出的上下文比对，不一致直接 404：
+`Feed::routes($module, $site)` 只注册两个端点，路径都在**站点自己的 URL 前缀**下。端点路径经 `resolveConfig` 统一解析：模块声明（站点 `feed.*` 整节透传）> `sn-support.feeds.uri`（默认 `feed`）。每条路由带两个默认值 `feed_module`（所属模块）与 `feed_site`（站点 id），控制器会把它们与 `sn-resolve-site-context` 解析出的上下文比对，不一致直接 404：
 
 | 端点 | 内容 |
 |---|---|
