@@ -241,20 +241,9 @@ final class PostResource extends BaseResource
 }
 ```
 
-```php
-use Wsmallnews\Support\Filament\Concerns\RegistersConfigurable;
-
-class CmsPlugin implements Plugin
-{
-    use RegistersConfigurable;
-
-    public function register(Panel $panel): void
-    {
-        $this->registerConfigurableResources($panel);
-        $this->registerConfigurablePages($panel);
-    }
-}
-```
+Registration is owned by the host plugin: site-aware packages use `RegistersSites`
+(`site()->resources()/pages()`), which injects `module_id` and derives every scope
+from the site. There is no separate config-file registration trait.
 
 `module_id` is injected by the registering plugin, so cross-module registration needs no manual declaration.
 
@@ -500,7 +489,7 @@ Seo::init('sn-cms')
     ->article(['datePublished' => $post->published_at?->toIso8601String()]);
 ```
 
-Render in the layout: `@snSeo` in `<head>`, `@snSeoAnalytics` before `</body>`, `@snFeeds('sn-cms')` for autodiscovery links.
+Render in the layout: `@snSeo` in `<head>`, `@snSeoAnalytics` before `</body>`, `@snFeeds` for autodiscovery links (the site is resolved from the request).
 
 - `init()` runs in the `sn-resolve-seo:{module}` route middleware on first render only. Livewire update requests do not re-render the layout, so they need no re-initialisation.
 - `article()` assembles an Article JSON-LD node from the page data and switches `og:type` to `article`; `website()` emits the WebSite node; `jsonLd()` appends raw nodes.

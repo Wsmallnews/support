@@ -147,7 +147,7 @@ class Post extends SupportModel
 
 - `scope_type` + `scope_id` 由模型 trait `Models\Concerns\SiteScope` 提供（记录访问器 `getScopeable()` / `getScopeType()` / `getScopeId()` 与查询入口）；`scope_id = 0` 表示该类型下的全局作用域（不用 Laravel 原生 morph，正是因为 0 不是可指向的记录）。
 - 查询入口按意图分三类：`siteContext($subScope = null)`（前台，从站点派生，无 site 抛异常）/ `panelContext($scopeable)`（面板，必传注册声明 scope）/ `forScopeable($scopeable, withTenant: true)`（显式，记录自身 scope、console/queue、跨 scope 嵌入；父记录已锁死租户的关联查询传 `withTenant: false`）。租户轴：`scopeTenant()` / `forTenant($id)` / `allTenants()` / `tenantAggregate()`。
-- Filament 侧：`RequiresConfiguration`（基类契约：未注册时 scope/module 抛可读异常）、`CanBeConfigured`（按注册声明解析 scope）、`Resources\Concerns\ScopedQueries`（`applyScopeToQuery()`；面板有 tenancy 时租户条件交给 Filament 的全局作用域，无 tenancy 时补 `whereNull(team_id)`）、`Resources\Concerns\Pages\ForwardsResourceScope`（页面把 scope 转发给所属资源）。
+- Filament 侧：`RequiresConfiguration`（基类契约：未注册时 scope/module 抛可读异常）、`CanBeConfigured`（按注册声明解析 scope）、`HasPanelScopedType`（后台树页面的容器类型解析：scope + 租户只算一次，容器缺失且非管理模式时创建）、`Resources\Concerns\ScopedQueries`（`applyScopeToQuery()`；面板有 tenancy 时租户条件交给 Filament 的全局作用域，无 tenancy 时补 `whereNull(team_id)`）、`Resources\Concerns\Pages\ForwardsResourceScope`（页面把 scope 转发给所属资源）。
 - 公用全局资源（member、user）**不需要** scopeable；可能多份存在的资源（post、product、link）才用。
 - 资源 scope 配置错误直接抛 `InvalidScopeException`，不回落 `default`。
 
@@ -160,7 +160,7 @@ final class PostResource extends BaseResource
 }
 ```
 
-插件侧 `use RegistersConfigurable`，在 `register()` 里调用 `registerConfigurableResources($panel)` / `registerConfigurablePages($panel)`。`module_id` 由注册插件自动注入（注册即归属），手工声明会被覆盖。
+`module_id` 由注册插件自动注入（注册即归属），手工声明会被覆盖。
 
 ### 站点插件（RegistersSites）
 
@@ -197,8 +197,7 @@ CmsPlugin::make()
 - 一个站点只有一个模块：写入的 `$module` 必须等于 `$site->pluginId`（`AssertsSiteOwnership`），读取只传 `Site`。
 - 注册表都要求模块 id 已登记（`ModuleRegistry`），拼错 id 应当报错而不是静默失效。
 - **同一站点同名流重复注册 = 整条覆盖**（Feed 的 name 是 URL 段）。
-- **Sitemap / Feed 的域名过滤**：模块声明 `domain` 且与当前请求域名不符时不参与输出；未声明 domain 的模块始终参与。
-- 内容变更后主动调 `Sitemap::flush($site)` / `Feed::flush()`（缓存键含租户、站点、域名）。
+- 内容变更后主动调 `Sitemap::flush($site)` / `Feed::flush()`（缓存键含租户、站点、请求 host）。
 - **Search 来源的 `url` 只能由注册方提供**，默认无链接——前端搜索永不产生后台 panel 地址。
 - 相同 key 重复注册 = 覆盖（应用可借此替换包内置来源）。
 
@@ -215,8 +214,17 @@ CmsPlugin::make()
 
 - `Livewire\Base`：`$this->transaction(fn () => ...)` 带 Halt 感知；`$this->halt()` 停止并回滚；`getAuthUser()` 直接读站点认证身份（无需 trait）。
 - Traits：`HasProperties`、`HasContentType`、`HasAuth`（可 `:auth-user` 注入，trait 方法覆盖 Base 的读取，props 优先、站点兜底）、`CanPagination`（scroll / paginator / manual）、`CanBeContained`、`ScopedBySite`（`#[Locked]` 快照 + 站点派生 + 站点配置读取）。
+- `ScopedBySite` 的分区：`$scopeSuffix` 选择站点已声明的子 scope（null = 站点 base）；类声明了 `getScopeSuffix()` 时实例只能重复该值，传别的直接抛。关联资源用 `$relatedScopeSuffix`（`关联key => suffix`）配 `getRelatedScopeable($key)`：未声明回落站点 base，声明了但 suffix 未注册直接抛。
+- `HasScopedType`：类型容器解析（`Categoryable` / `Navigationable` 的底座）。宿主用 `typeScopeable()` 决定数据空间，默认 `getBaseScopeable()`；类型每请求只查一次、不进 Livewire 快照，`scopedType()` 断言容器与行同 scope 后再返回查询条件。
 - 组件配置按站点读取：`$this->siteOption($path, $default, $owner = null)`（站点 options > 模块 config > `$default`）。`$owner` 三态：`null` = 组件所属模块（`getOwnerModule()` 经 `ModuleRegistry` 按命名空间反查）、`false` = 不要模块兜底（只认站点值）、字符串 = 指定模块。不存在“消费模块” `:module` 上下文。
 - `HasColumns`（`Concerns\HasColumns`）提供响应式列配置，但 HTML 布局仍写在视图里。
+
+### 面板小部件（Filament Widget）
+
+- 面板没有站点上下文（`SiteContext` 只在前台路由组生效），Widget 也不能从记录的 scope 反推站点。站点由渲染它的页面/资源用 `siteId` props 传入。
+- 写法：继承 `Filament\Widgets\Base`（已 use `Concerns\ResolvesSite`），或直接 use 该 trait（已有别的基类时，如 cms 导航 Widget）。trait 提供 `#[Locked] public ?string $siteId` + `getSite()`（查 `SiteRegistry`）。
+- 宿主在 `getHeaderWidgets()` / `getFooterWidgets()` 里传：`CommentWidget::make(['siteId' => static::getResource()::getSite()?->id()])`，视图写 `<livewire:... :site-id="$siteId" />`。
+- 禁止在 Widget 里 `SiteContext::run()` 或读 `SiteUtils`；记录级数据用 `panelContext($scopeable)`，租户由 `scopeTenant()` 收口。`siteId` 必须 `#[Locked]`，否则客户端可把 Widget 指向别的站点。
 
 ### 操作者与目标实体接口
 
@@ -290,7 +298,7 @@ CmsPlugin::make()
 |---|---|
 | 组件工厂 | `Wsmallnews\Support\Filament\{Forms,Filters,Actions,Tables}` |
 | Resources | `Wsmallnews\Support\Filament\Resources\{ActivityLogs,Compositions,Pages,ScheduledTasks,Tags}` |
-| 配置模式 | `Filament\Concerns\{CanBeConfigured,RegistersConfigurable,HasMediaFilter}` |
+| 配置模式 | `Filament\Concerns\{CanBeConfigured,HasMediaFilter}` |
 | 模型 / Casts / 枚举 | `Models\` / `Casts\` / `Enums\` |
 | 数据与契约 | `Data\` / `Contracts\` |
 | 通用 Traits | `Concerns\`（`UserIdentifiable`、`HasColumns`、`Install\`） |
