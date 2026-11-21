@@ -97,6 +97,15 @@ class InvalidSiteException extends InvalidArgumentException
         );
     }
 
+    /** A site names an auth user type no module registered a resolver for. */
+    public static function unknownAuthUser(string $type, string $siteId): self
+    {
+        return new self(
+            "Site [{$siteId}] expects auth user type [{$type}], but no module registered a resolver for it. "
+            . 'Call SiteContext::registerAuthUser($type, $resolver) while the module boots.'
+        );
+    }
+
     /** Two non-aggregate sites, in any plugin, must not share one data space. */
     public static function duplicateScopeable(string $siteId, string $otherSiteId, string $scopeType, int $scopeId): self
     {

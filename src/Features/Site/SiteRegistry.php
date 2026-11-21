@@ -103,38 +103,6 @@ final class SiteRegistry
         return $siteId === null ? null : ($this->sites[$siteId] ?? null);
     }
 
-    /**
-     * Resolve a site by its base scope type (longest match), ignoring aggregate sites.
-     *
-     * @deprecated Read the site from the page/resource configuration instead of guessing by scope.
-     */
-    public function findByScopeType(string $scopeType, ?string $panelId = null): ?Site
-    {
-        $matched = null;
-
-        foreach ($this->sites as $site) {
-            if ($site->isAggregate() || ($panelId !== null && $site->panelId !== $panelId)) {
-                continue;
-            }
-
-            $base = $site->scopeType;
-
-            if (blank($base)) {
-                continue;
-            }
-
-            if ($scopeType !== $base && ! str_starts_with($scopeType, "{$base}-") && ! str_starts_with($scopeType, "{$base}::")) {
-                continue;
-            }
-
-            if ($matched === null || strlen($base) > strlen((string) $matched->scopeType)) {
-                $matched = $site;
-            }
-        }
-
-        return $matched;
-    }
-
     /** Match a route name to its site by the longest registered route-name prefix. */
     public function matchByRouteNamePrefix(string $routeName): ?Site
     {

@@ -3,8 +3,8 @@
 namespace Wsmallnews\Support\Features\Modules;
 
 /**
- * Module descriptor. The id is the global address key for config, registries and the
- * HasModuleContext prop, so every module-level lookup uses the same value.
+ * Module descriptor. The id is the global address key for config and registries,
+ * so every module-level lookup uses the same value.
  */
 final class Module
 {

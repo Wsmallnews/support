@@ -2,9 +2,11 @@
 
 namespace Wsmallnews\Support\Features\Site;
 
+use Closure;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Wsmallnews\Support\Exceptions\InvalidScopeException;
 use Wsmallnews\Support\Exceptions\InvalidSiteException;
 
@@ -18,12 +20,33 @@ use Wsmallnews\Support\Exceptions\InvalidSiteException;
  */
 final class SiteContext
 {
+    /**
+     * How each auth user type becomes the current identity (member, user, store, ...).
+     *
+     * Support cannot depend on those modules, so every module registers its own
+     * resolver; the site's `auth.user_type` option picks one at read time.
+     *
+     * @var array<string, Closure(Site, string): ?Model>
+     */
+    private static array $authUserResolvers = [];
+
     private ?Site $site = null;
 
     private ?Model $tenant = null;
 
     /** @var array{scope_type: string, scope_id: int}|array{} */
     private array $scopeable = [];
+
+    /** Identity override for this request (previews, tests); null means "resolve lazily". */
+    private ?Model $authUser = null;
+
+    private bool $authUserResolved = false;
+
+    /** Register the resolver of one auth user type; later registrations replace earlier ones. */
+    public static function registerAuthUser(string $type, Closure $resolver): void
+    {
+        self::$authUserResolvers[$type] = $resolver;
+    }
 
     public function set(Site $site, ?Model $tenant = null, array $scopeable = []): void
     {
@@ -34,6 +57,10 @@ final class SiteContext
         $this->tenant = $site->mode->isTenant() ? $tenant : null;
 
         $this->scopeable = $scopeable ?: ($site->scopeable() ?? app(SiteRegistry::class)->scopeableFor($site));
+
+        // A different site means a different identity; drop the previous resolution.
+        $this->authUser = null;
+        $this->authUserResolved = false;
     }
 
     public function reset(): void
@@ -41,6 +68,8 @@ final class SiteContext
         $this->site = null;
         $this->tenant = null;
         $this->scopeable = [];
+        $this->authUser = null;
+        $this->authUserResolved = false;
     }
 
     /**
@@ -49,14 +78,14 @@ final class SiteContext
      */
     public function run(Site $site, callable $callback, ?Model $tenant = null): mixed
     {
-        $previous = [$this->site, $this->tenant, $this->scopeable];
+        $previous = [$this->site, $this->tenant, $this->scopeable, $this->authUser, $this->authUserResolved];
 
         $this->set($site, $tenant);
 
         try {
             return $callback($site, $this);
         } finally {
-            [$this->site, $this->tenant, $this->scopeable] = $previous;
+            [$this->site, $this->tenant, $this->scopeable, $this->authUser, $this->authUserResolved] = $previous;
         }
     }
 
@@ -80,6 +109,28 @@ final class SiteContext
     public function mode(): ?SiteMode
     {
         return $this->site?->mode;
+    }
+
+    /**
+     * Effective option of the current site (site options > the owning module's
+     * config). Without a site the default is returned: rendering must never
+     * throw just because no site is bound.
+     */
+    public function option(string $path, mixed $default = null): mixed
+    {
+        return $this->site?->getOption($path, $default) ?? $default;
+    }
+
+    /** Guard the site authenticates with (module default under `auth.guard`). */
+    public function getGuard(): string
+    {
+        return (string) $this->option('auth.guard', 'web');
+    }
+
+    /** Auth user type the site expects, e.g. `user` or `member`. */
+    public function getAuthUserType(): string
+    {
+        return (string) $this->option('auth.user_type', 'user');
     }
 
     /** @return array{scope_type: string, scope_id: int}|array{} */
@@ -136,6 +187,66 @@ final class SiteContext
     public function tenantId(): int | string | null
     {
         return $this->tenant?->getKey();
+    }
+
+    /** Override the identity of this request; the site's resolver is then skipped. */
+    public function authUser(?Model $authUser): void
+    {
+        $this->authUser = $authUser;
+        $this->authUserResolved = true;
+    }
+
+    /**
+     * Guard user of the current site: `Auth::guard($guard)->user()`.
+     *
+     * This is always the user model behind the guard. The site's auth subject
+     * may be a different model (a member); read that through getAuthUser().
+     */
+    public function getUser(): ?Model
+    {
+        // Panels and console have no site: never guess a guard there.
+        if ($this->site === null) {
+            return null;
+        }
+
+        return Auth::guard($this->getGuard())->user();
+    }
+
+    /**
+     * Current frontend identity, resolved once per request by the site's
+     * `auth.user_type` and cached until the context changes.
+     *
+     * Panels and console have no site: they never guess an identity, so
+     * components there must receive the user explicitly.
+     *
+     * @throws InvalidSiteException when the site names an unregistered type
+     */
+    public function getAuthUser(): ?Model
+    {
+        if ($this->site === null) {
+            return null;
+        }
+
+        if ($this->authUserResolved) {
+            return $this->authUser;
+        }
+
+        $type = $this->getAuthUserType();
+        $resolver = self::$authUserResolvers[$type] ?? null;
+
+        if ($resolver === null) {
+            throw InvalidSiteException::unknownAuthUser($type, $this->site->id());
+        }
+
+        $this->authUser = $resolver($this->site, $this->getGuard());
+        $this->authUserResolved = true;
+
+        return $this->authUser;
+    }
+
+    public function hasAuthUser(): bool
+    {
+        return $this->getAuthUser() !== null;
     }
 
     /** Guard write paths before touching models inside an aggregate view. */
