@@ -33,7 +33,7 @@ Sitemap::config('sn-cms', $sitemapOptions, $site)
     ], $site)
     ->robots('sn-cms', ['disallow' => ['cms/search']]);
 
-Sitemap::render('sn-cms', $site);     // 该模块在该站点的 sitemap XML
+Sitemap::render($site);    // 该站点的 sitemap XML
 Sitemap::renderRobots();    // 全局 robots.txt
 ```
 
@@ -62,7 +62,7 @@ Sitemap::renderRobots();    // 全局 robots.txt
 
 1. `RegisterSiteSitemap`（SiteService）为每个站点执行：站点 `sitemap.*` 整节透传进模块声明（`enabled` 是启用门控不透传）；`sitemap.enabled = false` 时跳过来源注册；
 2. `finish()`（所有站点注册完后执行一次）把各站点的 disallow 规则写入 `robots()`（搜索页禁爬，与 sitemap 开关无关）；
-3. 请求 `{prefix}/sitemap.xml` → `Sitemap::render($module, $site)`（模块经路由默认值 `sitemap_module` 绑定）→ 逐个执行该模块的 `urls` 闭包；
+3. 请求 `{prefix}/sitemap.xml` → `Sitemap::render($site)`（站点经路由默认值 `sitemap_site` 绑定）→ 逐个执行已注册的 `urls` 闭包；
 4. XML 整份缓存，TTL 解析链 = **站点 options > `sn-support.sitemap.cache_ttl`**（`null`/`0` 关闭缓存），`flush()` 清除；
 5. `/robots.txt` 由 support 的全局路由输出，与站点无关。
 
@@ -106,19 +106,20 @@ Sitemap::renderRobots();    // 全局 robots.txt
 ]
 ```
 
+存储仍是 `module => siteId` 两层；读取时用 `$site->pluginId` 还原模块，所以调用方只传 `Site`。
+
 ## 6. 站点与上下文规则
 
-- 来源按站点分区，写入必须显式传 `Site`；
-- 读入口必填 `Site`：`render($module, $site)` / `getSources($module, $site)` / `resolveConfig($module, ...)`；sitemap 路由带 `sitemap_module` + `sitemap_site` 默认值，控制器与 `SiteContext` 比对，不一致 404；
+- 来源按站点分区，写入传 `$module` + `Site`（注册期断言 `$module === $site->pluginId`）；
+- 读入口只传 `Site`：`render($site)` / `getSources($site)` / `resolveConfig($site, ...)`，模块由 `$site->pluginId` 派生；sitemap 路由只带 `sitemap_site` 默认值，控制器与 `SiteContext` 比对，不一致 404；
 - `robots.txt` 遍历 `SiteRegistry`，只对 `routable` 且路由无参数的站点输出 `Sitemap:` 行；
-- 选项解析链：**站点 options（`sitemap.*` 整节透传进模块声明）> `sn-support.sitemap.*`**（`cache_ttl`）；sitemap 聚合多模块的来源，配置本身是站点级的。
+- 选项解析链：**站点 options（`sitemap.*` 整节透传进模块声明）> `sn-support.sitemap.*`**（`cache_ttl`）；配置本身是站点级的。
 
 ## 7. 边界与常见坑
 
 - `urls` 必须返回数组，`loc` 为空会被丢弃；`lastmod` 无法解析时该字段省略；
 - 带 `{tenant}` 参数的站点不会出现在根 `robots.txt` 的 Sitemap 行（根文件不知道具体租户）；
-- 缓存 key 含 `tenant + site + host + 模块集合`，内容变更后要 `Sitemap::flush()`；
-- `Sitemap::flush()` 不传站点会清所有已注册站点 + 无站点缓存；
+- 缓存 key 含 `tenant + site + host + module`，内容变更后要 `Sitemap::flush($site)`；
 - `sitemap.enabled = false` 只影响该站点的 sitemap 端点与来源（未注册即空），robots 的搜索禁爬照常。
 
 ## 8. 相关类

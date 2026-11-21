@@ -11,17 +11,24 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
 use InvalidArgumentException;
+use Wsmallnews\Support\Features\Site\Concerns\AssertsSiteOwnership;
 use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Features\Site\SiteRegistry;
 use Wsmallnews\Support\Http\Controllers\SitemapController;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
- * Sitemap and robots registry: modules register URL sources and disallow rules, support
- * exposes the endpoints. See the Sitemap section of the README.
+ * Sitemap and robots registry: modules register URL sources and disallow rules,
+ * support exposes the endpoints. See the Sitemap section of the README.
+ *
+ * Storage stays keyed by module then site. A site's sitemap belongs to exactly one
+ * module (the plugin that owns the site), so writes keep the module argument
+ * (ownership is asserted) while reads take only the site and derive the module.
  */
 class SitemapRegistry
 {
+    use AssertsSiteOwnership;
+
     /**
      * @var Collection<string, array<string, mixed>> module => robots rules
      */
@@ -64,7 +71,7 @@ class SitemapRegistry
     public function register(string $module, array $source, Site $site): static
     {
         $this->assertOwnership($module, $site);
-        $this->assertSource($module, $source);
+        $this->assertSource($source, $site);
 
         $sites = $this->sources->get($module, collect());
         $sites->put($site->id(), ($sites->get($site->id(), collect()))->push($source));
@@ -91,47 +98,40 @@ class SitemapRegistry
         return $this;
     }
 
-    /** Only the module owning the site may register on it. */
-    protected function assertOwnership(string $module, Site $site): void
-    {
-        if ($module !== $site->pluginId) {
-            throw new InvalidArgumentException(
-                "Sitemap module [{$module}] cannot register on site [{$site->id()}] owned by [{$site->pluginId}]."
-            );
-        }
-    }
-
     /** Register the site sitemap endpoint. Must be called inside the site route group. */
     public function routes(string $module, Site $site): void
     {
         $this->assertOwnership($module, $site);
 
         Route::get('sitemap.xml', [SitemapController::class, 'sitemap'])
-            ->defaults('sitemap_module', $module)
             ->defaults('sitemap_site', $site->id())
             ->name('sitemap');
     }
 
+    /*
+     * ---------- Reads ----------
+     */
+
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    public function getSources(string $module, Site $site): Collection
+    public function getSources(Site $site): Collection
     {
-        return $this->sources->get($module, collect())->get($site->id(), collect());
+        return $this->sources->get($this->siteModule($site), collect())->get($site->id(), collect());
     }
 
-    /** Read module options of one site. */
-    public function getConfig(string $module, Site $site, ?string $key = null, mixed $default = null): mixed
+    /** Read the site's sitemap options (owning module derived from the site). */
+    public function getConfig(Site $site, ?string $key = null, mixed $default = null): mixed
     {
-        $config = (array) $this->configs->get($module, collect())->get($site->id(), []);
+        $config = (array) $this->configs->get($this->siteModule($site), collect())->get($site->id(), []);
 
         return $key === null ? $config : ($config[$key] ?? $default);
     }
 
-    /** Resolve in order: module declaration, global sn-support.sitemap.*, then $default. */
-    public function resolveConfig(string $module, string $key, Site $site, mixed $default = null): mixed
+    /** Resolve in order: site declaration, global sn-support.sitemap.*, then $default. */
+    public function resolveConfig(Site $site, string $key, mixed $default = null): mixed
     {
-        return $this->getConfig($module, $site, $key)
+        return $this->getConfig($site, $key)
             ?? SupportUtils::getSitemapConfig($key, $default);
     }
 
@@ -139,16 +139,14 @@ class SitemapRegistry
      * ---------- Rendering ----------
      */
 
-    /** Render the sitemap XML of one module on one site (cached as a whole). */
-    public function render(string $module, Site $site): HtmlString
+    /** Render the site sitemap XML (cached as a whole). */
+    public function render(Site $site): HtmlString
     {
-        $this->assertOwnership($module, $site);
-
-        // TTL 解析链：模块声明（站点 sitemap.* 透传）> sn-support.sitemap.cache_ttl
-        $ttl = (int) $this->resolveConfig($module, 'cache_ttl', $site, 3600);
+        // TTL chain: site sitemap.* > sn-support.sitemap.cache_ttl
+        $ttl = (int) $this->resolveConfig($site, 'cache_ttl', 3600);
         $xml = $ttl <= 0
-            ? $this->compile($module, $site)
-            : Cache::remember($this->cacheKey($module, $site), $ttl, fn (): string => $this->compile($module, $site));
+            ? $this->compile($site)
+            : Cache::remember($this->cacheKey($site), $ttl, fn (): string => $this->compile($site));
 
         return new HtmlString($xml);
     }
@@ -194,10 +192,10 @@ class SitemapRegistry
         return implode("\n", array_values(array_unique($lines))) . "\n";
     }
 
-    /** Drop the cached sitemap of one module on one site. */
-    public function flush(string $module, Site $site): static
+    /** Drop the cached sitemap of one site. */
+    public function flush(Site $site): static
     {
-        Cache::forget($this->cacheKey($module, $site));
+        Cache::forget($this->cacheKey($site));
 
         return $this;
     }
@@ -207,23 +205,23 @@ class SitemapRegistry
      */
 
     /** Cache key carries tenant, site, host and module, so entries never bleed across contexts. */
-    protected function cacheKey(string $module, Site $site): string
+    protected function cacheKey(Site $site): string
     {
         $tenant = current_tenant()?->getKey() ?? 'global';
         $host = request()->getHost();
 
-        return 'sn-support:sitemap:' . $tenant . ':' . $site->id() . ':' . $module . ':' . $host;
+        return 'sn-support:sitemap:' . $tenant . ':' . $site->id() . ':' . $host . ':' . $this->siteModule($site);
     }
 
-    /** Build the XML from the module's registered sources (uncached, runs every urls closure). */
-    protected function compile(string $module, Site $site): string
+    /** Build the XML from the site's registered sources (uncached, runs every urls closure). */
+    protected function compile(Site $site): string
     {
         $lines = [
             '<?xml version="1.0" encoding="UTF-8"?>',
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
         ];
 
-        foreach ($this->getSources($module, $site) as $source) {
+        foreach ($this->getSources($site) as $source) {
             foreach (($source['urls'])() as $url) {
                 $loc = e($url['loc'] ?? '');
                 if (blank($loc)) {
@@ -241,10 +239,12 @@ class SitemapRegistry
     }
 
     /** @param  array<string, mixed>  $source */
-    protected function assertSource(string $module, array $source): void
+    protected function assertSource(array $source, Site $site): void
     {
         if (blank($source['key'] ?? null) || ! ($source['urls'] ?? null) instanceof Closure) {
-            throw new \InvalidArgumentException(sprintf('Sitemap 来源必须包含 key 与 urls 闭包（模块 %s）', $module));
+            throw new InvalidArgumentException(
+                "Sitemap source on site [{$site->id()}] must declare a [key] and a [urls] closure."
+            );
         }
     }
 

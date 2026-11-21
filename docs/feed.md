@@ -42,21 +42,21 @@ Feed::register('sn-cms', 'posts', [
 // 端点（在站点路由组内调用，必须早于 pages/{slug} 这类动态段）
 Feed::routes('sn-cms', $site);
 
-// 渲染（模块聚合流；具名流传第三个参数）
-Feed::render('sn-cms', $site);
-Feed::render('sn-cms', $site, 'posts');
+// 渲染（站点聚合流；具名流传第二个参数）
+Feed::render($site);
+Feed::render($site, 'posts');
 ```
 
 ## 3. 端点与访问地址
 
-`Feed::routes($module, $site)` 只注册两个端点，路径都在**站点自己的 URL 前缀**下。端点路径经 `resolveConfig` 统一解析：模块声明（站点 `feed.*` 整节透传）> `sn-support.feeds.uri`（默认 `feed`）。每条路由带两个默认值 `feed_module`（所属模块）与 `feed_site`（站点 id），控制器会把它们与 `sn-resolve-site-context` 解析出的上下文比对，不一致直接 404：
+`Feed::routes($module, $site)` 只注册两个端点，路径都在**站点自己的 URL 前缀**下。端点路径经 `resolveConfig` 统一解析：站点声明（`feed.*` 整节透传）> `sn-support.feeds.uri`（默认 `feed`）。每条路由只带 `feed_site`（站点 id）一个默认值，控制器把它与 `sn-resolve-site-context` 解析出的上下文比对，不一致直接 404；模块由站点派生，不再写进路由默认值：
 
 | 端点 | 内容 |
 |---|---|
 | `{prefix}/feed` | 该模块在该站点的所有可见流合并（按 `updated_at` 倒序，`feed.aggregate_limit` 覆盖链截断） |
 | `{prefix}/feed/{name}` | 单个具名流，用自己的 `limit` 与顺序 |
 
-> `Feed::render()` 的 `$name = null` 是**模块聚合流**（该模块所有具名流合并），没有独立路由——旧版全局 `/feed` 已退役。
+> `Feed::render()` 的 `$name = null` 是**站点聚合流**（该站点所有具名流合并），没有独立路由——旧版全局 `/feed` 已退役。
 
 同一个流在不同站点的地址，由站点的 `prefix` / `domain` 决定：
 
@@ -96,7 +96,7 @@ Feed::render('sn-cms', $site, 'posts');
 
 1. `RegisterSiteFeed`（SiteService）对每个站点执行，模块 id 取自插件；
 2. `config()` 写该模块在该站点的选项（站点 `feed.*` 整节透传 + 频道元数据闭包兜底），`register(s)()` 写流定义；
-3. `Feed::routes()` 在站点路由组内注册两个端点，并把完整路由名登记到 `$moduleRouteNames`（SiteService 管道保证 config 先于路由注册，透传的 `feed.uri` 在路由期已可解析）；
+3. `Feed::routes()` 在站点路由组内注册两个端点，并按站点登记完整路由名（SiteService 管道保证 config 先于路由注册，透传的 `feed.uri` 在路由期已可解析）；
 4. 请求命中 `FeedController` → 校验路由 `feed_site` 与 `SiteContext` 一致 → 执行 `items` 闭包；
 5. 渲染结果整份缓存，TTL 经 `resolveConfig` 解析（`0`/`null` 关闭缓存），`Feed::flush()` 清空。
 
@@ -144,7 +144,7 @@ Feed::render('sn-cms', $site, 'posts');
     ],
 ]
 
-// $moduleRouteNames: module => siteId => 完整路由名
+// $feedRouteNames: module => siteId => 完整路由名
 [
     'sn-cms' => [
         'sn-cms:main' => 'sn-cms.main.feed.show',
@@ -153,26 +153,30 @@ Feed::render('sn-cms', $site, 'posts');
 ]
 ```
 
+存储仍是 `module => siteId` 两层（模块是注册期的天然索引），读取时用 `$site->pluginId` 还原模块，所以调用方只传 `Site`。
+
 ## 6. 读取 API
 
 | 方法 | 范围 | 说明 |
 |---|---|---|
-| `getConfig($module, $site, $key = null, $default = null)` | 该模块在该站点的选项 | `$key = null` 返回整个选项数组 |
-| `resolveConfig($module, $key, $site, $default = null)` | 统一解析 | 模块声明 > `sn-support.feeds.*` > 默认 |
-| `moduleFeeds($module, $site)` | 该模块在该站点的流 | footer 链接与 autodiscovery 用 |
-| `getFeed($name, $module, $site)` | 单条 | 不存在返回 `null` |
-| `feedUrl($name, $site)` | 单条订阅地址 | 按站点查 `moduleRouteNames` |
-| `autodiscoveryTags($module, $site)` | 一组 `<link rel="alternate">` | 布局 head 用（`@snFeeds` 指令） |
-| `render($module, $site, $name = null)` | 直接拿 XML | `$name = null` 是模块聚合流，缓存整份 |
+| `getConfig($site, $key = null, $default = null)` | 该站点的选项 | `$key = null` 返回整个选项数组 |
+| `resolveConfig($site, $key, $default = null)` | 统一解析 | 站点声明 > `sn-support.feeds.*` > 默认 |
+| `getFeeds($site)` | 该站点的流 | footer 链接与 autodiscovery 用 |
+| `getFeed($name, $site)` | 单条 | 不存在返回 `null` |
+| `feedUrl($name, $site)` | 单条订阅地址 | 按站点查路由名 |
+| `autodiscoveryTags($site)` | 一组 `<link rel="alternate">` | 布局 head 用（`@snFeeds` 指令） |
+| `render($site, $name = null)` | 直接拿 XML | `$name = null` 是站点聚合流，缓存整份 |
+
+读取一律只传 `Site`：模块恒等于站点所属模块，注册期已由 `assertOwnership` 保证。
 
 ## 7. 站点与上下文规则
 
-- 写入口必须显式传 `Site`；读取缺省 `SiteContext`，无站点返回空；
+- 写入口显式传 `$module` + `Site`，读取只传 `Site`；
 - **只有站点所属模块能注册流**：`$module` 必须等于 `$site->pluginId`，否则注册期抛异常（feed 占用站点 URL，多模块会互相覆盖路由）；
 - 同一模块同名流重复注册是**整条覆盖**（不是字段合并）；
 - 站点不注册某个模块的流，就是本站没有该模块的 feed，不会继承别的站点；
 - `Feed::routes()` 必须在 catch-all 段（如 `navigation/{slug}`）之前注册；
-- 行为参数经 `resolveConfig` 统一解析：**模块声明（站点 `feed.*` 整节透传）> `sn-support.feeds.*` 兜底**：
+- 行为参数经 `resolveConfig` 统一解析：**站点声明（`feed.*` 整节透传）> `sn-support.feeds.*` 兜底**：
   - 端点路径 `feed.uri` / `feeds.uri`（默认 `feed`）；
   - 单条流条数 `feed.limit` / `feeds.limit`（流定义里显式写的 `limit` 优先级最高）；
   - 聚合流总量 `feed.aggregate_limit` / `feeds.aggregate_limit`；
@@ -181,7 +185,7 @@ Feed::render('sn-cms', $site, 'posts');
 ## 8. 边界与常见坑
 
 - `items` 必须是闭包，每个条目必须有 `url`，否则被丢弃；
-- 模块聚合流按 `updated_at` 倒序并由 `feed.aggregate_limit` 覆盖链截断，具名流保留自己的顺序和 `limit`；
+- 站点聚合流按 `updated_at` 倒序并由 `feed.aggregate_limit` 覆盖链截断，具名流保留自己的顺序和 `limit`；
 - 缓存按 `tenant + site + host + module + name` 隔离，改内容后记得 `Feed::flush()`；
 - 多租户下 `feedUrl()` 依赖当前租户，console 里生成地址要先 `SiteContext::run($site, ..., $tenant)`；
 - 路由的 `feed_site` 与当前上下文不一致时返回 404（例如把同一个控制器复用到别的站点路由上）。
@@ -190,7 +194,7 @@ Feed::render('sn-cms', $site, 'posts');
 
 | 类 | 职责 |
 |---|---|
-| `FeedRegistry` | 存储与读取（`$configs` / `$feeds` / `$moduleRouteNames`） |
+| `FeedRegistry` | 存储与读取（`$configs` / `$feeds` / `$feedRouteNames`） |
 | `RegisterSiteFeed` | cms 的站点级注册 |
 | `FeedController` | 两个端点的渲染 |
 | `Feed` Facade | 静态入口 |

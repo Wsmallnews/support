@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use LogicException;
+use Wsmallnews\Support\Exceptions\InvalidScopeException;
 use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Features\Site\SiteRegistry;
 use Wsmallnews\Support\Helpers\FilamentModelHelper;
@@ -69,16 +70,26 @@ class SearchSource
     }
 
     /**
-     * Data space of this source, derived from its site: a non-aggregate site's
-     * own pair, an aggregate site's resolved source pair.
+     * Data space of this source: the site's own pair (an aggregate site resolves
+     * to its source), or the sub-scope named by `scope_suffix`.
+     *
+     * An undeclared suffix fails loudly — falling back to the site's main scope
+     * would silently search a different partition than the registrant asked for.
      *
      * @return array{scope_type: string, scope_id: int}
      */
     public function scopeable(): array
     {
-        return app(SiteRegistry::class)->scopeableFor(
-            $this->site ?? throw new LogicException('A search source must be bound to a site before querying.')
-        );
+        $site = $this->site ?? throw new LogicException('A search source must be bound to a site before querying.');
+
+        $suffix = $this->options['scope_suffix'] ?? null;
+
+        if (blank($suffix)) {
+            return app(SiteRegistry::class)->scopeableFor($site);
+        }
+
+        return $site->getScope((string) $suffix)
+            ?? throw InvalidScopeException::unknownScopeSuffix($site->id(), (string) $suffix, array_keys($site->getScopes()));
     }
 
     public function key(): string

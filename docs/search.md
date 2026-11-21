@@ -30,7 +30,7 @@ Search::config('sn-cms', [
         'model' => Post::class,
         'group' => '文章',
         'query' => fn ($query) => $query->published(),
-        'scopeable' => $site->scopeable(),
+        // 默认按站点主 scope 过滤；要搜某个子 scope，加 'scope_suffix' => 'aaa'
         'url' => fn ($record) => $site->route('posts.show', $record),
     ]),
 ], $site);
@@ -98,7 +98,7 @@ new SearchSource([
 ]);
 ```
 
-`results` 是一个闭包（接收当前关键词），返回 `SearchResult` 集合或等价数组，**整个来源不走引擎**：不查模型、`model` 可省略，`query` / `scout` / `scopeable` / `fields` 均不生效，且**返回多少就展示多少**——`limit` 截断与模块 `results_limit` 都不作用于它，条数在闭包里自己控制。结果里的 `record` 可省略（没有原始模型），适合快捷入口、聚合页、外部数据等"没有对应模型行"的搜索位。
+`results` 是一个闭包（接收当前关键词），返回 `SearchResult` 集合或等价数组，**整个来源不走引擎**：不查模型、`model` 可省略，`query` / `scout` / `fields` 与站点过滤均不生效，且**返回多少就展示多少**——`limit` 截断与模块 `results_limit` 都不作用于它，条数在闭包里自己控制。结果里的 `record` 可省略（没有原始模型），适合快捷入口、聚合页、外部数据等"没有对应模型行"的搜索位。
 
 ## 4. 端点与访问地址
 
@@ -120,13 +120,13 @@ new SearchSource([
 | | `campaign` | `cms/campaign` | `/cms/campaign/search?q=laravel` |
 | 多租户 | `sn-cms:main` | `cms/{tenant:slug}` | `/cms/first/search?q=laravel`、`/cms/second/search?q=laravel` |
 
-站点用 `Search::resolvePage($module, $site, $query)` 生成跳转地址；它读站点选项里的 `page`（闭包）或字符串配置，不要在模板里手拼路径。
+站点用 `Search::resolvePage($site, $query)` 生成跳转地址；它读站点选项里的 `page`（闭包）或字符串配置，不要在模板里手拼路径。
 
 ## 5. 运行逻辑
 
 1. `RegisterSiteSearch` 对每个站点注册选项与来源：站点 `search.*` 整节透传进模块声明（`enabled` 是启用门控不透传，`page` 未声明时用包内结果页路由闭包兜底）；
-2. 搜索组件挂载时调 `Search::resolveConfig($module, 'display', $site)`，决定下拉或跳独立页；
-3. 查询时 `search()` 按模块取来源，解析引擎（database / scout / 自定义）；
+2. 搜索组件挂载时调 `Search::resolveConfig($site, 'display')`，决定下拉或跳独立页；
+3. 查询时 `search($query, $site)` 按站点取来源，解析引擎（database / scout / 自定义）；
 4. 每个来源执行 `query` / `scout`，结果按 `group` 合并；
 5. 结果链接由来源自己的 `url` 闭包生成。
 
@@ -165,7 +165,8 @@ new SearchSource([
                 'limit' => 8,
                 'sort' => 0,
                 'query' => Closure,
-                'scopeable' => ['scope_type' => 'sn-cms', 'scope_id' => 0],
+                'scope_suffix' => null,                        // 声明后改查站点的该子 scope
+                'site_scoped' => true,                         // false = 不加站点条件（公共模型）
                 'url' => Closure,
                 'view' => 'sn-cms::components.search.post-item',   // 缺省 DEFAULT_ITEM_VIEW
                 'render' => Closure,                               // 优先于 view
@@ -195,19 +196,32 @@ SearchResult {
 
 ## 7. 站点与上下文规则
 
-- 来源和选项都按站点分区，写入必须显式传 `Site`；
-- 读入口 `(module, Site $site)` 必填（`getConfig` / `getSources` / `search` / `itemRenderers` / `resolvePage` / `resolveConfig`），没有缺省上下文；组件内部用 `SiteContext::requireSite()` 取当前站点；
-- 选项解析顺序：组件属性 → 站点模块选项 → `sn-support.search` 全局配置；
-- 站点没注册来源即没有该模块的搜索，不会借用其他站点。
+- 来源和选项都按站点分区，写入传 `$module` + `Site`（注册期断言 `$module === $site->pluginId`）；
+- 读入口只传 `Site`（`getConfig` / `getSources` / `search` / `itemRenderers` / `resolvePage` / `resolveConfig`），模块由 `$site->pluginId` 派生，没有缺省上下文；组件内部用 `SiteContext::requireSite()` 取当前站点；
+- 选项解析顺序：组件属性 → 站点声明 → `sn-support.search` 全局配置；
+- 站点没注册来源即没有该站点的搜索，不会借用其他站点。
+
+### 数据空间：`site_scoped` 与 `scope_suffix`
+
+来源默认落在**站点主 scope**（聚合站点解析到 source 站点的 scope）；两个选项调整它，互斥使用：
+
+| 选项 | 作用 | 适用 |
+|---|---|---|
+| `scope_suffix` | 改查站点的某个子 scope（`$site->getScope($suffix)`，必须在站点注册时声明） | 同一站点的分区，如带 `scope_suffix = 'aaa'` 的 PostResource |
+| `site_scoped: false` | 完全不加站点条件 | 公共模型（表里没有 `scope_type` / `scope_id`） |
+
+- 未声明的 `scope_suffix` 在**注册期**抛 `InvalidScopeException`，不会静默退回主 scope；
+- 同时声明两者时 `site_scoped: false` 优先（不加过滤，`scope_suffix` 被忽略）；
+- 子 scope 的 `(scope_type, scope_id)` 来自站点注册期的 map，不是字符串拼接，所以 `aaa` 必须真的注册过。
 
 ## 8. 边界与常见坑
 
 - `model` 必填；morph alias 与类名都支持；
-- 组件的 `module` 属性必填（`<x-sn-support-search module="sn-cms" />`）：空或未注册的模块在搜索时抛 `SupportException`，没有"不传模块搜全部"的用法；
+- 搜索读取按站点，组件的 `module` 属性已不参与：`<x-sn-support-search />` 直接跟随当前站点；站点没有注册来源时 `search()` 抛 `SupportException`，没有"搜全部站点"的用法；
 - `register()` 优先收 `SearchSource` 实例（直接持有，构造时已完成 morph 别名到类名的规范化）；也兼容数组（注册表内经构造函数规范化）；
 - 同一模块重复注册同一 `key` 会覆盖（用于替换内置来源）；
-- `search($module, ...)` 的模块必须在本站点有来源，否则抛 `SupportException`；
-- 条数优先级：显式参数 > 来源 `limit` > 模块声明 `limit` > 全局；声明了 `results` 的来源不受任何条数限制（闭包自己控制）；
+- `search($query, $site)` 的站点必须有来源，否则抛 `SupportException`；
+- 条数优先级：显式参数 > 来源 `limit` > 站点声明 `limit` > 全局；声明了 `results` 的来源不受任何条数限制（闭包自己控制）；
 - `view` / `render` 只渲染条目内容区，外层链接由 support 统一包裹（`url` 有无决定 `<a>` / `<div>`），自定义内容里不要再包链接。
 
 ## 9. 相关类

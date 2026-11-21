@@ -343,7 +343,7 @@ ModuleRegistry::register(new Module(
 
 ### Search
 
-`SearchRegistry` (facade `Search`) collects searchable sources per module.
+`SearchRegistry` (facade `Search`) collects searchable sources per site. A site holds exactly one module's search space, so reads take only the site and derive the module from `Site::pluginId`.
 
 ```php
 use Wsmallnews\Support\Facades\Search;
@@ -362,7 +362,7 @@ Search::config('sn-cms', [
     ]),
 ], $site);
 
-Search::search('sn-cms', 'keyword');  // one module, every source of it; an unknown module throws
+Search::search('keyword', $site);  // every source of the site; a site without sources throws
 ```
 
 Source options:
@@ -378,6 +378,7 @@ Source options:
 | `query` | LIKE engine query modifier; receives `($query, Site $site)` |
 | `scout` | Scout index modifier; overrides `query` and `fields` |
 | `site_scoped` | Isolate rows by the source's site; defaults to `true`. A public model whose table has no scope columns declares `false` — otherwise the first query fails on the missing column |
+| `scope_suffix` | Search a declared sub-scope of the site instead of its main scope (e.g. `aaa` for a `PostResource` registered with that suffix). An undeclared suffix throws at registration |
 | `title` / `description` / `cover` / `badge` | Display resolvers; default to `HasSnSubject` data |
 | `url` | Link resolver; **only** the registrant can provide it, otherwise items are unlinked |
 | `view` | Custom item view; falls back to `SearchSource::DEFAULT_ITEM_VIEW` |
@@ -385,9 +386,9 @@ Source options:
 | `visible` | Closure deciding whether the source takes part |
 | `results` | Fully custom results, bypassing the engine |
 
-Module options (`Search::config()`) accept **any** key from `sn-support.search` and are stored per site. Resolution order is component property → site module options → global `sn-support.search` config. There is no module-level fallback: a site that registered no sources for a module simply has none. Re-registering a key overrides the previous source, which lets an app replace a package source.
+Module options (`Search::config()`) accept **any** key from `sn-support.search` and are stored per site. Resolution order is component property → site declaration → global `sn-support.search` config. There is no module-level fallback: a site that registered no sources simply has none. Re-registering a key overrides the previous source, which lets an app replace a package source.
 
-Search reads take the site explicitly (`Site $site` second argument) — there is no ambient fallback. Components obtain it from the bound `SiteContext` (`SiteContext::requireSite()`).
+Writes take `$module` + `$site` (the module is asserted against `$site->pluginId`); reads take only the site — there is no ambient fallback. Components obtain it from the bound `SiteContext` (`SiteContext::requireSite()`).
 
 The registry binds that site to every source on registration, so a source derives its own data space (`SiteRegistry::scopeableFor()`) instead of reading the ambient request context. `query` modifiers receive the same site as their second argument.
 
@@ -410,8 +411,8 @@ Search config keys:
 Components:
 
 ```blade
-<livewire:sn-support::components.search :module="'sn-cms'" placeholder="Search…" :limit="5" />
-<livewire:sn-support::components.search-results module="sn-cms" :limit="10" />
+<livewire:sn-support::components.search placeholder="Search…" :limit="5" />
+<livewire:sn-support::components.search-results :limit="10" />
 ```
 
 `components.search` renders a dropdown or a search field; `components.search-results` renders the result area of a dedicated page and keeps `?q=` in sync.
@@ -437,7 +438,8 @@ Sitemap::config('sn-cms', ['domain' => 'cms.example.com'], $site)
 ```
 
 - `robots.txt` contains the Filament panel paths, the registered disallow rules and one `Sitemap:` line per registered frontend site.
-- The rendered sitemap is cached as a whole; call `Sitemap::flush()` after content changes.
+- `Sitemap::render($site)` renders the XML, `Sitemap::getSources($site)` / `getConfig($site)` / `resolveConfig($site, $key)` read it; all reads take only the site.
+- The rendered sitemap is cached as a whole; call `Sitemap::flush($site)` after content changes.
 
 Config keys: `enabled` (robots endpoint), `robots_uri`, `cache_ttl` (`null` or `0` disables).
 
@@ -466,14 +468,14 @@ Feed::config('sn-cms', [], $site)
 
 - `items` is required and must be a closure; every entry needs a `url`.
 - Only the module owning the site may register feeds (`$module === $site->pluginId`); a repeated name replaces the previous definition.
-- There is no root `/feed`: register the endpoints inside the site route group with `Feed::routes('sn-cms', $site)`, which adds `{prefix}/feed` (module aggregate) and `{prefix}/feed/{name}`. Call it before catch-all segments such as `navigation/{slug}`.
-- `Feed::render($module, $site, $name = null)` renders the aggregate stream (or one named feed) programmatically; the aggregate cap follows `resolveConfig`: module declaration (the site's `feed.*` section passed through) > `feeds.aggregate_limit`.
-- `Feed::getConfig($module, $site, $key = null, $default = null)` reads module options; `Feed::resolveConfig($module, $key, $site, $default = null)` resolves module declaration > `sn-support.feeds.*` > default.
-- `Feed::autodiscoveryTags($module, $site)` returns the `<link rel="alternate">` tags for the layout head (`@snFeeds`).
-- Reads take the site explicitly; there is no ambient fallback.
+- There is no root `/feed`: register the endpoints inside the site route group with `Feed::routes('sn-cms', $site)`, which adds `{prefix}/feed` (site aggregate) and `{prefix}/feed/{name}`. Call it before catch-all segments such as `navigation/{slug}`.
+- `Feed::render($site, $name = null)` renders the aggregate stream (or one named feed) programmatically; the aggregate cap follows `resolveConfig`: site declaration (the site's `feed.*` section passed through) > `feeds.aggregate_limit`.
+- `Feed::getConfig($site, $key = null, $default = null)` reads site options; `Feed::resolveConfig($site, $key, $default = null)` resolves site declaration > `sn-support.feeds.*` > default.
+- `Feed::getFeeds($site)` / `Feed::getFeed($name, $site)` / `Feed::autodiscoveryTags($site)` are the read entries; the last one returns the `<link rel="alternate">` tags for the layout head (`@snFeeds`).
+- Reads take only the site (the module is its `pluginId`); there is no ambient fallback.
 - Call `Feed::flush()` after content changes.
 
-Config keys (fallbacks; a module passes its site's `feed.*` section through as the declaration): `uri`, `limit`, `aggregate_limit`, `cache_ttl` (`null` or `0` disables).
+Config keys (fallbacks; a module passes its site's `feed.*` section through as the declaration): `uri`, `limit`, `aggregate_limit`, `cache_ttl` (`null` or `0` disables). A site exposes exactly one module's streams.
 
 ### Seo
 

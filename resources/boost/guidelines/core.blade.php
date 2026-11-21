@@ -180,24 +180,25 @@ CmsPlugin::make()
 - 站点显式 `scopeable()` 必须带插件 id 前缀；非 aggregate 站点的 `(scope_type, scope_id)` 在 `SiteRegistry` 全局唯一，跨插件重复注册期抛。
 - 站点级后台默认值用 `$site->panelDefaults([...])`，优先级 `条目 overrides > 站点 panelDefaults > 模块 panel_register.global_default`；`navigation_group` 多站点时以 site label 兜底。
 
-### 注册表速查（全部以模块 id 为 key）
+### 注册表速查（存储 `module => siteId`；读取只传 `Site`，module 由 `$site->pluginId` 派生）
 
 | 能力 | 入口 | 主要方法 |
 |---|---|---|
 | 内容编排 | `CompositionRegistry` | `register($module, ['type' => ..., 'component' => ...])`、`registerPurposes()`、`getTypeForms()` |
-| 搜索 | `Search` | `config()` / `registers()` / `search()` / `resolvePage()` |
-| Sitemap | `Sitemap` | `config()` / `registers()` / `robots()` / `flush()` |
-| Feed | `Feed` | `config()` / `register($module, $name, [...])` / `routes($module)` / `flush()` |
-| SEO | `Seo` | `config($module, [...])` / `init($module)` / 链式 `title()` 等 / `render()` |
+| 搜索 | `Search` | 写 `config($module, $config, $site)` / `registers($module, ...)`；读 `search($query, $site)` / `resolvePage($site)` |
+| Sitemap | `Sitemap` | 写 `config($module, ...)` / `registers($module, ...)` / `robots($module)` / `routes($module, $site)`；读 `render($site)` / `flush($site)` |
+| Feed | `Feed` | 写 `config($module, ...)` / `register($module, $name, [...], $site)` / `routes($module, $site)`；读 `getFeeds($site)` / `render($site)` / `flush()` |
+| SEO | `Seo` | `config($module, [...], $site)` / `init($module)` / 链式 `title()` 等 / `render()` |
 | 定时任务 | `ScheduledTask` | `registers($morphType, [...])` / `scheduleRepeater()` |
 | 模块身份 | `ModuleRegistry` | `register(new Module(id, namespace, plugin))` / `moduleOf()` / `require()` |
 
 要点：
 
+- 一个站点只有一个模块：写入的 `$module` 必须等于 `$site->pluginId`（`AssertsSiteOwnership`），读取只传 `Site`。
 - 注册表都要求模块 id 已登记（`ModuleRegistry`），拼错 id 应当报错而不是静默失效。
-- **Feed 的 name 全局唯一**（URL 的一段），重名注册直接抛异常。
+- **同一站点同名流重复注册 = 整条覆盖**（Feed 的 name 是 URL 段）。
 - **Sitemap / Feed 的域名过滤**：模块声明 `domain` 且与当前请求域名不符时不参与输出；未声明 domain 的模块始终参与。
-- 内容变更后主动调 `Sitemap::flush()` / `Feed::flush()`（缓存键含租户、域名、模块集合）。
+- 内容变更后主动调 `Sitemap::flush($site)` / `Feed::flush()`（缓存键含租户、站点、域名）。
 - **Search 来源的 `url` 只能由注册方提供**，默认无链接——前端搜索永不产生后台 panel 地址。
 - 相同 key 重复注册 = 覆盖（应用可借此替换包内置来源）。
 
@@ -212,9 +213,9 @@ CmsPlugin::make()
 
 ### Livewire 基础设施
 
-- `Livewire\Base`：`$this->transaction(fn () => ...)` 带 Halt 感知；`$this->halt()` 停止并回滚。
-- Traits：`HasProperties`、`HasContentType`、`HasAuth`、`CanPagination`（scroll / paginator / manual）、`CanBeContained`、`ScopedBySite`（`#[Locked]` 快照 + 站点派生）、`HasModuleContext`。
-- `HasModuleContext`：`:module` 指定消费模块，`moduleConfig` 先读消费模块配置、回落组件所有方；`getOwnerModule()` 经 `ModuleRegistry` 按类名反查。
+- `Livewire\Base`：`$this->transaction(fn () => ...)` 带 Halt 感知；`$this->halt()` 停止并回滚；`getAuthUser()` 直接读站点认证身份（无需 trait）。
+- Traits：`HasProperties`、`HasContentType`、`HasAuth`（可 `:auth-user` 注入，trait 方法覆盖 Base 的读取，props 优先、站点兜底）、`CanPagination`（scroll / paginator / manual）、`CanBeContained`、`ScopedBySite`（`#[Locked]` 快照 + 站点派生 + 站点配置读取）。
+- 组件配置按站点读取：`$this->siteOption($path, $default, $owner = null)`（站点 options > 模块 config > `$default`）。`$owner` 三态：`null` = 组件所属模块（`getOwnerModule()` 经 `ModuleRegistry` 按命名空间反查）、`false` = 不要模块兜底（只认站点值）、字符串 = 指定模块。不存在“消费模块” `:module` 上下文。
 - `HasColumns`（`Concerns\HasColumns`）提供响应式列配置，但 HTML 布局仍写在视图里。
 
 ### 操作者与目标实体接口
@@ -237,6 +238,17 @@ CmsPlugin::make()
 - 辅助函数：`current_tenant()`（面板取 Filament 租户，前台取 `SiteContext::tenant()`，`?->getKey()` 取 id）/ `is_in_panel()` / `sn_route()`（仅对 `{tenant:slug}` 路由补参数；缺租户直接抛异常，非 slug 绑定也抛异常）。租户查询 scope：`scopeTenant()` 按当前上下文（站点模式 / 面板 tenancy）严格过滤，显式跨租户用 `allTenants()`，指定租户用 `forTenant($id)`。
 - 租户设置仓库 `Tenant\Settings\Repositories\DatabaseSettingsRepository`（表 `sn_team_settings`）。
 - `media-library` 的 `media_observer` 必须换成 support 的实现，否则删记录会连带删文件。
+
+### 站点认证（SiteContext）
+
+身份解析收敛到站点上下文，组件不读 `request()->attributes`，也不判断 member/user 分叉：
+
+- **配置**：站点 `options.auth.guard`（回落 `{pluginId}.options.auth.guard`，再兜底 `web`）/ `options.auth.user_type`（回落模块默认，再兜底 `user`）。站点级覆盖写 `options(['auth' => ['guard' => 'admin', 'user_type' => 'user']])`。
+- **注册解析器**：`SiteContext::registerAuthUser('member', fn (Site $site, string $guard) => ...)`；每种类型由所属模块注册——user 包注册 `user`（guard 用户），member 包注册 `member`（guard 用户 → `Member::findOrCreate`）。support 只提供注册表。
+- **读取**：`getAuthUser()` 返回站点认证主体（`auth.user_type = member` 时是 Member，为 `user` 时是 User）；`getUser()` 始终返回 guard 用户模型；两者都每个请求解析一次（`getAuthUser()` 缓存，`set()` 换站点时失效）；`getGuard()` / `getAuthUserType()` / `option('auth.guard')`。
+- **面板 / console** 没有站点：`getAuthUser()` / `getUser()` 返回 `null`，组件通过 `HasAuth` 的 props 接收用户；`this->getAuthUser()` 优先用显式 props，其次站点。
+- 站点声明了未注册的 `user_type` 直接抛 `unknownAuthUser`（fail-closed，不静默当成未登录）。
+- 中间件 `sn-ensure-user-active`（user 包）与 `sn-ensure-member-active`（member 包）只做「禁用 → 登出」，不解析身份、不写 request 属性。
 
 ### 前端 CSS（sn-*）
 

@@ -16,9 +16,9 @@ use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
 class SitemapController
 {
     /**
-     * Render one module's sitemap. The route carries sitemap_module / sitemap_site
-     * defaults (see SitemapRegistry::routes); the site must match the one bound by
-     * sn-resolve-site-context, otherwise 404.
+     * Render one site's sitemap. The route carries the sitemap_site default (see
+     * SitemapRegistry::routes); the site must match the one bound by
+     * sn-resolve-site-context, otherwise 404. The module is derived from the site.
      */
     public function sitemap(): Response
     {
@@ -32,9 +32,7 @@ class SitemapController
             abort(404);
         }
 
-        $module = (string) request()->route()->parameter('sitemap_module');
-
-        return response(Sitemap::render($module, $site)->toHtml(), 200, [
+        return response(Sitemap::render($site)->toHtml(), 200, [
             'Content-Type' => 'application/xml; charset=UTF-8',
         ]);
     }

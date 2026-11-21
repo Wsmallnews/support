@@ -6,20 +6,28 @@ use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Laravel\Scout\EngineManager;
+use Wsmallnews\Support\Exceptions\InvalidScopeException;
 use Wsmallnews\Support\Exceptions\SupportException;
 use Wsmallnews\Support\Features\Search\Engines\ConfigurableEngine;
 use Wsmallnews\Support\Features\Search\Engines\DatabaseEngine;
 use Wsmallnews\Support\Features\Search\Engines\Engine;
 use Wsmallnews\Support\Features\Search\Engines\ScoutEngine;
+use Wsmallnews\Support\Features\Site\Concerns\AssertsSiteOwnership;
 use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
- * Global search registry: modules register sources and per-module options, the Livewire
- * component consumes them. See the Search section of the README for the option list.
+ * Global search registry: modules register sources and options per site, the
+ * Livewire component consumes them. See the Search section of the README.
+ *
+ * Storage stays keyed by module then site. A site's search space belongs to
+ * exactly one module (the plugin that owns the site), so writes keep the module
+ * argument (ownership is asserted) while reads take only the site and derive it.
  */
 class SearchRegistry
 {
+    use AssertsSiteOwnership;
+
     /**
      * Module options per site: module => site id => options.
      *
@@ -40,9 +48,11 @@ class SearchRegistry
         $this->sources = collect();
     }
 
-    /** Declare options for one site; merged over the module config for that site. */
+    /** Declare options for one site; merged over the previous declaration. */
     public function config(string $module, array $config, Site $site): static
     {
+        $this->assertOwnership($module, $site);
+
         $sites = $this->configs->get($module, collect());
         $sites->put($site->id(), array_merge($sites->get($site->id(), []), $config));
 
@@ -51,23 +61,25 @@ class SearchRegistry
         return $this;
     }
 
-    /** Read module options of one site. */
-    public function getConfig(string $module, Site $site, ?string $key = null, mixed $default = null): mixed
+    /** Read the site's search options (owning module derived from the site). */
+    public function getConfig(Site $site, ?string $key = null, mixed $default = null): mixed
     {
-        $config = (array) $this->configs->get($module, collect())->get($site->id(), []);
+        $config = (array) $this->configs->get($this->siteModule($site), collect())->get($site->id(), []);
 
         return $key === null ? $config : ($config[$key] ?? $default);
     }
 
-    /** Resolve in order: module declaration, global sn-support.search.*, then $default. */
-    public function resolveConfig(string $module, string $key, Site $site, mixed $default = null): mixed
+    /** Resolve in order: site declaration, global sn-support.search.*, then $default. */
+    public function resolveConfig(Site $site, string $key, mixed $default = null): mixed
     {
-        return $this->getConfig($module, $site, $key)
+        return $this->getConfig($site, $key)
             ?? SupportUtils::getSearchConfig($key, $default);
     }
 
     public function register(string $module, array | SearchSource $source, Site $site): static
     {
+        $this->assertOwnership($module, $site);
+
         // Prefer passing a SearchSource instance (held as-is); arrays are normalized by the constructor.
         // The site is bound here so the source derives its own data space, never the request context.
         $candidate = ($source instanceof SearchSource ? $source : new SearchSource($source))->forSite($site);
@@ -75,6 +87,8 @@ class SearchRegistry
         if (blank($candidate->options()['model'] ?? null)) {
             throw new SupportException(__('sn-support::search.exceptions.model_required', ['module' => $module]));
         }
+
+        $this->assertScopeSuffix($candidate, $site);
 
         $sites = $this->sources->get($module, collect());
         $sources = $sites->get($site->id(), collect());
@@ -105,11 +119,11 @@ class SearchRegistry
     }
 
     /**
-     * Run the search and return results grouped by label; every source of the module is searched.
+     * Run the search and return results grouped by label; every registered source is searched.
      *
      * @return Collection<string, Collection<int, SearchResult>>
      */
-    public function search(string $module, string $query, Site $site, ?int $limit = null): Collection
+    public function search(string $query, Site $site, ?int $limit = null): Collection
     {
         $query = trim($query);
 
@@ -117,13 +131,13 @@ class SearchRegistry
             return collect();
         }
 
-        if (! $this->hasSearch($module, $site)) {
-            throw new SupportException(__('sn-support::search.exceptions.search_not_found', ['module' => $module]));
+        if (! $this->hasSearch($site)) {
+            throw new SupportException(__('sn-support::search.exceptions.search_not_found', ['module' => $this->siteModule($site)]));
         }
 
-        $engine = $this->resolveEngine($module, $site);
+        $engine = $this->resolveEngine($site);
 
-        $candidates = $this->getSources($module, $site)
+        $candidates = $this->getSources($site)
             ->filter(fn (SearchSource $source) => $source->visible())
             ->sortBy(fn (SearchSource $source) => $source->sort())
             ->values();
@@ -131,11 +145,11 @@ class SearchRegistry
         $groups = collect();
 
         foreach ($candidates as $source) {
-            // Limit precedence: explicit argument > source > module declaration > global
+            // Limit precedence: explicit argument > source > site declaration > global
             if ($limit !== null) {
                 $source = $source->merge(['limit' => $limit]);
             } elseif (($source->options()['limit'] ?? null) === null) {
-                $source = $source->merge(['limit' => $this->resolveConfig($module, 'limit', $site)]);
+                $source = $source->merge(['limit' => $this->resolveConfig($site, 'limit')]);
             }
 
             $results = $this->searchSource($source, $engine, $query);
@@ -151,9 +165,9 @@ class SearchRegistry
     /**
      * @return Collection<int, SearchSource>
      */
-    public function getSources(string $module, Site $site): Collection
+    public function getSources(Site $site): Collection
     {
-        return $this->sources->get($module, collect())->get($site->id(), collect());
+        return $this->sources->get($this->siteModule($site), collect())->get($site->id(), collect());
     }
 
     /**
@@ -161,9 +175,9 @@ class SearchRegistry
      *
      * @return array<string, array{view: string, render: ?Closure}>
      */
-    public function itemRenderers(string $module, Site $site): array
+    public function itemRenderers(Site $site): array
     {
-        return $this->getSources($module, $site)
+        return $this->getSources($site)
             ->filter(fn (SearchSource $source) => $source->visible())
             ->mapWithKeys(fn (SearchSource $source): array => [
                 $source->key() => ['view' => $source->itemView(), 'render' => $source->itemRender()],
@@ -172,9 +186,9 @@ class SearchRegistry
     }
 
     /** Resolve the results page URL; a closure receives the query, a string gets ?q= appended. */
-    public function resolvePage(string $module, Site $site, ?string $query = null): ?string
+    public function resolvePage(Site $site, ?string $query = null): ?string
     {
-        $page = $this->resolveConfig($module, 'page', $site);
+        $page = $this->resolveConfig($site, 'page');
 
         if ($page instanceof Closure) {
             return $page($query);
@@ -189,16 +203,31 @@ class SearchRegistry
             : $page;
     }
 
-    /** Whether this site has the module's search (at least one registered source). */
-    protected function hasSearch(string $module, Site $site): bool
+    /** Whether this site has a registered search (at least one source). */
+    protected function hasSearch(Site $site): bool
     {
-        return $this->sources->get($module, collect())->has($site->id());
+        return $this->sources->get($this->siteModule($site), collect())->has($site->id());
     }
 
-    /** Resolve the engine; engines implementing ConfigurableEngine receive the module options. */
-    protected function resolveEngine(string $module, Site $site): Engine
+    /**
+     * A source may target one of the site's declared sub-scopes via `scope_suffix`;
+     * an unknown suffix fails at registration instead of returning no rows later.
+     */
+    protected function assertScopeSuffix(SearchSource $source, Site $site): void
     {
-        $engine = $this->resolveConfig($module, 'engine', $site, 'database');
+        $suffix = $source->options()['scope_suffix'] ?? null;
+
+        if (blank($suffix) || $site->getScope((string) $suffix) !== null) {
+            return;
+        }
+
+        throw InvalidScopeException::unknownScopeSuffix($site->id(), (string) $suffix, array_keys($site->getScopes()));
+    }
+
+    /** Resolve the engine; engines implementing ConfigurableEngine receive the site options. */
+    protected function resolveEngine(Site $site): Engine
+    {
+        $engine = $this->resolveConfig($site, 'engine', 'database');
 
         if ($engine === 'database') {
             $instance = app(DatabaseEngine::class);
@@ -215,7 +244,7 @@ class SearchRegistry
         }
 
         if ($instance instanceof ConfigurableEngine) {
-            $instance->setSearchConfig($this->getConfig($module, $site) ?? []);
+            $instance->setSearchConfig($this->getConfig($site) ?? []);
         }
 
         return $instance;

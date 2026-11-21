@@ -11,9 +11,9 @@ use Wsmallnews\Support\Features\Site\SiteRegistry;
 /**
  * Module feed endpoints ({prefix}/feed and {prefix}/feed/{name}).
  *
- * Routes are registered by Feed::routes() with two defaults: feed_module (the owning
- * module) and feed_site (the site id). Both are asserted against the resolved context,
- * so a route reused outside its site fails loudly instead of serving an empty feed.
+ * Routes are registered by Feed::routes() with the feed_site default. The site is
+ * asserted against the resolved context, so a route reused outside its site fails
+ * loudly instead of serving an empty feed; the module is derived from the site.
  */
 class FeedController
 {
@@ -32,7 +32,6 @@ class FeedController
     protected function render(?string $name = null): Response
     {
         $route = request()->route();
-        $module = (string) $route->parameter('feed_module');
         $site = app(SiteRegistry::class)->get((string) $route->parameter('feed_site'));
 
         if (! $site instanceof Site) {
@@ -44,11 +43,11 @@ class FeedController
             abort(404);
         }
 
-        if ($name !== null && Feed::getFeed($name, $module, $site) === null) {
+        if ($name !== null && Feed::getFeed($name, $site) === null) {
             abort(404);
         }
 
-        return $this->response(Feed::render($module, $site, $name)->toHtml());
+        return $this->response(Feed::render($site, $name)->toHtml());
     }
 
     protected function response(string $xml): Response

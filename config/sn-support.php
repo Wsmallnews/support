@@ -303,7 +303,7 @@ return [
         /** robots.txt path at the root. */
         'robots_uri' => 'robots.txt',
 
-        /** Seconds the rendered sitemap is cached; call Sitemap::flush() after content changes. */
+        /** Seconds the rendered sitemap is cached; call Sitemap::flush($site) after content changes. */
         'cache_ttl' => 3600,
 
     ],
