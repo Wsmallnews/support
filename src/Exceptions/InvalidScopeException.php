@@ -61,6 +61,25 @@ class InvalidScopeException extends Exception
         );
     }
 
+    /** A component's declared scope suffix and its explicit instance suffix disagree. */
+    public static function scopeSuffixConflict(string $class, string $declared, string $given): self
+    {
+        return new self(
+            "Component [{$class}] declares sub-scope [{$declared}], but was given [{$given}]. "
+            . 'The declared suffix is part of the component identity and cannot be overridden; '
+            . 'use a component without a declared suffix for another partition.'
+        );
+    }
+
+    /** A container type and its rows resolved to different scopes. */
+    public static function typeScopeMismatch(string $typeId, string $typeScope, string $requestedScope): self
+    {
+        return new self(
+            "Type [{$typeId}] belongs to scope [{$typeScope}], but the component resolved [{$requestedScope}]. "
+            . 'A container type and its rows must share one scope.'
+        );
+    }
+
     /** No registered component on this site declares the requested sub-scope. */
     public static function unknownScopeSuffix(string $siteId, string $suffix, array $available): self
     {

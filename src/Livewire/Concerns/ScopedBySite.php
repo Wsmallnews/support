@@ -26,9 +26,11 @@ use Wsmallnews\Support\Support\Utils as SupportUtils;
  * declares via getScopeSuffix(). A component lives inside a site, and rendering
  * one without a site is a development error.
  *
- * `$scopeable` is an explicit override for cross-scope embedding: it only feeds
- * getScopeable() (writes and explicit forScopeable() queries). Queries through
- * siteContext() always follow the bound site.
+ * `$scopeSuffix` selects a partition of the bound site (null = the site's own
+ * scope). The value must name a sub-scope declared at registration, so a
+ * component can never reach another site's rows. A class that declares its own
+ * suffix is bound to that partition: passing a different suffix fails instead
+ * of silently retargeting the component.
  */
 trait ScopedBySite
 {
@@ -38,9 +40,13 @@ trait ScopedBySite
     #[Locked]
     public ?int $tenantId = null;
 
-    /** Explicit scope override for embedding; null follows the site context. */
+    /** Sub-scope suffix of the bound site; null follows the site's own scope. */
     #[Locked]
-    public ?array $scopeable = null;
+    public ?string $scopeSuffix = null;
+
+    /** Related resources keyed by relation name; each value is a site sub-scope suffix. */
+    #[Locked]
+    public array $relatedScopeSuffix = [];
 
     /** The site bound to this component: request context first, snapshot second. */
     public function site(): ?Site
@@ -128,10 +134,6 @@ trait ScopedBySite
      */
     public function getScopeable(): array
     {
-        if ($this->scopeable !== null) {
-            return $this->scopeable;
-        }
-
         $context = app(SiteContext::class);
         $site = $this->site() ?? throw InvalidSiteException::noCurrentSite('component scope');
         $suffix = $this->resolveScopeSuffix();
@@ -151,6 +153,43 @@ trait ScopedBySite
             ?? throw InvalidScopeException::unknownScopeSuffix($site->id(), $suffix, array_keys($site->getScopes()));
     }
 
+    /** Site scope without this component's own ::suffix. */
+    public function getBaseScopeable(): array
+    {
+        $scopeable = $this->getScopeable();
+        $separator = strpos($scopeable['scope_type'], '::');
+
+        return $separator === false
+            ? $scopeable
+            : [
+                'scope_type' => substr($scopeable['scope_type'], 0, $separator),
+                'scope_id' => $scopeable['scope_id'],
+            ];
+    }
+
+    /**
+     * Data space of one related resource: the site's base scope plus the suffix
+     * declared for that relation, or the base scope when none is declared.
+     *
+     * $relatedScopeSuffix is the frontend counterpart of the backend
+     * 'related_scope_suffix' map: keys are relation names, values are suffixes.
+     * A suffix must name a sub-scope declared at registration — an unknown one
+     * fails instead of silently querying an empty partition.
+     */
+    public function getRelatedScopeable(string $related): array
+    {
+        $suffix = $this->relatedScopeSuffix[$related] ?? null;
+
+        if (blank($suffix)) {
+            return $this->getBaseScopeable();
+        }
+
+        $site = $this->site() ?? throw InvalidSiteException::noCurrentSite('related scope');
+
+        return $site->getScope((string) $suffix)
+            ?? throw InvalidScopeException::unknownScopeSuffix($site->id(), (string) $suffix, array_keys($site->getScopes()));
+    }
+
     /** Convenience getters over getScopeable(). */
     public function getScopeType(): string
     {
@@ -162,9 +201,22 @@ trait ScopedBySite
         return $this->getScopeable()['scope_id'];
     }
 
-    /** Default sub-scope suffix: components may declare a static getScopeSuffix(). */
+    /**
+     * Effective sub-scope suffix: the instance selection, or the class declaration.
+     *
+     * A declared suffix is the component identity, so an instance may only repeat
+     * it — selecting another partition is a wiring error, not an override.
+     */
     protected function resolveScopeSuffix(): ?string
     {
-        return method_exists(static::class, 'getScopeSuffix') ? static::getScopeSuffix() : null;
+        $declared = method_exists(static::class, 'getScopeSuffix') ? static::getScopeSuffix() : null;
+        $declared = filled($declared) ? (string) $declared : null;
+        $given = filled($this->scopeSuffix) ? (string) $this->scopeSuffix : null;
+
+        if ($declared !== null && $given !== null && $given !== $declared) {
+            throw InvalidScopeException::scopeSuffixConflict(static::class, $declared, $given);
+        }
+
+        return $given ?? $declared;
     }
 }

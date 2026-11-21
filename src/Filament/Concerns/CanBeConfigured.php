@@ -258,7 +258,7 @@ trait CanBeConfigured
 
     /**
      * Module that owns this resource, used to address module-level registries.
-     * Injected by RegistersConfigurable at registration; null outside that context.
+     * Injected by the site registrar (RegistersSites) at registration; null outside that context.
      */
     public static function getModuleId(): ?string
     {
