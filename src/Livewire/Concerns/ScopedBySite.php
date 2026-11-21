@@ -3,16 +3,19 @@
 namespace Wsmallnews\Support\Livewire\Concerns;
 
 use Livewire\Attributes\Locked;
+use RuntimeException;
 use Wsmallnews\Support\Exceptions\InvalidScopeException;
 use Wsmallnews\Support\Exceptions\InvalidSiteException;
+use Wsmallnews\Support\Features\Modules\ModuleRegistry;
 use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Features\Site\SiteContext;
 use Wsmallnews\Support\Features\Site\SiteRegistry;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
- * Site-bound component: keeps the frontend site across Livewire updates and
- * reads its scope from the site context.
+ * Site-bound component: keeps the frontend site across Livewire updates, reads
+ * its scope from the site context, and reads site options with the owning
+ * module's config as fallback.
  *
  * The route middleware only runs on the initial request; updates hit
  * /livewire/update. The site context middleware is persistent, so it replays
@@ -44,6 +47,43 @@ trait ScopedBySite
     {
         return app(SiteContext::class)->site()
             ?? ($this->siteId ? app(SiteRegistry::class)->get($this->siteId) : null);
+    }
+
+    /**
+     * Site option: site options first, then a module's config, then $default.
+     *
+     * $owner picks the middle step:
+     * - null: this component's own module (getOwnerModule())
+     * - false: no module fallback, $default wins (components belonging to no module)
+     * - string: that module's config
+     *
+     * The site itself already falls back to its own module's options, so $owner
+     * only covers components reused on another module's site (cms posts on a
+     * shop site): their defaults still come from cms.
+     */
+    public function siteOption(string $path, mixed $default = null, string | false | null $owner = null): mixed
+    {
+        $value = $this->site()?->getOption($path);
+
+        if ($value !== null) {
+            return $value;
+        }
+
+        if ($owner === false) {
+            return $default;
+        }
+
+        return config(($owner ?? $this->getOwnerModule()) . ".options.{$path}", $default);
+    }
+
+    /** Owner module of this component, detected from ModuleRegistry by namespace. */
+    public function getOwnerModule(): string
+    {
+        return ModuleRegistry::moduleOf(static::class)
+            ?? throw new RuntimeException(sprintf(
+                'Component [%s] belongs to no registered module; register one in the package ServiceProvider.',
+                static::class
+            ));
     }
 
     public function mountScopedBySite(): void

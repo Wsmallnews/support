@@ -7,7 +7,6 @@ use Livewire\Attributes\Url;
 use Wsmallnews\Support\Facades\Search as SearchFacade;
 use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Features\Site\SiteContext;
-use Wsmallnews\Support\Livewire\Base;
 use Wsmallnews\Support\Livewire\Concerns\CanBeContained;
 
 /**
@@ -21,9 +20,6 @@ class SearchResults extends Base
     /** Query, synced both ways with ?q=. */
     #[Url(as: 'q', except: '')]
     public ?string $query = null;
-
-    /** Bound module id; the caller must set it, an empty or unknown id fails the search. */
-    public string $module = '';
 
     /** Per-source result limit; null uses the source or global config. */
     public ?int $limit = null;
@@ -47,9 +43,9 @@ class SearchResults extends Base
     public function render()
     {
         return view('sn-support::livewire.components.search-results', [
-            'groups' => SearchFacade::search($this->module, (string) $this->query, $this->site(), $this->limit),
-            'debounce' => (string) SearchFacade::resolveConfig($this->module, 'debounce', $this->site(), '300ms'),
-            'itemRenderers' => SearchFacade::itemRenderers($this->module, $this->site()),
+            'groups' => SearchFacade::search((string) $this->query, $this->site(), $this->limit),
+            'debounce' => (string) SearchFacade::resolveConfig($this->site(), 'debounce', '300ms'),
+            'itemRenderers' => SearchFacade::itemRenderers($this->site()),
             'showSearchButton' => $this->isShowButton(),
         ]);
     }
@@ -64,7 +60,7 @@ class SearchResults extends Base
             return $this->showButton;
         }
 
-        return (bool) SearchFacade::resolveConfig($this->module, 'show_search_button', $this->site(), false);
+        return (bool) SearchFacade::resolveConfig($this->site(), 'show_search_button', false);
     }
 
     /**

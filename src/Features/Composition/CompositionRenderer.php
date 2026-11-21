@@ -84,7 +84,7 @@ class CompositionRenderer
             ]) ?? [])->reject(fn ($value) => $value === null)->all();
         }
 
-        $rows = self::resolveRows($composition->components, $module, $pageContext);
+        $rows = self::resolveRows($composition->components, $module, $pageContext, ['scope_type' => $scopeType, 'scope_id' => $scopeId]);
 
         // No component rows is treated as a miss, or the sidebar column stays blank forever
         if ($rows === []) {
@@ -113,9 +113,10 @@ class CompositionRenderer
      * @param  array|null  $rows  Composition components
      * @param  string  $module  Module id, the CompositionRegistry key
      * @param  array  $pageContext  Page-level context seed available to every row
+     * @param  array|null  $scopeable  Data space of the bound composition; providers must not read across it
      * @return array Resolved rows
      */
-    public static function resolveRows(?array $rows, string $module, array $pageContext = []): array
+    public static function resolveRows(?array $rows, string $module, array $pageContext = [], ?array $scopeable = null): array
     {
         $resolved = [];
 
@@ -128,8 +129,8 @@ class CompositionRenderer
 
             $resolved[] = [
                 'layout' => $layout,
-                'left' => self::resolveSlot($row['left'] ?? [], $module, $context),
-                'right' => self::resolveSlot($row['right'] ?? [], $module, $context),
+                'left' => self::resolveSlot($row['left'] ?? [], $module, $context, $scopeable),
+                'right' => self::resolveSlot($row['right'] ?? [], $module, $context, $scopeable),
             ];
         }
 
@@ -141,8 +142,9 @@ class CompositionRenderer
      * first, then resolves, then provides so later items in the slot can read the result.
      *
      * @param  array  $context  Row context bag, passed by reference so the left slot feeds the right
+     * @param  array|null  $scopeable  Data space passed through to providers
      */
-    protected static function resolveSlot(array $items, string $module, array &$context): array
+    protected static function resolveSlot(array $items, string $module, array &$context, ?array $scopeable = null): array
     {
         $resolved = [];
 
@@ -169,7 +171,7 @@ class CompositionRenderer
 
             // Provide: the closure receives the injected extras and merges its result into the bag
             if (isset($typeInfo['provides'])) {
-                $provided = app()->call($typeInfo['provides'], ['extras' => $extras]) ?? [];
+                $provided = app()->call($typeInfo['provides'], ['extras' => $extras, 'scopeable' => $scopeable]) ?? [];
                 $context = array_merge($context, $provided);
             }
         }

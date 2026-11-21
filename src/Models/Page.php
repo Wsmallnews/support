@@ -118,6 +118,6 @@ class Page extends SupportModel implements HasSnSubject
             return [];
         }
 
-        return CompositionRenderer::resolveRows($composition->components, $module, $pageContext);
+        return CompositionRenderer::resolveRows($composition->components, $module, $pageContext, $this->getScopeable());
     }
 }

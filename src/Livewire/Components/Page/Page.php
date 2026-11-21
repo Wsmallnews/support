@@ -3,7 +3,7 @@
 namespace Wsmallnews\Support\Livewire\Components\Page;
 
 use Wsmallnews\Support\Facades\Seo;
-use Wsmallnews\Support\Livewire\Base;
+use Wsmallnews\Support\Livewire\Components\Base;
 use Wsmallnews\Support\Models\Page as PageModel;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
@@ -13,7 +13,6 @@ use Wsmallnews\Support\Support\Utils as SupportUtils;
  */
 class Page extends Base
 {
-
     public ?string $slug = null;
 
     /**
@@ -23,9 +22,6 @@ class Page extends Base
     public ?PageModel $pageRecord = null;
 
     public bool $withSeo = true;
-
-    /** Module providing the composition types; when empty only the content channel works. */
-    public ?string $module = null;
 
     public function render()
     {
@@ -45,7 +41,7 @@ class Page extends Base
 
         return view('sn-support::livewire.components.page', [
             'page' => $page,
-            'rows' => filled($this->module) ? $page->resolveRows($this->module) : [],
+            'rows' => $page->resolveRows($this->getModuleId()),
         ]);
     }
 }

@@ -7,12 +7,26 @@ use Filament\Pages\Concerns\CanUseDatabaseTransactions;
 use Filament\Support\Exceptions\Halt;
 use Livewire\Component;
 use Throwable;
+use Wsmallnews\Support\Contracts\HasSnIdentifiable;
+use Wsmallnews\Support\Features\Site\SiteContext;
 use Wsmallnews\Support\Livewire\Concerns\ScopedBySite;
 
 class Base extends Component
 {
     use CanUseDatabaseTransactions;
     use ScopedBySite;
+
+    /**
+     * Current authenticated identity of the bound site (member or user, decided
+     * by the site's auth.user_type). Read-only: components that accept an
+     * explicit `authUser` prop use HasAuth, which overrides this as a fallback.
+     */
+    public function getAuthUser(): ?HasSnIdentifiable
+    {
+        $user = app(SiteContext::class)->getAuthUser();
+
+        return $user instanceof HasSnIdentifiable ? $user : null;
+    }
 
     /**
      * Run the callback in a database transaction when $hasDatabaseTransactions is on. A Halt
