@@ -1,6 +1,9 @@
+// Theme preferences are per site: same domain can host several sites.
+const themeKey = () => window.__snThemeKey ?? 'sn-support-frontend-theme'
+
 document.addEventListener('alpine:init', () => {
     const theme =
-        localStorage.getItem('sn-support-frontend-theme') ??
+        localStorage.getItem(themeKey()) ??
         // Default theme mode, set as a global variable in the layout
         getComputedStyle(document.documentElement).getPropertyValue(
             '--default-theme-mode',
@@ -18,7 +21,7 @@ document.addEventListener('alpine:init', () => {
     window.addEventListener('sn-support-frontend-theme-changed', (event) => {
         let theme = event.detail
 
-        localStorage.setItem('sn-support-frontend-theme', theme)
+        localStorage.setItem(themeKey(), theme)
 
         if (theme === 'system') {
             theme = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -33,7 +36,7 @@ document.addEventListener('alpine:init', () => {
     window
         .matchMedia('(prefers-color-scheme: dark)')
         .addEventListener('change', (event) => {
-            if (localStorage.getItem('sn-support-frontend-theme') === 'system') {
+            if (localStorage.getItem(themeKey()) === 'system') {
                 window.Alpine.store('snSupportFrontendTheme', event.matches ? 'dark' : 'light')
             }
         })

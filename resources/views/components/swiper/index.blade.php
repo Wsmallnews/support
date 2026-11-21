@@ -1,3 +1,7 @@
+@php
+    use Filament\Support\Facades\FilamentAsset;
+@endphp
+
 @props([
     'slides' => [],               // Slides: image URLs, or arrays of [image, href, html]
     'swiperCss' => '',            // Extra classes on the main swiper container
@@ -135,8 +139,8 @@
         x-load
     @endif
     wire:ignore
-    x-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('sn-support-components-swiper', 'wsmallnews/support') }}"
-    x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('sn-support-components-swiper', 'wsmallnews/support'))]"
+    x-load-src="{{ FilamentAsset::getAlpineComponentSrc('sn-support-components-swiper', 'wsmallnews/support') }}"
+    x-load-css="[@js(FilamentAsset::getStyleHref('sn-support-components-swiper', 'wsmallnews/support'))]"
     x-data="supportSwiper({
         effect: @js($effect),
         loop: @js($loop),

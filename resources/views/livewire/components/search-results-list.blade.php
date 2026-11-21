@@ -1,3 +1,7 @@
+@php
+    use function Filament\Support\generate_href_html;
+@endphp
+
 {{-- Grouped result list shared by the dropdown and the results page; expects $groups and
 $itemRenderers. $stickyGroupHeader sticks group headers while the dropdown scrolls.
 A render closure wins over the resolved item view. support wraps the link; the item only
@@ -28,7 +32,7 @@ renders its content. View data: $result and $query. --}}
             @if ($result->url)
                 <a
                     class="{{ $rowClass }}"
-                    {{ \Filament\Support\generate_href_html($result->url) }}
+                    {{ generate_href_html($result->url) }}
                 >
                     {!! $itemHtml !!}
                 </a>

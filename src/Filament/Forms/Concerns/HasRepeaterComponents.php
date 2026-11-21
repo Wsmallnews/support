@@ -10,6 +10,8 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Js;
 
+use function Filament\Support\generate_icon_html;
+
 /**
  * Optional repeater views shared by every package: native Repeater instances,
  * only the rendering template is swapped via ->view() (Filament's official
@@ -76,7 +78,7 @@ trait HasRepeaterComponents
      */
     protected static function tableColumnHintButton(string $hint): string
     {
-        $icon = \Filament\Support\generate_icon_html(Heroicon::OutlinedQuestionMarkCircle, size: IconSize::Small);
+        $icon = generate_icon_html(Heroicon::OutlinedQuestionMarkCircle, size: IconSize::Small);
 
         return '<button type="button" class="sn-th-hint"'
             . ' x-tooltip="{ content: ' . Js::from($hint) . ', theme: $store.theme }"'

@@ -1,3 +1,7 @@
+@php
+    use Filament\Support\Facades\FilamentAsset;
+@endphp
+
 @props([
     'key' => null,
     'galleries' => [],                // Slides
@@ -25,8 +29,8 @@
         x-load
     @endif
     wire:ignore
-    x-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('sn-support-components-lightbox', 'wsmallnews/support') }}"
-    x-load-css="[@js(\Filament\Support\Facades\FilamentAsset::getStyleHref('sn-support-components-lightbox', 'wsmallnews/support'))]"
+    x-load-src="{{ FilamentAsset::getAlpineComponentSrc('sn-support-components-lightbox', 'wsmallnews/support') }}"
+    x-load-css="[@js(FilamentAsset::getStyleHref('sn-support-components-lightbox', 'wsmallnews/support'))]"
     x-data="supportLightbox({
         bindKey: @js($bindKey),
     })"

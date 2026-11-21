@@ -1,5 +1,6 @@
 @php
     use Filament\Support\Enums\IconPosition;
+    use function Filament\Support\generate_href_html;
 @endphp
 
 @props([
@@ -61,7 +62,7 @@
     @if ($tag === 'button')
         type="{{ $type }}"
     @elseif ($tag === 'a')
-        {{ \Filament\Support\generate_href_html($href, $target === '_blank', $spaMode) }}
+        {{ generate_href_html($href, $target === '_blank', $spaMode) }}
     @endif
     @if ($hasAlpineActiveClasses)
         x-bind:class="{

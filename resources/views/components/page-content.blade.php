@@ -1,3 +1,7 @@
+@php
+    use Filament\Support\Icons\Heroicon;
+@endphp
+
 @props([
     'page',
     'rows' => [],
@@ -17,7 +21,7 @@ Shared by the support page component and the cms home page. --}}
         </div>
     @else
         <x-sn-support::empty
-            :icon="\Filament\Support\Icons\Heroicon::OutlinedDocumentText"
+            :icon="Heroicon::OutlinedDocumentText"
             icon-color="gray"
             :heading="$page->title"
             :description="__('sn-support::page.frontend.empty')"

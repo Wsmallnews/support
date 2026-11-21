@@ -1,6 +1,8 @@
 @php
     use Illuminate\Support\Js;
     use Filament\Forms\Components\Hidden;
+    use Filament\Support\Enums\Alignment;
+    use Filament\Support\View\ComponentAttributeBag;
 
     // Mirrors Repeater::toTableEmbeddedHtml() with the same mechanisms
     // (x-sortable, native actions, column settings) — only the layout skeleton
@@ -51,10 +53,10 @@
                     @php
                         $columnAlignment = $column->getAlignment();
                         $columnWidth = $column->getWidth();
-                        $capAttributes = (new \Filament\Support\View\ComponentAttributeBag)->class([
+                        $capAttributes = (new ComponentAttributeBag)->class([
                             'sn-cell',
-                            ($columnAlignment instanceof \Filament\Support\Enums\Alignment) ? ('fi-align-' . $columnAlignment->value) : (is_string($columnAlignment) ? $columnAlignment : ''),
-                            'sn-cell-num' => $columnAlignment === \Filament\Support\Enums\Alignment::Right,
+                            ($columnAlignment instanceof Alignment) ? ('fi-align-' . $columnAlignment->value) : (is_string($columnAlignment) ? $columnAlignment : ''),
+                            'sn-cell-num' => $columnAlignment === Alignment::Right,
                         ]);
                         if (filled($columnWidth)) {
                             $capAttributes = $capAttributes->style(['width: ' . e($columnWidth)]);
@@ -137,7 +139,7 @@
                                         $counter++;
                                         $currentColumn = $tableColumns[$counter - 1] ?? null;
                                         $columnWidth = $currentColumn?->getWidth();
-                                        $cellAttributes = (new \Filament\Support\View\ComponentAttributeBag)->class([
+                                        $cellAttributes = (new ComponentAttributeBag)->class([
                                             'sn-cell',
                                             'sn-cell-first' => $counter === 1,
                                         ]);
@@ -183,7 +185,7 @@
         @if ($isAddable && $addAction->isVisible())
             <div class="{{ \Illuminate\Support\Arr::toCssClasses([
                 'sn-filament-grid-repeater-add',
-                ($addActionAlignment instanceof \Filament\Support\Enums\Alignment) ? ('fi-align-' . $addActionAlignment->value) : $addActionAlignment,
+                ($addActionAlignment instanceof Alignment) ? ('fi-align-' . $addActionAlignment->value) : $addActionAlignment,
             ]) }}">
                 {!! $addAction->toHtml() !!}
             </div>

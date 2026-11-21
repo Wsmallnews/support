@@ -1,6 +1,8 @@
 @php
     use Illuminate\Support\Js;
     use Filament\Forms\Components\Hidden;
+    use Filament\Support\Enums\Alignment;
+    use Filament\Support\View\ComponentAttributeBag;
 
     // Mirrors Repeater::toEmbeddedHtml() (card mode) with the same mechanisms
     // (x-sortable, collapse persistence, native actions). One extension: when
@@ -69,7 +71,7 @@
             <ul
                 x-sortable
                 wire:ignore.self
-                {!! (new \Filament\Support\View\ComponentAttributeBag)->grid($field->getGridColumns())->class(['fi-fo-repeater-items', 'sn-filament-cards-repeater-items'])->merge(['data-sortable-animation-duration' => $field->getReorderAnimationDuration()], escape: false)->toHtml() !!}
+                {!! (new ComponentAttributeBag)->grid($field->getGridColumns())->class(['fi-fo-repeater-items', 'sn-filament-cards-repeater-items'])->merge(['data-sortable-animation-duration' => $field->getReorderAnimationDuration()], escape: false)->toHtml() !!}
                 x-on:end.stop="$wire.mountAction('reorder', { items: $event.target.sortable.toArray() }, { schemaComponent: '{{ $key }}' })"
             >
                 @foreach ($items as $itemKey => $item)
@@ -186,7 +188,7 @@
                                  wrapper (fi-hidden when invisible) for stable Livewire DOM diffing.
                                  Hidden components render raw (no cell), the headerField is skipped —
                                  it lives in the header. --}}
-                            <div {!! (new \Filament\Support\View\ComponentAttributeBag)->grid($item->getColumns())->toHtml() !!}>
+                            <div {!! (new ComponentAttributeBag)->grid($item->getColumns())->toHtml() !!}>
                                 @foreach ($item->getComponents(withHidden: true) as $schemaComponent)
                                     @if ($schemaComponent instanceof Hidden)
                                         {!! $schemaComponent->toHtml() !!}
@@ -207,7 +209,7 @@
             <div class="{{ \Illuminate\Support\Arr::toCssClasses([
                 'fi-fo-repeater-add',
                 'sn-filament-cards-repeater-add',
-                ($addActionAlignment instanceof \Filament\Support\Enums\Alignment) ? ('fi-align-' . $addActionAlignment->value) : $addActionAlignment,
+                ($addActionAlignment instanceof Alignment) ? ('fi-align-' . $addActionAlignment->value) : $addActionAlignment,
             ]) }}">
                 {!! $addAction->toHtml() !!}
             </div>

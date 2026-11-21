@@ -1,6 +1,9 @@
 @php
+    use Filament\Support\Icons\Heroicon;
+    use Filament\Support\View\SupportIconAlias;
     use Illuminate\View\ComponentAttributeBag;
 
+    use function Filament\Support\generate_href_html;
     use function Filament\Support\generate_icon_html;
 @endphp
 
@@ -14,13 +17,13 @@
             <li class="fi-breadcrumbs-item" @if ($loop->last) aria-current="page" @endif>
                 @if (! $loop->first)
                     {{
-                        generate_icon_html(\Filament\Support\Icons\Heroicon::ChevronRight, alias: \Filament\Support\View\SupportIconAlias::BREADCRUMBS_SEPARATOR, attributes: (new ComponentAttributeBag)->class([
+                        generate_icon_html(Heroicon::ChevronRight, alias: SupportIconAlias::BREADCRUMBS_SEPARATOR, attributes: (new ComponentAttributeBag)->class([
                             'fi-breadcrumbs-item-separator fi-ltr',
                         ]))
                     }}
 
                     {{
-                        generate_icon_html(\Filament\Support\Icons\Heroicon::ChevronLeft, alias: \Filament\Support\View\SupportIconAlias::BREADCRUMBS_SEPARATOR_RTL, attributes: (new ComponentAttributeBag)->class([
+                        generate_icon_html(Heroicon::ChevronLeft, alias: SupportIconAlias::BREADCRUMBS_SEPARATOR_RTL, attributes: (new ComponentAttributeBag)->class([
                             'fi-breadcrumbs-item-separator fi-rtl',
                         ]))
                     }}
@@ -32,7 +35,7 @@
                     </span>
                 @else
                     <a
-                        {{ \Filament\Support\generate_href_html($breadcrumb['url']) }}
+                        {{ generate_href_html($breadcrumb['url']) }}
                         class="fi-breadcrumbs-item-label"
                     >
                         {{ $breadcrumb['label'] }}
