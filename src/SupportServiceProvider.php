@@ -33,6 +33,7 @@ use Wsmallnews\Support\Features\Search\SearchRegistry;
 use Wsmallnews\Support\Features\Seo\Seo;
 use Wsmallnews\Support\Features\Site\SiteContext;
 use Wsmallnews\Support\Features\Site\SiteRegistry;
+use Wsmallnews\Support\Features\Site\SiteRouteRegistry;
 use Wsmallnews\Support\Features\Sitemap\SitemapRegistry;
 use Wsmallnews\Support\Helpers\ScheduleHelper;
 use Wsmallnews\Support\Http\Middleware\ResolveSeo;
@@ -104,6 +105,11 @@ class SupportServiceProvider extends PackageServiceProvider
             return new SiteRegistry;
         });
 
+        // Per-site route extensions, keyed by module + module-defined slot
+        $this->app->singleton(SiteRouteRegistry::class, function (): SiteRouteRegistry {
+            return new SiteRouteRegistry;
+        });
+
         // Request-scoped site context (reset per request, Octane-safe)
         $this->app->scoped(SiteContext::class, function (): SiteContext {
             return new SiteContext;
@@ -125,10 +131,12 @@ class SupportServiceProvider extends PackageServiceProvider
             return '<?php echo app(\Wsmallnews\Support\Features\Seo\Seo::class)->render(); ?>';
         });
 
-        // Per-module autodiscovery links, emitted with @snFeeds('sn-cms') inside a site layout
+        // Per-site autodiscovery links, emitted with @snFeeds inside a site layout.
+        // A legacy @snFeeds('sn-cms') argument is accepted and ignored: the module is
+        // derived from the site.
         Blade::directive('snFeeds', function (string $expression): string {
             return "<?php \$__snSite = app(\Wsmallnews\Support\Features\Site\SiteContext::class)->site();"
-                . " echo \$__snSite === null ? '' : app(\Wsmallnews\Support\Features\Feed\FeedRegistry::class)->autodiscoveryTags({$expression}, \$__snSite)->toHtml(); ?>";
+                . " echo \$__snSite === null ? '' : app(\Wsmallnews\Support\Features\Feed\FeedRegistry::class)->autodiscoveryTags(\$__snSite)->toHtml(); ?>";
         });
 
         // Analytics snippet, emitted with @snSeoAnalytics before </body>
