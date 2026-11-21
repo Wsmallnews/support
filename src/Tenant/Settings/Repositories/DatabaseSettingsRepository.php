@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\LaravelSettings\Models\SettingsProperty;
 use Spatie\LaravelSettings\SettingsRepositories\SettingsRepository;
+use Wsmallnews\Support\Features\Site\SiteContext;
 
+/**
+ * Site-scoped settings storage: rows are partitioned by the current site's
+ * scope pair and the current tenant. A null tenant reads/writes the platform
+ * rows (team_id IS NULL); a missing site context fails closed — settings
+ * always belong to one site, never to an implicit bucket.
+ */
 class DatabaseSettingsRepository implements SettingsRepository
 {
     /** @var class-string<Model> */
@@ -56,9 +63,7 @@ class DatabaseSettingsRepository implements SettingsRepository
     public function createProperty(string $group, string $name, $payload, bool $locked = false): void
     {
         $this->getBuilder()->create([
-            'team_id' => $this->getTeamId(),
-            'group' => $group,
-            'name' => $name,
+            ...$this->rowAttributes($group, $name),
             'payload' => $this->encode($payload),
             'locked' => $locked,
         ]);
@@ -66,18 +71,27 @@ class DatabaseSettingsRepository implements SettingsRepository
 
     public function updatePropertiesPayload(string $group, array $properties): void
     {
-        $propertiesInBatch = collect($properties)->map(function ($payload, $name) use ($group) {
-            return [
-                'team_id' => $this->getTeamId(),
-                'group' => $group,
-                'name' => $name,
-                'payload' => $this->encode($payload),
-            ];
-        })->values()->toArray();
+        // Rows may carry a null team_id, which no unique index can deduplicate
+        // — upsert per property instead of one SQL upsert, so a save never
+        // inserts duplicate rows.
+        foreach ($properties as $name => $payload) {
+            $attributes = $this->rowAttributes($group, $name);
 
-        $this->getBuilder()
-            ->where('group', $group)
-            ->upsert($propertiesInBatch, ['team_id', 'group', 'name'], ['payload']);
+            $existing = $this->getBuilder()->where($attributes)->first();
+
+            if ($existing === null) {
+                $this->getBuilder()->create([
+                    ...$attributes,
+                    'payload' => $this->encode($payload),
+                ]);
+
+                continue;
+            }
+
+            $this->getBuilder()
+                ->where($attributes)
+                ->update(['payload' => $this->encode($payload)]);
+        }
     }
 
     public function deleteProperty(string $group, string $name): void
@@ -125,10 +139,41 @@ class DatabaseSettingsRepository implements SettingsRepository
             $model->setTable($this->table);
         }
 
-        // Tenant id
+        $scopeable = $this->getScopeable();
+
+        $query = $model->newQuery()
+            ->where('scope_type', $scopeable['scope_type'])
+            ->where('scope_id', $scopeable['scope_id']);
+
         $team_id = $this->getTeamId();
 
-        return $model->newQuery()->where('team_id', $team_id);
+        return $team_id === null
+            ? $query->whereNull('team_id')
+            : $query->where('team_id', $team_id);
+    }
+
+    /** Attributes that identify one settings row in the current context. */
+    protected function rowAttributes(string $group, string $name): array
+    {
+        return [
+            'team_id' => $this->getTeamId(),
+            'scope_type' => $this->getScopeable()['scope_type'],
+            'scope_id' => $this->getScopeable()['scope_id'],
+            'group' => $group,
+            'name' => $name,
+        ];
+    }
+
+    /** Site scope of the current context; a missing site context fails closed. */
+    protected function getScopeable(): array
+    {
+        return app(SiteContext::class)->scopeableOrDefault();
+    }
+
+    /** Current tenant id; null means the platform rows. */
+    protected function getTeamId(): int | string | null
+    {
+        return current_tenant()?->getKey();
     }
 
     /**
@@ -150,17 +195,5 @@ class DatabaseSettingsRepository implements SettingsRepository
         $decoder = config('settings.decoder') ?? fn ($payload, $associative) => json_decode($payload, $associative);
 
         return $decoder($payload, $associative);
-    }
-
-    /** Current tenant id. */
-    protected function getTeamId(): int
-    {
-        $team_id = current_tenant()?->id;
-
-        if (is_null($team_id)) {
-            throw new \Exception('Team setting: Tenant not found.');
-        }
-
-        return $team_id;
     }
 }

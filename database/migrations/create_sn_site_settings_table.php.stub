@@ -1,0 +1,29 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        Schema::create('sn_site_settings', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('team_id')->nullable()->comment('团队ID');
+            $table->string('scope_type', 60)->nullable()->comment('范围类型');
+            $table->unsignedBigInteger('scope_id')->default(0)->comment('范围');
+            $table->string('group');
+            $table->string('name');
+            $table->boolean('locked')->default(false);
+            $table->json('payload');
+
+            $table->timestamps();
+
+            // team_id / scope_type are nullable, so a unique index cannot
+            // deduplicate NULL rows — the repository upserts per property
+            // instead of relying on ON DUPLICATE KEY.
+            $table->unique(['team_id', 'scope_type', 'scope_id', 'group', 'name']);
+        });
+    }
+};

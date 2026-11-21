@@ -70,6 +70,11 @@ final class SiteConfig
         return $this->mode;
     }
 
+    public function isAggregate(): bool
+    {
+        return $this->mode === SiteMode::Aggregate;
+    }
+
     public function getKey(): string
     {
         return $this->key;

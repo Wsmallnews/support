@@ -610,18 +610,20 @@ sn_route('page.show');       // adds the tenant parameter when needed
 either context reads platform rows. Use `forTenant($id)` / `allTenants()` for
 explicit console or cross-tenant reads.
 
-Tenant settings use `Tenant\Settings\Repositories\DatabaseSettingsRepository` with the `sn_team_settings` table. Register it in `config/settings.php`:
+Plugin settings use `Tenant\Settings\Repositories\DatabaseSettingsRepository` with the `sn_site_settings` table: rows are partitioned per site (scope pair) and per tenant (`team_id IS NULL` = platform rows). Support validates at boot that the repository is registered in `config/settings.php`:
 
 ```php
 'repositories' => [
-    'team_database' => [
+    'site_database' => [
         'type' => Wsmallnews\Support\Tenant\Settings\Repositories\DatabaseSettingsRepository::class,
         'model' => null,
-        'table' => 'sn_team_settings',
+        'table' => 'sn_site_settings',
         'connection' => null,
     ],
 ],
 ```
+
+Additional repositories of your own are unrestricted.
 
 For activity log, point `activity_model` at `Wsmallnews\Support\Models\Activity`. For media library, point `media_observer` at `Wsmallnews\Support\Observers\MediaLibrary\MediaObserver`; the default observer deletes files along with the media record, which breaks order items that still reference them.
 

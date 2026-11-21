@@ -42,6 +42,7 @@ use Wsmallnews\Support\Settings\Listeners\LogSettingsActivity;
 use Wsmallnews\Support\Support\BuilderMacros;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 use Wsmallnews\Support\Tenant\Settings\Listeners\SavingSettingsAutoCreate;
+use Wsmallnews\Support\Tenant\Settings\SettingsRepositoryGuard;
 
 class SupportServiceProvider extends PackageServiceProvider
 {
@@ -147,6 +148,11 @@ class SupportServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        // Plugin settings resolve rows through support's repositories; a
+        // missing one only surfaces as a bare factory error later — fail at
+        // boot instead.
+        SettingsRepositoryGuard::assertRegistered();
+
         // Register morph aliases
         Relation::enforceMorphMap([
             'sn_sms_log' => SupportUtils::getSmsLogModel(),
@@ -313,7 +319,7 @@ class SupportServiceProvider extends PackageServiceProvider
         return [
             // 'create_sn_sms_logs_table',
             'create_teams_table',
-            'create_sn_team_settings_table',
+            'create_sn_site_settings_table',
             'create_sn_contents_table',
             'create_sn_scheduled_tasks_table',
             'create_sn_compositions_table',

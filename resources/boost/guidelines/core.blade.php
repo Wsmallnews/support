@@ -244,7 +244,7 @@ CmsPlugin::make()
 - 中间件 `ResolveSiteContext`（别名 `sn-resolve-site-context`）已注册为全局 Livewire 持久中间件：一遍解析站点与租户（先站点，租户只在 `tenant` 模式的站点上解析）。`tenant_model` 恒有值（默认 `Models\Team`），是否租户由**站点模式**（前台）或**面板 tenancy**（后台）决定，不由配置开关决定。
 - 基础租户模型 `Models\Team`（`teams` 表：`name` / `avatar_url` / `slug` / `status` / `options`，实现 `HasAvatar` + `HasName`）；**推荐宿主继承后**把 `tenant_model` 指向子类，再补 `users()` 等业务关系。状态枚举 `Enums\TeamStatus`（`enabled` / `disabled`）。
 - 辅助函数：`current_tenant()`（面板取 Filament 租户，前台取 `SiteContext::tenant()`，`?->getKey()` 取 id）/ `is_in_panel()` / `sn_route()`（仅对 `{tenant:slug}` 路由补参数；缺租户直接抛异常，非 slug 绑定也抛异常）。租户查询 scope：`scopeTenant()` 按当前上下文（站点模式 / 面板 tenancy）严格过滤，显式跨租户用 `allTenants()`，指定租户用 `forTenant($id)`。
-- 租户设置仓库 `Tenant\Settings\Repositories\DatabaseSettingsRepository`（表 `sn_team_settings`）。
+- 站点设置仓库 `Tenant\Settings\Repositories\DatabaseSettingsRepository`（表 `sn_site_settings`）：行按站点 scope pair + 租户分区（`team_id IS NULL` = 平台行），无站点上下文 fail-closed；宿主 `config/settings.php` 必须注册 `site_database` 仓库（support 启动期校验，缺失直接抛），`SettingsRepositoryGuard::assertRegistered()`。
 - `media-library` 的 `media_observer` 必须换成 support 的实现，否则删记录会连带删文件。
 
 ### 站点认证（SiteContext）
