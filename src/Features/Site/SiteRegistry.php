@@ -20,6 +20,9 @@ final class SiteRegistry
     /** @var array<string, string> frontend address => site id */
     private array $addresses = [];
 
+    /** @var array<string, list<array{domain: ?string, id: string}>> normalized prefix => registrations */
+    private array $prefixes = [];
+
     /** @var array<string, string> "scope_type:scope_id" => site id */
     private array $scopeables = [];
 
@@ -41,11 +44,27 @@ final class SiteRegistry
             throw InvalidSiteException::invalidSource($id, "{$site->pluginId}:{$site->sourceSiteKey}");
         }
 
-        // Check the address before mutating, so a rejected registration leaves no trace.
-        $address = $site->routable ? $this->addressOf($site) : null;
+        // Address invariants run before mutating, so a rejected registration
+        // leaves no trace. Non-routable sites claim no address at all.
+        $address = $prefix = $domain = null;
 
-        if ($address !== null && isset($this->addresses[$address])) {
-            throw InvalidSiteException::duplicateAddress($id, $this->addresses[$address], $address);
+        if ($site->routable) {
+            $address = $this->addressOf($site);
+            $prefix = trim($site->prefix, '/');
+            $domain = strtolower(trim((string) $site->domain)) ?: null;
+
+            if (isset($this->addresses[$address])) {
+                throw InvalidSiteException::duplicateAddress($id, $this->addresses[$address], $address);
+            }
+
+            // A wildcard domain matches every host, so it would shadow — or be
+            // shadowed by, in registration order — any other domain on the same
+            // prefix. Exact duplicates are caught above; this guards the overlap.
+            foreach ($this->prefixes[$prefix] ?? [] as $registration) {
+                if ($domain === null || $registration['domain'] === null || $domain === $registration['domain']) {
+                    throw InvalidSiteException::overlappingAddress($id, $registration['id'], $prefix);
+                }
+            }
         }
 
         // Two sites writing the same (scope_type, scope_id) would mix their rows,
@@ -67,6 +86,7 @@ final class SiteRegistry
 
         if ($address !== null) {
             $this->addresses[$address] = $id;
+            $this->prefixes[$prefix][] = ['domain' => $domain, 'id' => $id];
         }
 
         if ($signature !== null) {
@@ -157,6 +177,7 @@ final class SiteRegistry
     {
         $this->sites = [];
         $this->addresses = [];
+        $this->prefixes = [];
         $this->scopeables = [];
     }
 

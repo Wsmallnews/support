@@ -25,6 +25,20 @@ class InvalidSiteException extends InvalidArgumentException
         );
     }
 
+    /**
+     * A wildcard domain shadows any explicit domain sharing its prefix: both
+     * route groups match the same URLs and registration order silently decides
+     * the winner, so the overlap is rejected at registration time.
+     */
+    public static function overlappingAddress(string $siteId, string $otherSiteId, string $prefix): self
+    {
+        return new self(
+            "Site [{$siteId}] overlaps the prefix [/{$prefix}] of site [{$otherSiteId}]. "
+            . 'A prefix may serve one domain (or a set of non-overlapping domains); '
+            . 'a site without a domain matches every host, so it cannot share a prefix with a domained site.'
+        );
+    }
+
     /** Aggregate sites must reference an existing, non-aggregate source. */
     public static function invalidSource(string $siteId, string $sourceSiteId): self
     {

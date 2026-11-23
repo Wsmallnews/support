@@ -245,6 +245,11 @@ Registration is owned by the host plugin: site-aware packages use `RegistersSite
 (`site()->resources()/pages()`), which injects `module_id` and derives every scope
 from the site. There is no separate config-file registration trait.
 
+One `prefix` may serve a single domain (or a set of non-overlapping domains): a
+site without a `domain` matches every host, so registering it alongside a
+domained site on the same prefix throws `InvalidSiteException` at boot instead
+of silently shadowing one of the two route groups.
+
 `module_id` is injected by the registering plugin, so cross-module registration needs no manual declaration.
 
 ### Exceptions
