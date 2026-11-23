@@ -9,6 +9,7 @@ use Illuminate\Support\HtmlString;
 use Wsmallnews\Support\Contracts\HasSnSubject;
 use Wsmallnews\Support\Enums\PageStatus;
 use Wsmallnews\Support\Features\Composition\CompositionRenderer;
+use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Models\Concerns\HasActivityLog;
 use Wsmallnews\Support\Models\Concerns\HasOrderColumn;
 use Wsmallnews\Support\Support\Utils;
@@ -102,9 +103,11 @@ class Page extends SupportModel implements HasSnSubject
      * The binding is validated on save (data space + tenant), so reading only needs the
      * row identity: a deleted, unpublished, or purpose-slot composition resolves to nothing.
      *
+     * @param  Site|null  $site  Rendering site; each component type resolves its own declared
+     *                          suffixes against it. Without one, providers are skipped.
      * @return array CompositionRenderer::resolveRows() output
      */
-    public function resolveRows(string $module, array $pageContext = []): array
+    public function resolveRows(string $module, array $pageContext = [], ?Site $site = null): array
     {
         $composition = $this->composition_id
             ? Utils::getCompositionModel()::query()
@@ -118,6 +121,6 @@ class Page extends SupportModel implements HasSnSubject
             return [];
         }
 
-        return CompositionRenderer::resolveRows($composition->components, $module, $pageContext, $this->getScopeable());
+        return CompositionRenderer::resolveRows($composition->components, $module, $pageContext, $site);
     }
 }

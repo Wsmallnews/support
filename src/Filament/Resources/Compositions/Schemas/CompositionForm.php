@@ -12,6 +12,7 @@ use Livewire\Component;
 use Wsmallnews\Support\Enums\CompositionStatus;
 use Wsmallnews\Support\Facades\CompositionRegistry;
 use Wsmallnews\Support\Features\Composition\CompositionRenderer;
+use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Filament\Forms\FormComponents;
 
 class CompositionForm
@@ -48,9 +49,7 @@ class CompositionForm
                     ->live()
                     ->afterStateUpdated(function (Get $get, Set $set) use ($moduleId) {
                         // Switching purposes resets the position and syncs the row layout to the new mode
-                        $meta = filled($moduleId) && filled($get('purpose'))
-                            ? CompositionRegistry::getPurpose($moduleId, $get('purpose'))
-                            : null;
+                        $meta = static::purposeMeta($moduleId, $get('purpose'));
                         $position = $meta['default'] ?? null;
                         $set('options.position', $position);
                         static::syncRowsToLayoutMode($moduleId, $get, $set, $get('purpose'), $position);
@@ -61,9 +60,7 @@ class CompositionForm
                 Forms\Components\ToggleButtons::make('options.position')
                     ->label(__('sn-support::composition.form.position'))
                     ->options(function (Get $get) use ($moduleId): array {
-                        $meta = filled($moduleId) && filled($get('purpose'))
-                            ? CompositionRegistry::getPurpose($moduleId, $get('purpose'))
-                            : null;
+                        $meta = static::purposeMeta($moduleId, $get('purpose'));
 
                         return collect($meta['positions'] ?? [])
                             ->map(fn (string $label): string => __($label))
@@ -75,11 +72,7 @@ class CompositionForm
                         static::syncRowsToLayoutMode($moduleId, $get, $set, $get('purpose'), $get('options.position'));
                     })
                     ->visible(function (Get $get) use ($moduleId): bool {
-                        $meta = filled($moduleId) && filled($get('purpose'))
-                            ? CompositionRegistry::getPurpose($moduleId, $get('purpose'))
-                            : null;
-
-                        return count($meta['positions'] ?? []) > 1;
+                        return count(static::purposeMeta($moduleId, $get('purpose'))['positions'] ?? []) > 1;
                     })
                     ->inline()
                     ->grouped(),
@@ -103,7 +96,7 @@ class CompositionForm
         return Forms\Components\Repeater::make('rows')
             ->label(__('sn-support::composition.form.rows'))
             ->schema(fn () => static::rowSchema($moduleId))
-            ->itemLabel(fn (array $state): string => static::layoutOptions()[$state['layout'] ?? null] ?? '')
+            ->itemLabel(fn (array $state): ?string => static::layoutOptions()[$state['layout'] ?? null] ?? '')
             ->addActionLabel(fn (Component $livewire): string => static::layoutMode($moduleId, $livewire) === CompositionRenderer::LAYOUT_MODE_STACK
                 ? __('sn-support::composition.form.add_sidebar_block')
                 : __('sn-support::composition.form.add_row'))
@@ -157,7 +150,7 @@ class CompositionForm
         ];
     }
 
-    /** Slot repeater; only the left slot is used when the row is full width. */
+    /** Slot repeater; only the left slot is used when a row is full width. */
     protected static function slotRepeater(string $slot, string $label, ?string $moduleId): Forms\Components\Repeater
     {
         return Forms\Components\Repeater::make($slot)
@@ -172,7 +165,8 @@ class CompositionForm
 
     /**
      * Component entry: type, label, description and the type's own form fields. Registry form
-     * closures need the whole form state, read from the injected Livewire component.
+     * closures receive the whole form state and the site, both read from the injected
+     * Livewire component (the site is a per-request input, unlike the module id).
      */
     protected static function componentItems(?string $moduleId): array
     {
@@ -192,7 +186,7 @@ class CompositionForm
                     // when the type changes and entangle cannot write keys onto null. Seed extras explicitly
                     // from the new type's form and drop the previous type's leftovers instead.
                     $fields = filled($moduleId) && filled($get('type'))
-                        ? CompositionRegistry::getTypeForms($moduleId, $get('type'), ['fields' => $livewire->data])
+                        ? CompositionRegistry::getTypeForms($moduleId, $get('type'), static::formArguments($livewire))
                         : [];
                     $extras = [];
                     foreach ($fields as $field) {
@@ -233,9 +227,9 @@ class CompositionForm
             Schemas\Components\Fieldset::make('extras')
                 ->label(__('sn-support::composition.form.component_options'))
                 ->schema(function (Get $get, Component $livewire) use ($moduleId) {
-                    return filled($moduleId) && filled($get('type')) ? CompositionRegistry::getTypeForms($moduleId, $get('type'), ['fields' => $livewire->data]) : [];
+                    return filled($moduleId) && filled($get('type')) ? CompositionRegistry::getTypeForms($moduleId, $get('type'), static::formArguments($livewire)) : [];
                 })->visible(function (Get $get, Component $livewire) use ($moduleId) {
-                    $hasForms = filled($moduleId) && filled($get('type')) ? CompositionRegistry::hasTypeForms($moduleId, $get('type'), ['fields' => $livewire->data]) : false;
+                    $hasForms = filled($moduleId) && filled($get('type')) ? CompositionRegistry::hasTypeForms($moduleId, $get('type'), static::formArguments($livewire)) : false;
 
                     // A type is selected and it has form fields
                     return filled($moduleId) && filled($get('type')) && $hasForms;
@@ -282,6 +276,30 @@ class CompositionForm
             CompositionRenderer::LAYOUT_FULL => __('sn-support::composition.form.layout_full'),
             CompositionRenderer::LAYOUT_LEFT_NARROW => __('sn-support::composition.form.layout_left_narrow'),
             CompositionRenderer::LAYOUT_LEFT_WIDE => __('sn-support::composition.form.layout_left_wide'),
+        ];
+    }
+
+    /** Purpose meta behind one purpose value; null meta when unset or unregistered. */
+    protected static function purposeMeta(?string $moduleId, ?string $purpose): ?array
+    {
+        return filled($moduleId) && filled($purpose)
+            ? CompositionRegistry::getPurpose($moduleId, $purpose)
+            : null;
+    }
+
+    /**
+     * Arguments handed to a type's `forms` closure: the whole form state plus the site the
+     * composition resource is registered on. The closure resolves the type's OWN declared
+     * suffixes against that site — never the composition resource's scope, which is a
+     * different data space (a base-scoped composition may hold a partitioned component).
+     *
+     * @return array{fields: array, site: Site|null}
+     */
+    private static function formArguments(Component $livewire): array
+    {
+        return [
+            'fields' => $livewire->data,
+            'site' => method_exists($livewire, 'getResource') ? $livewire::getResource()::getSite() : null,
         ];
     }
 }

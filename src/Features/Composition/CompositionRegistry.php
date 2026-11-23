@@ -93,8 +93,11 @@ class CompositionRegistry
      * Re-registering a purpose replaces the array form; the string form only overrides its label.
      * Prefer closure labels (fn () => __('...')) so translation happens at consumption time.
      *
+     * A slot's `pageContext` closure resolves the object the calling PAGE is showing, so it
+     * receives the page's own scopeable — a slot declares no partition of its own.
+     *
      * @param  string  $module  Module id
-     * @param  array<string, string|array{label: string|Closure, positions?: array, default?: string, layout_mode?: string, context?: Closure}>  $purposes
+     * @param  array<string, string|array{label: string|Closure, positions?: array, default?: string, layout_mode?: string, pageContext?: Closure}>  $purposes
      */
     public function registerPurposes(string $module, array $purposes): static
     {
@@ -127,7 +130,7 @@ class CompositionRegistry
     /**
      * Purpose meta with label/positions already resolved to strings.
      *
-     * @return array|null{label: string, positions: array<string, string>, default: ?string, layout_mode: ?string, context: ?Closure} Null when unregistered
+     * @return array|null{label: string, positions: array<string, string>, default: ?string, layout_mode: ?string, pageContext: ?Closure} Null when unregistered
      */
     public function getPurpose(string $module, string $purpose): ?array
     {
@@ -177,8 +180,8 @@ class CompositionRegistry
     /**
      * positions accepts a plain list (labels auto-generated) or a mixed value => label map.
      *
-     * @param  array{label: string|Closure, positions?: array, default?: string, layout_mode?: string, context?: Closure}  $meta
-     * @return array{label: string|Closure, positions: array<string, string|Closure>, default: ?string, layout_mode: ?string, context: ?Closure}
+     * @param  array{label: string|Closure, positions?: array, default?: string, layout_mode?: string, pageContext?: Closure}  $meta
+     * @return array{label: string|Closure, positions: array<string, string|Closure>, default: ?string, layout_mode: ?string, pageContext: ?Closure}
      */
     protected function normalizePurposeMeta(array $meta): array
     {
@@ -198,7 +201,7 @@ class CompositionRegistry
             'positions' => $positions,
             'default' => $meta['default'] ?? array_key_first($positions),
             'layout_mode' => $meta['layout_mode'] ?? null,
-            'context' => $meta['context'] ?? null,
+            'pageContext' => $meta['pageContext'] ?? null,
         ];
     }
 
@@ -223,6 +226,10 @@ class CompositionRegistry
     }
 
     /**
+     * A type's form closure receives the caller's arguments plus the type's OWN declared
+     * suffixes, so a form shared by several registered types still queries the right
+     * partition for each of them.
+     *
      * @param  string  $module  Module id
      * @param  string  $type  Type key
      * @param  array  $arguments  Passed to the closure form when applicable
@@ -234,6 +241,8 @@ class CompositionRegistry
 
         $forms = $typeInfo['forms'] ?? [];
 
-        return $forms instanceof Closure ? app()->call($forms, $arguments) : $forms;
+        return $forms instanceof Closure
+            ? app()->call($forms, [...$arguments, ...CompositionRenderer::declaredSuffixes($typeInfo)])
+            : $forms;
     }
 }

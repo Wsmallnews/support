@@ -213,7 +213,8 @@ CmsPlugin::make()
 ### Livewire 基础设施
 
 - `Livewire\Base`：`$this->transaction(fn () => ...)` 带 Halt 感知；`$this->halt()` 停止并回滚；`getAuthUser()` 直接读站点认证身份（无需 trait）。
-- Traits：`HasProperties`、`HasContentType`、`HasAuth`（可 `:auth-user` 注入，trait 方法覆盖 Base 的读取，props 优先、站点兜底）、`CanPagination`（scroll / paginator / manual）、`CanBeContained`、`ScopedBySite`（`#[Locked]` 快照 + 站点派生 + 站点配置读取）。
+- Traits：`HasProperties`、`HasContentType`、`HasAuth`（可 `:auth-user` 注入，trait 方法覆盖 Base 的读取，props 优先、站点兜底）、`CanPagination`（scroll / paginator / manual）、`CanBeContained`、`HasCustomRoutes`（`$customRoutes['detail' => 'posts.show']` + `routeUrl()/routeName()`，调用方注入路由名）、`ScopedBySite`（`#[Locked]` 快照 + 站点派生 + 站点配置读取）。
+- `HasPanelScopeable`：面板内嵌组件（Page / Widget / 嵌套组件）用 `#[Locked] ?array $scopeable` 接收宿主传的数据空间；`panelScopeable()` 在缺失时抛 `InvalidScopeException`（面板无 `SiteContext`，不猜 scope）。
 - `ScopedBySite` 的分区：`$scopeSuffix` 选择站点已声明的子 scope（null = 站点 base）；类声明了 `getScopeSuffix()` 时实例只能重复该值，传别的直接抛。关联资源用 `$relatedScopeSuffix`（`关联key => suffix`）配 `getRelatedScopeable($key)`：未声明回落站点 base，声明了但 suffix 未注册直接抛。
 - `HasScopedType`：类型容器解析（`Categoryable` / `Navigationable` 的底座）。宿主用 `typeScopeable()` 决定数据空间，默认 `getBaseScopeable()`；类型每请求只查一次、不进 Livewire 快照，`scopedType()` 断言容器与行同 scope 后再返回查询条件。
 - 组件配置按站点读取：`$this->siteOption($path, $default, $owner = null)`（站点 options > 模块 config > `$default`）。`$owner` 三态：`null` = 组件所属模块（`getOwnerModule()` 经 `ModuleRegistry` 按命名空间反查）、`false` = 不要模块兜底（只认站点值）、字符串 = 指定模块。不存在“消费模块” `:module` 上下文。
@@ -223,7 +224,7 @@ CmsPlugin::make()
 
 - 面板没有站点上下文（`SiteContext` 只在前台路由组生效），Widget 也不能从记录的 scope 反推站点。站点由渲染它的页面/资源用 `siteId` props 传入。
 - 写法：继承 `Filament\Widgets\Base`（已 use `Concerns\ResolvesSite`），或直接 use 该 trait（已有别的基类时，如 cms 导航 Widget）。trait 提供 `#[Locked] public ?string $siteId` + `getSite()`（查 `SiteRegistry`）。
-- 宿主在 `getHeaderWidgets()` / `getFooterWidgets()` 里传：`CommentWidget::make(['siteId' => static::getResource()::getSite()?->id()])`，视图写 `<livewire:... :site-id="$siteId" />`。
+- 宿主在 `getHeaderWidgets()` / `getFooterWidgets()` 里传：`CommentWidget::make(['siteId' => static::getResource()::getSite()?->id()])`，视图写 `<livewire:... :site-id="$siteId" />`。Widget 还要按数据空间查询时，同时传 `'scopeable' => static::getResource()::getScopeable()`（`HasPanelScopeable`），由 Widget 视图继续往下传给内嵌组件。
 - 禁止在 Widget 里 `SiteContext::run()` 或读 `SiteUtils`；记录级数据用 `panelContext($scopeable)`，租户由 `scopeTenant()` 收口。`siteId` 必须 `#[Locked]`，否则客户端可把 Widget 指向别的站点。
 
 ### 操作者与目标实体接口

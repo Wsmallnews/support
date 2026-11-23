@@ -41,7 +41,7 @@ class Page extends Base
 
         return view('sn-support::livewire.components.page', [
             'page' => $page,
-            'rows' => $page->resolveRows($this->getModuleId()),
+            'rows' => $page->resolveRows($this->getModuleId(), site: $this->site()),
         ]);
     }
 }
