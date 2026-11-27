@@ -212,6 +212,20 @@ if (! function_exists('current_tenant')) {
     }
 }
 
+if (! function_exists('sn_theme_key')) {
+    /**
+     * localStorage key of the theme preference: one per site and per tenant, so two sites or
+     * two tenants of a domain never overwrite each other's choice. The layouts expose it as
+     * window.__snThemeKey, which the support theme switcher reads.
+     */
+    function sn_theme_key(): string
+    {
+        $siteId = app(SiteContext::class)->site()?->id() ?? 'default';
+
+        return 'sn-support-frontend-theme:' . $siteId . ':' . (current_tenant()?->getKey() ?? 'platform');
+    }
+}
+
 if (! function_exists('get_tenancy_scope_name')) {
     /** Tenancy scope name of a panel. */
     function get_tenancy_scope_name(Panel | string | null $panel = null): ?string
