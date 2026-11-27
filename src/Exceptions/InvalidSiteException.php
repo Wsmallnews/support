@@ -155,4 +155,14 @@ class InvalidSiteException extends InvalidArgumentException
             . "Pass a distinct 'key' override for each registration."
         );
     }
+
+    /** Two registrations cannot share one URL: the router keeps a single route per slug. */
+    public static function duplicateSlug(string $class, string $slug, string $registeredKey, string $key): self
+    {
+        return new self(
+            "Component [{$class}] cannot be registered on this panel with slug [{$slug}]: "
+            . "configuration [{$registeredKey}] already owns that route (this one is [{$key}]). "
+            . "Only one route exists per slug, so give one registration a distinct 'slug' or 'key'."
+        );
+    }
 }

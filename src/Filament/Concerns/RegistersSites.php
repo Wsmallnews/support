@@ -9,6 +9,7 @@ use Filament\Resources\ResourceConfiguration;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Wsmallnews\Support\Exceptions\InvalidSiteException;
+use Wsmallnews\Support\Features\Modules\ModuleRegistry;
 use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Features\Site\SiteConfig;
 use Wsmallnews\Support\Features\Site\SiteMode;
@@ -136,12 +137,53 @@ trait RegistersSites
             }
         }
 
+        // Pages and resources share one route namespace per panel, so slugs are checked together
+        // and against what the panel already holds from earlier plugins.
+        $this->assertDistinctSlugs([
+            ...$panel->getResourceConfigurations(),
+            ...$panel->getPageConfigurations(),
+            ...$resources,
+            ...$pages,
+        ]);
+
         if ($resources !== []) {
             $panel->resources($resources);
         }
 
         if ($pages !== []) {
             $panel->pages($pages);
+        }
+    }
+
+    /**
+     * A slug addresses one route on a panel, whatever the component class: two registrations
+     * sharing a slug leave one route, and the later one silently replaces the earlier page.
+     * That covers two plugins mounting the same class and two classes with the same default slug.
+     *
+     * @param  list<ResourceConfiguration|PageConfiguration>  $configurations
+     */
+    protected function assertDistinctSlugs(array $configurations): void
+    {
+        $registered = [];
+
+        foreach ($configurations as $configuration) {
+            $slug = $configuration->getSlug();
+
+            // A blank slug is the panel root itself; Filament addresses those pages its own way.
+            if (blank($slug)) {
+                continue;
+            }
+
+            if (isset($registered[$slug])) {
+                throw InvalidSiteException::duplicateSlug(
+                    $configuration->resource ?? $configuration->page,
+                    $slug,
+                    $registered[$slug],
+                    $configuration->getKey(),
+                );
+            }
+
+            $registered[$slug] = $configuration->getKey();
         }
     }
 
@@ -391,15 +433,40 @@ trait RegistersSites
     }
 
     /**
-     * Keep URLs stable regardless of the generated key: a single site uses the
-     * class default slug, several sites nest under the site key.
+     * Base slug of a class as this plugin registers it. A class owned by another module —
+     * another package's class, or one whose module is unknown — gets the registering plugin's
+     * name as a prefix, so every plugin mounting it has its own URL without a hand-written
+     * slug. Ownership comes from the class namespace through ModuleRegistry, so the result
+     * never depends on the order plugins are registered in.
+     *
+     * @param  class-string  $class
+     */
+    protected function ownedSlug(string $class): string
+    {
+        $slug = $class::getDefaultSlug();
+
+        if (ModuleRegistry::moduleOf($class) === $this->getId()) {
+            return $slug;
+        }
+
+        // "sn-shop" registers as "shop"; an id without that prefix is slugified as a whole.
+        $plugin = Str::slug(Str::after($this->getId(), 'sn-')) ?: Str::slug($this->getId());
+
+        return "{$plugin}-{$slug}";
+    }
+
+    /**
+     * Keep URLs stable regardless of the generated key: a single site uses the owned slug,
+     * several sites nest under the site key. A hand-written entry slug replaces the owned
+     * one; the site key and the instance key still nest below it, so two sites never share
+     * one URL.
      *
      * @param  class-string  $class
      * @param  array<string, mixed>  $overrides
      */
     protected function configurationSlug(string $class, Site $site, array $overrides, bool $multiple): string
     {
-        $slug = $class::getDefaultSlug();
+        $slug = filled($overrides['slug'] ?? null) ? (string) $overrides['slug'] : $this->ownedSlug($class);
         $explicit = $overrides['key'] ?? null;
 
         if (! $multiple) {
@@ -423,8 +490,8 @@ trait RegistersSites
         }
 
         foreach ($overrides as $name => $value) {
-            // Handled as a unit below: key (key + slug), scope suffix/pair, navigation group.
-            if (in_array($name, ['key', 'scope_suffix', 'scope_type', 'scope_id', 'navigation_group'], true)) {
+            // Handled as a unit below: key and slug, scope suffix/pair, navigation group.
+            if (in_array($name, ['key', 'slug', 'scope_suffix', 'scope_type', 'scope_id', 'navigation_group'], true)) {
                 continue;
             }
 
