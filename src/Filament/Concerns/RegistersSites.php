@@ -14,6 +14,7 @@ use Wsmallnews\Support\Features\Site\Site;
 use Wsmallnews\Support\Features\Site\SiteConfig;
 use Wsmallnews\Support\Features\Site\SiteMode;
 use Wsmallnews\Support\Features\Site\SiteRegistry;
+use Wsmallnews\Support\Filament\Resources\ResourceBundle;
 use Wsmallnews\Support\Support\Utils as SupportUtils;
 
 /**
@@ -79,6 +80,19 @@ trait RegistersSites
         $this->sitePages = array_merge($this->sitePages, $pages);
 
         return $this;
+    }
+
+    /**
+     * Register a package's components as one unit (a ResourceBundle declared
+     * by the package). The bundle renders into plain entries, so instance
+     * keys, scope suffixes and shared defaults follow the same rules as
+     * resources()/pages().
+     */
+    public function bundle(ResourceBundle $bundle): static
+    {
+        $entries = $bundle->toArray();
+
+        return $this->resources($entries['resources'])->pages($entries['pages']);
     }
 
     /** @return array<string, SiteConfig> */
