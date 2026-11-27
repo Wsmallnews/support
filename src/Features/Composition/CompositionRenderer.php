@@ -63,17 +63,17 @@ class CompositionRenderer
      * @param  string  $purpose  Purpose slot, e.g. post-sidebar
      * @param  string  $module  Module id, the CompositionRegistry key
      * @param  array{scope_type: string, scope_id: int}|null  $compositionScopeable  Partition
-     *        the slot composition is stored in; null resolves to the site base (pages that
-     *        want a partition of their own pass it explicitly)
+     *                                                                               the slot composition is stored in; null resolves to the site base (pages that
+     *                                                                               want a partition of their own pass it explicitly)
      * @param  array  $params  Route parameters handed to the slot context provider
      * @param  Site|null  $site  Rendering site; type suffixes resolve against it, and both
-     *                          defaulted scopeables come from its base. Reaches providers
-     *                          as-is, so one that reads data returns nothing when it is null
+     *                           defaulted scopeables come from its base. Reaches providers
+     *                           as-is, so one that reads data returns nothing when it is null
      * @param  array{scope_type: string, scope_id: int}|null  $pageScopeable  Partition the
-     *        calling page shows its object in; the slot context resolves that object here.
-     *        Null resolves to the site base; when even that is unavailable the context
-     *        closure receives null and returns nothing — the composition's partition is
-     *        never borrowed
+     *                                                                        calling page shows its object in; the slot context resolves that object here.
+     *                                                                        Null resolves to the site base; when even that is unavailable the context
+     *                                                                        closure receives null and returns nothing — the composition's partition is
+     *                                                                        never borrowed
      * @return array|null{rows: array, position: string} Null when unresolved
      *
      * @throws InvalidScopeException when no composition partition can be resolved

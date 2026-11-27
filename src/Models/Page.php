@@ -104,7 +104,7 @@ class Page extends SupportModel implements HasSnSubject
      * row identity: a deleted, unpublished, or purpose-slot composition resolves to nothing.
      *
      * @param  Site|null  $site  Rendering site; each component type resolves its own declared
-     *                          suffixes against it. Without one, providers are skipped.
+     *                           suffixes against it. Without one, providers are skipped.
      * @return array CompositionRenderer::resolveRows() output
      */
     public function resolveRows(string $module, array $pageContext = [], ?Site $site = null): array
