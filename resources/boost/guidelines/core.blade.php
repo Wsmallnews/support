@@ -146,6 +146,7 @@ class Post extends SupportModel
 ```
 
 - `scope_type` + `scope_id` 由模型 trait `Models\Concerns\SiteScope` 提供（记录访问器 `getScopeable()` / `getScopeType()` / `getScopeId()` 与查询入口）；`scope_id = 0` 表示该类型下的全局作用域（不用 Laravel 原生 morph，正是因为 0 不是可指向的记录）。
+- 没有 scope 列的模型（用户、会员）use `Models\Concerns\SiteBaseScope` 声明自己的数据空间是绑定站点的 base：`getScopeable()` 返回站点 base，没有站点上下文时抛 `InvalidSiteException`。由模型自己声明，调用方仍然只读 `getScopeable()`，不替它回落 base。
 - 查询入口按意图分三类：`siteContext($subScope = null)`（前台，从站点派生，无 site 抛异常）/ `panelContext($scopeable)`（面板，必传注册声明 scope）/ `forScopeable($scopeable, withTenant: true)`（显式，记录自身 scope、console/queue、跨 scope 嵌入；父记录已锁死租户的关联查询传 `withTenant: false`）。租户轴：`scopeTenant()` / `forTenant($id)` / `allTenants()` / `tenantAggregate()`。
 - Filament 侧：`RequiresConfiguration`（基类契约：未注册时 scope/module 抛可读异常）、`CanBeConfigured`（按注册声明解析 scope）、`HasPanelScopedType`（后台树页面的容器类型解析：scope + 租户只算一次，容器缺失且非管理模式时创建）、`Resources\Concerns\ScopedQueries`（`applyScopeToQuery()`；面板有 tenancy 时租户条件交给 Filament 的全局作用域，无 tenancy 时补 `whereNull(team_id)`）、`Resources\Concerns\Pages\ForwardsResourceScope`（页面把 scope 转发给所属资源）。
 - 公用全局资源（member、user）**不需要** scopeable；可能多份存在的资源（post、product、link）才用。
@@ -237,7 +238,7 @@ CmsPlugin::make()
 | `Contracts\HasSnSubject` | 目标实体（内容） | `getSnSubjectId()` / `getSnSubjectTitle()` / `getSnSubjectDescription()` / `getSnSubjectCoverUrl()` |
 
 - `Concerns\UserIdentifiable` 是 `HasSnIdentifiable` 的 Eloquent 默认实现（映射 id / name / avatar_url / email），用户模型直接 use。
-- `HasSnSubject` 没有默认 trait，实现类自行编写（只含固有展示数据，不含跳转链接）。
+- 内容实体的 `HasSnSubject` 没有默认 trait，实现类自行编写（只含固有展示数据，不含跳转链接）。身份模型要同时当主体时 use `Concerns\IdentifiableSubject`，它把身份自己的值转给主体契约。
 - 跳转链接由调用方以 `href` prop 传入；panel 语境下未传时兜底 `FilamentModelHelper::getUrl()`。
 
 ### 多租户
@@ -302,7 +303,7 @@ CmsPlugin::make()
 | 配置模式 | `Filament\Concerns\{CanBeConfigured,HasMediaFilter}` |
 | 模型 / Casts / 枚举 | `Models\` / `Casts\` / `Enums\` |
 | 数据与契约 | `Data\` / `Contracts\` |
-| 通用 Traits | `Concerns\`（`UserIdentifiable`、`HasColumns`、`Install\`） |
+| 通用 Traits | `Concerns\`（`UserIdentifiable`、`IdentifiableSubject`、`HasColumns`、`Install\`） |
 | Livewire | `Livewire\Base`、`Livewire\Concerns\` |
 | 功能注册表 | `Features\{Search,Sitemap,Feed,Seo,Composition,Money,Modules}` |
 | 门面 | `Facades\{Search,Sitemap,Feed,Seo,CompositionRegistry,ScheduledTask,Support}` |
